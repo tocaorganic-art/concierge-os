@@ -95,8 +95,21 @@ export default function Billing() {
         </Select>
       </div>
 
-      {filtered.length === 0 ? (
-        <EmptyState icon={Receipt} title="Nenhuma cobrança" description="Adicione sua primeira cobrança." />
+      {billings.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
+            <DollarSign className="w-8 h-8 text-muted-foreground/50" />
+          </div>
+          <div className="text-center">
+            <p className="text-foreground font-medium mb-1">Nenhuma cobrança registrada ainda</p>
+            <p className="text-muted-foreground text-sm">Crie sua primeira cobrança para começar a acompanhar os recebimentos.</p>
+          </div>
+          <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+            <Plus className="w-4 h-4" /> Nova Cobrança
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState icon={Receipt} title="Nenhuma cobrança encontrada" description="Tente ajustar os filtros de busca." />
       ) : (
         <>
           {/* Desktop table */}
