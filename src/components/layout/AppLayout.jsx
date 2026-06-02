@@ -14,9 +14,11 @@ export default function AppLayout() {
         <Sidebar />
       </div>
 
-      {/* Mobile topbar + drawer */}
-      <MobileTopbar onMenuOpen={() => setDrawerOpen(true)} />
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      {/* Mobile topbar + drawer (hidden on desktop via component's own md:hidden) */}
+      <div className="md:hidden">
+        <MobileTopbar onMenuOpen={() => setDrawerOpen(true)} />
+        <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      </div>
 
       {/* Main content */}
       <main className="md:ml-64 min-h-screen pt-14 md:pt-0">

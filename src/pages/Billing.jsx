@@ -64,7 +64,7 @@ export default function Billing() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard title="Recebido no Mês" value={`R$ ${thisMonthReceived.toLocaleString("pt-BR")}`} icon={CheckCircle2} />
         <KpiCard title="Pendente" value={`R$ ${pendingTotal.toLocaleString("pt-BR")}`} icon={DollarSign} />
         <KpiCard title="Atrasado" value={`R$ ${overdueTotal.toLocaleString("pt-BR")}`} icon={AlertCircle} />
