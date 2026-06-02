@@ -1,0 +1,63 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo da tarefa"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da tarefa"
+    },
+    "horario": {
+      "type": "string",
+      "description": "Hor\u00e1rio da tarefa (HH:mm)"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da tarefa"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "chamada",
+        "visita",
+        "proposta",
+        "operacao"
+      ],
+      "description": "Tipo da tarefa"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente vinculado"
+    },
+    "client_nome": {
+      "type": "string",
+      "description": "Nome do cliente vinculado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "concluido"
+      ],
+      "default": "pendente",
+      "description": "Status da tarefa"
+    },
+    "prioridade": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "default": "media",
+      "description": "Prioridade da tarefa"
+    }
+  },
+  "required": [
+    "titulo"
+  ]
+}

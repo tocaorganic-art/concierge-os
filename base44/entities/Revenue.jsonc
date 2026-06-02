@@ -1,0 +1,27 @@
+{
+  "name": "Revenue",
+  "type": "object",
+  "properties": {
+    "mes": {
+      "type": "number",
+      "description": "M\u00eas (1-12)"
+    },
+    "ano": {
+      "type": "number",
+      "description": "Ano"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor da receita"
+    },
+    "num_propostas": {
+      "type": "number",
+      "description": "N\u00famero de propostas no per\u00edodo"
+    }
+  },
+  "required": [
+    "mes",
+    "ano",
+    "valor"
+  ]
+}

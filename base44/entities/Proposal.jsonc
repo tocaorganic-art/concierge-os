@@ -1,0 +1,61 @@
+{
+  "name": "Proposal",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente vinculado"
+    },
+    "client_nome": {
+      "type": "string",
+      "description": "Nome do cliente (cache)"
+    },
+    "destino": {
+      "type": "string",
+      "description": "Destino da viagem"
+    },
+    "data_chegada": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de chegada"
+    },
+    "data_saida": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de sa\u00edda"
+    },
+    "num_pax": {
+      "type": "number",
+      "description": "N\u00famero de passageiros"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor estimado da proposta"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "proposta",
+        "confirmado",
+        "concluido",
+        "cancelado"
+      ],
+      "default": "lead",
+      "description": "Status da proposta no pipeline"
+    },
+    "servicos": {
+      "type": "string",
+      "description": "Servi\u00e7os inclu\u00eddos na proposta"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es da proposta"
+    }
+  },
+  "required": [
+    "client_nome",
+    "destino",
+    "status"
+  ]
+}
