@@ -217,6 +217,9 @@ const translations = {
     pdf_status_concluido: "Concluído",
     pdf_status_cancelado: "Cancelado",
 
+    // Settings nav
+    nav_settings: "Configurações",
+
     // Currency
     currency_symbol: "R$",
     locale_date: "pt-BR",
@@ -424,6 +427,7 @@ const translations = {
     pdf_status_concluido: "Completed",
     pdf_status_cancelado: "Cancelled",
 
+    nav_settings: "Settings",
     currency_symbol: "$",
     locale_date: "en-US",
   },
@@ -630,6 +634,7 @@ const translations = {
     pdf_status_concluido: "Completado",
     pdf_status_cancelado: "Cancelado",
 
+    nav_settings: "Configuración",
     currency_symbol: "€",
     locale_date: "es-ES",
   },

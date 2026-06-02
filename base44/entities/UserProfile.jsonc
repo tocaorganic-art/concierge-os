@@ -1,0 +1,56 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio (refer\u00eancia ao User)"
+    },
+    "plan_id": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "starter",
+        "pro",
+        "agency"
+      ],
+      "default": "trial",
+      "description": "Plano atual do usu\u00e1rio"
+    },
+    "trial_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio do trial"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Nome da opera\u00e7\u00e3o/neg\u00f3cio"
+    },
+    "specialty": {
+      "type": "string",
+      "description": "Especialidade do operador"
+    },
+    "preferred_currency": {
+      "type": "string",
+      "enum": [
+        "BRL",
+        "USD",
+        "EUR"
+      ],
+      "default": "BRL",
+      "description": "Moeda preferida"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL do logo white-label"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Cor prim\u00e1ria white-label"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan_id"
+  ]
+}

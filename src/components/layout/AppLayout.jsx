@@ -15,25 +15,37 @@ export default function AppLayout() {
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then((u) => {
+    base44.auth.me().then(async (u) => {
       if (!u) return;
       setUser(u);
 
-      // Onboarding: show if first_login is not explicitly false
-      if (u.first_login !== false) {
-        setShowOnboarding(true);
-      }
+      // Onboarding
+      if (u.first_login !== false) setShowOnboarding(true);
 
-      // Trial: based on account creation date
-      const createdAt = new Date(u.created_date);
-      const now = new Date();
-      const diffDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
-      const daysLeft = 7 - diffDays;
-      // Only show banner if within trial window and no plan assigned
-      if (!u.plan && daysLeft >= 0) {
-        setTrialDaysLeft(daysLeft);
-      } else if (!u.plan && daysLeft < 0) {
-        setTrialDaysLeft(0); // expired
+      // Load plan from UserProfile
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_id: u.id });
+        let profile = profiles?.[0];
+        if (!profile) {
+          profile = await base44.entities.UserProfile.create({
+            user_id: u.id,
+            plan_id: "trial",
+            trial_start_date: new Date().toISOString().split("T")[0],
+          });
+        }
+        const planId = profile.plan_id || "trial";
+        if (planId === "trial") {
+          const startDate = profile.trial_start_date
+            ? new Date(profile.trial_start_date)
+            : new Date(u.created_date);
+          const diffDays = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24));
+          setTrialDaysLeft(7 - diffDays);
+        }
+      } catch {
+        // fallback to created_date
+        const createdAt = new Date(u.created_date);
+        const diffDays = Math.floor((new Date() - createdAt) / (1000 * 60 * 60 * 24));
+        setTrialDaysLeft(Math.max(0, 7 - diffDays));
       }
     }).catch(() => {});
   }, []);

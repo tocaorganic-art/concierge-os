@@ -12,20 +12,38 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClientProfileSheet from "@/components/clients/ClientProfileSheet";
+import UpgradeModal from "@/components/monetization/UpgradeModal";
 import { useLanguage } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+
+const STARTER_LIMIT = 5;
 
 export default function Clients() {
   const { t } = useLanguage();
+  const { plan, isLoading: planLoading } = usePlan();
   const [showForm, setShowForm] = useState(false);
   const [editClient, setEditClient] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState("all");
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("-created_date", 200),
   });
+
+  const isStarter = plan === "starter";
+  const atLimit = isStarter && clients.length >= STARTER_LIMIT;
+
+  const handleAddClient = () => {
+    if (atLimit) {
+      setShowUpgrade(true);
+      return;
+    }
+    setEditClient(null);
+    setShowForm(true);
+  };
 
   const filtered = clients.filter((c) => {
     const matchSearch = !search || c.nome?.toLowerCase().includes(search.toLowerCase()) || c.email?.toLowerCase().includes(search.toLowerCase());
@@ -37,9 +55,18 @@ export default function Clients() {
     <div>
       <PageHeader
         title={t("nav_clients")}
-        subtitle={`${clients.length} ${t("clients_registered")}`}
+        subtitle={
+          <span>
+            {clients.length} {t("clients_registered")}
+            {isStarter && (
+              <span className={`ml-2 font-mono text-[11px] px-2 py-0.5 rounded-full ${atLimit ? "bg-red-500/15 text-red-400" : "bg-primary/10 text-primary"}`}>
+                {clients.length}/{STARTER_LIMIT}
+              </span>
+            )}
+          </span>
+        }
         action={
-          <Button onClick={() => { setEditClient(null); setShowForm(true); }} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Button onClick={handleAddClient} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
             <Plus className="w-4 h-4" /> {t("btn_new_client")}
           </Button>
         }
@@ -131,7 +158,7 @@ export default function Clients() {
       )}
 
       <button
-        onClick={() => { setEditClient(null); setShowForm(true); }}
+        onClick={handleAddClient}
         className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
         aria-label={t("btn_new_client")}
       >
@@ -140,6 +167,13 @@ export default function Clients() {
 
       <ClientFormDialog open={showForm} onOpenChange={setShowForm} client={editClient} />
       <ClientProfileSheet client={selectedClient} onClose={() => setSelectedClient(null)} onEdit={(c) => { setEditClient(c); setShowForm(true); setSelectedClient(null); }} />
+
+      <UpgradeModal
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        title="Limite de clientes atingido"
+        description={`Você atingiu o limite de ${STARTER_LIMIT} clientes do Plano Starter. Faça upgrade para o Pro e tenha clientes ilimitados.`}
+      />
     </div>
   );
 }

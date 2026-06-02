@@ -11,9 +11,12 @@ import {
   Crown,
   LogOut,
   Star,
+  Settings,
+  Lock,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
 import LanguageSelector from "./LanguageSelector";
 
 const navKeys = [
@@ -22,14 +25,16 @@ const navKeys = [
   { key: "nav_clients", icon: Users, path: "/clientes" },
   { key: "nav_schedule", icon: CalendarDays, path: "/agenda" },
   { key: "nav_proposals", icon: FileText, path: "/propostas" },
-  { key: "nav_reports", icon: BarChart3, path: "/relatorios" },
+  { key: "nav_reports", icon: BarChart3, path: "/relatorios", requiresPro: true },
   { key: "nav_billing", icon: Receipt, path: "/faturamento" },
   { key: "nav_plans", icon: Star, path: "/planos" },
+  { key: "nav_settings", icon: Settings, path: "/configuracoes" },
 ];
 
 export default function Sidebar() {
   const location = useLocation();
   const { t } = useLanguage();
+  const { hasProAccess, plan } = usePlan();
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col z-50">
@@ -43,9 +48,7 @@ export default function Sidebar() {
             <h1 className="font-display text-lg font-bold text-foreground tracking-tight">
               Concierge<span className="text-primary">OS</span>
             </h1>
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-              Dashboard
-            </p>
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Dashboard</p>
           </div>
         </div>
       </div>
@@ -59,6 +62,7 @@ export default function Sidebar() {
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navKeys.map((item) => {
           const isActive = location.pathname === item.path;
+          const isLocked = item.requiresPro && !hasProAccess;
           return (
             <Link
               key={item.path}
@@ -72,10 +76,9 @@ export default function Sidebar() {
               <item.icon className={`w-[18px] h-[18px] transition-colors ${
                 isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
               }`} />
-              <span>{t(item.key)}</span>
-              {isActive && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
-              )}
+              <span className="flex-1">{t(item.key)}</span>
+              {isLocked && <Lock className="w-3 h-3 text-muted-foreground/50" />}
+              {isActive && !isLocked && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
             </Link>
           );
         })}

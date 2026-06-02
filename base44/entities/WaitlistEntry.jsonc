@@ -1,0 +1,40 @@
+{
+  "name": "WaitlistEntry",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Email do interessado"
+    },
+    "plan_id": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "pro",
+        "agency"
+      ],
+      "description": "Plano de interesse"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "annual"
+      ],
+      "default": "monthly",
+      "description": "Ciclo de cobran\u00e7a preferido"
+    },
+    "coupon_code": {
+      "type": "string",
+      "description": "C\u00f3digo de cupom informado"
+    },
+    "discount_pct": {
+      "type": "number",
+      "description": "Percentual de desconto aplicado"
+    }
+  },
+  "required": [
+    "email",
+    "plan_id"
+  ]
+}
