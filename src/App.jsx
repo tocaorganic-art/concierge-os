@@ -18,6 +18,7 @@ import Agenda from "@/pages/Agenda";
 import Proposals from "@/pages/Proposals";
 import Reports from "@/pages/Reports";
 import Billing from "@/pages/Billing";
+import Plans from "@/pages/Plans";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
           <Route path="/propostas" element={<Proposals />} />
           <Route path="/relatorios" element={<Reports />} />
           <Route path="/faturamento" element={<Billing />} />
+          <Route path="/planos" element={<Plans />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

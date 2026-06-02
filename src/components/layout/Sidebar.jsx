@@ -9,7 +9,8 @@ import {
   BarChart3,
   Receipt,
   Crown,
-  LogOut
+  LogOut,
+  Star,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -21,6 +22,7 @@ const navItems = [
   { label: "Propostas", icon: FileText, path: "/propostas" },
   { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
   { label: "Faturamento", icon: Receipt, path: "/faturamento" },
+  { label: "Planos", icon: Star, path: "/planos" },
 ];
 
 export default function Sidebar() {

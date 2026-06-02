@@ -14,24 +14,26 @@ const stages = [
   { key: "concluido", label: "Concluído", dotColor: "bg-primary" },
 ];
 
-function ProposalCard({ p, provided, snapshot }) {
+function ProposalCard({ p, provided, snapshot, onMoveLeft, onMoveRight, stageIdx }) {
   return (
     <div
       ref={provided?.innerRef}
       {...(provided?.draggableProps || {})}
       {...(provided?.dragHandleProps || {})}
-      className={`bg-card border border-border rounded-lg p-4 gold-border-hover cursor-grab active:cursor-grabbing transition-all ${
-        snapshot?.isDragging ? "shadow-lg shadow-primary/10 rotate-1" : ""
+      className={`bg-card border rounded-lg p-4 transition-all cursor-grab active:cursor-grabbing ${
+        snapshot?.isDragging
+          ? "border-primary/60 shadow-xl shadow-primary/20 opacity-90 rotate-1 scale-105"
+          : "border-border gold-border-hover"
       }`}
     >
       <p className="font-medium text-sm text-foreground mb-2">{p.client_nome}</p>
       <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1.5">
-        <MapPin className="w-3 h-3" />
-        <span>{p.destino}</span>
+        <MapPin className="w-3 h-3 flex-shrink-0" />
+        <span className="truncate">{p.destino}</span>
       </div>
       {p.data_chegada && (
         <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1.5">
-          <Calendar className="w-3 h-3" />
+          <Calendar className="w-3 h-3 flex-shrink-0" />
           <span>{new Date(p.data_chegada).toLocaleDateString("pt-BR")}</span>
         </div>
       )}
@@ -46,6 +48,25 @@ function ProposalCard({ p, provided, snapshot }) {
           R$ {p.valor?.toLocaleString("pt-BR")}
         </p>
       )}
+      {/* Mobile move buttons */}
+      {(onMoveLeft || onMoveRight) && (
+        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+          <button
+            onClick={onMoveLeft}
+            disabled={!onMoveLeft}
+            className="flex-1 py-1.5 rounded-md text-xs font-mono bg-secondary text-muted-foreground hover:bg-secondary/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            ← {stageIdx > 0 ? stages[stageIdx - 1].label : ""}
+          </button>
+          <button
+            onClick={onMoveRight}
+            disabled={!onMoveRight}
+            className="flex-1 py-1.5 rounded-md text-xs font-mono bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            {stageIdx < stages.length - 1 ? stages[stageIdx + 1].label : ""} →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -55,7 +76,7 @@ export default function Pipeline() {
   const [mobileStageIdx, setMobileStageIdx] = useState(0);
   const queryClient = useQueryClient();
 
-  const { data: proposals = [] } = useQuery({
+  const { data: proposals = [], isLoading } = useQuery({
     queryKey: ["proposals"],
     queryFn: () => base44.entities.Proposal.list("-created_date", 200),
   });
@@ -75,8 +96,25 @@ export default function Pipeline() {
     }
   };
 
+  const moveProposal = (proposalId, direction) => {
+    const proposal = proposals.find((p) => p.id === proposalId);
+    if (!proposal) return;
+    const currentIdx = stages.findIndex((s) => s.key === proposal.status);
+    const newIdx = currentIdx + direction;
+    if (newIdx < 0 || newIdx >= stages.length) return;
+    updateMutation.mutate({ id: proposalId, data: { status: stages[newIdx].key } });
+  };
+
   const currentStage = stages[mobileStageIdx];
   const mobileItems = proposals.filter((p) => p.status === currentStage.key);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -90,15 +128,16 @@ export default function Pipeline() {
         }
       />
 
-      {/* ── DESKTOP: Kanban 4 colunas ── */}
+      {/* ── DESKTOP: Kanban drag & drop ── */}
       <div className="hidden md:block">
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-4 gap-4">
             {stages.map((stage) => {
               const items = proposals.filter((p) => p.status === stage.key);
+              const colTotal = items.reduce((sum, p) => sum + (p.valor || 0), 0);
               return (
                 <div key={stage.key} className="bg-card/50 border border-border rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border">
+                  <div className="flex items-center gap-2 mb-1 pb-3 border-b border-border">
                     <div className={`w-2.5 h-2.5 rounded-full ${stage.dotColor}`} />
                     <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
                       {stage.label}
@@ -107,15 +146,23 @@ export default function Pipeline() {
                       {items.length}
                     </span>
                   </div>
+                  {colTotal > 0 && (
+                    <p className="font-display text-xs text-primary mb-3">
+                      R$ {colTotal.toLocaleString("pt-BR")}
+                    </p>
+                  )}
                   <Droppable droppableId={stage.key}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={`space-y-3 min-h-[200px] transition-colors rounded-lg p-1 ${
-                          snapshot.isDraggingOver ? "bg-primary/5" : ""
+                          snapshot.isDraggingOver ? "bg-primary/5 ring-1 ring-primary/20" : ""
                         }`}
                       >
+                        {items.length === 0 && !snapshot.isDraggingOver && (
+                          <p className="text-center text-xs text-muted-foreground/50 py-8">Arraste aqui</p>
+                        )}
                         {items.map((p, idx) => (
                           <Draggable key={p.id} draggableId={p.id} index={idx}>
                             {(provided, snapshot) => (
@@ -134,17 +181,10 @@ export default function Pipeline() {
         </DragDropContext>
       </div>
 
-      {/* ── MOBILE: Uma coluna por vez com setas ── */}
+      {/* ── MOBILE: Uma coluna com botões de mover ── */}
       <div className="md:hidden">
-        {/* Stage tabs */}
         <div className="flex items-center gap-2 mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileStageIdx((i) => Math.max(0, i - 1))}
-            disabled={mobileStageIdx === 0}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={() => setMobileStageIdx((i) => Math.max(0, i - 1))} disabled={mobileStageIdx === 0} className="h-8 w-8">
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <div className="flex-1 flex gap-1">
@@ -162,37 +202,34 @@ export default function Pipeline() {
               </button>
             ))}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileStageIdx((i) => Math.min(stages.length - 1, i + 1))}
-            disabled={mobileStageIdx === stages.length - 1}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={() => setMobileStageIdx((i) => Math.min(stages.length - 1, i + 1))} disabled={mobileStageIdx === stages.length - 1} className="h-8 w-8">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
-        {/* Stage header */}
         <div className="flex items-center gap-2 mb-3 px-1">
           <div className={`w-2.5 h-2.5 rounded-full ${currentStage.dotColor}`} />
-          <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            {currentStage.label}
-          </span>
-          <span className="font-mono text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
-            {mobileItems.length}
-          </span>
+          <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{currentStage.label}</span>
+          <span className="font-mono text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">{mobileItems.length}</span>
+          {mobileItems.length > 0 && (
+            <span className="ml-auto font-display text-xs text-primary">
+              R$ {mobileItems.reduce((s, p) => s + (p.valor || 0), 0).toLocaleString("pt-BR")}
+            </span>
+          )}
         </div>
 
-        {/* Cards */}
         <div className="space-y-3">
           {mobileItems.length === 0 && (
-            <div className="text-center py-12 text-sm text-muted-foreground">
-              Nenhuma proposta nesta etapa
-            </div>
+            <div className="text-center py-12 text-sm text-muted-foreground">Nenhuma proposta nesta etapa</div>
           )}
           {mobileItems.map((p) => (
-            <ProposalCard key={p.id} p={p} />
+            <ProposalCard
+              key={p.id}
+              p={p}
+              stageIdx={mobileStageIdx}
+              onMoveLeft={mobileStageIdx > 0 ? () => moveProposal(p.id, -1) : null}
+              onMoveRight={mobileStageIdx < stages.length - 1 ? () => moveProposal(p.id, 1) : null}
+            />
           ))}
         </div>
       </div>

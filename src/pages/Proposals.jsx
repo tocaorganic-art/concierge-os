@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, FileText, MapPin, Calendar } from "lucide-react";
+import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -90,11 +91,14 @@ export default function Proposals() {
                   <p className="font-medium text-foreground">{p.client_nome}</p>
                   <StatusBadge status={p.status} />
                 </div>
-                {p.valor > 0 && (
-                  <p className="font-display text-lg font-bold text-primary flex-shrink-0">
-                    R$ {p.valor.toLocaleString("pt-BR")}
-                  </p>
-                )}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {p.valor > 0 && (
+                    <p className="font-display text-lg font-bold text-primary">
+                      R$ {p.valor.toLocaleString("pt-BR")}
+                    </p>
+                  )}
+                  <ProposalPdfButton proposal={p} />
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1.5">
