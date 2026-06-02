@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from "@/components/shared/PageHeader";
@@ -17,7 +17,7 @@ export default function Agenda() {
   const [selectedDate, setSelectedDate] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading, isError } = useQuery({
     queryKey: ["tasks"],
     queryFn: () => base44.entities.Task.list("-data", 200),
   });
@@ -33,13 +33,8 @@ export default function Agenda() {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  const navigateWeek = (dir) => {
-    setCurrentDate((d) => addDays(d, dir * 7));
-  };
-
-  const navigateDay = (dir) => {
-    setCurrentDate((d) => addDays(d, dir));
-  };
+  const navigateWeek = (dir) => setCurrentDate((d) => addDays(d, dir * 7));
+  const navigateDay = (dir) => setCurrentDate((d) => addDays(d, dir));
 
   const getTasksForDate = (date) => {
     const dateStr = format(date, "yyyy-MM-dd");
@@ -47,6 +42,30 @@ export default function Agenda() {
       .filter((t) => t.data === dateStr)
       .sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
   };
+
+  const handleNewTask = () => {
+    setSelectedDate(format(currentDate, "yyyy-MM-dd"));
+    setShowForm(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <p className="text-muted-foreground text-sm">Erro ao carregar tarefas.</p>
+        <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["tasks"] })}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
 
   const TaskCard = ({ task }) => (
     <div
@@ -81,74 +100,121 @@ export default function Agenda() {
         title="Agenda"
         subtitle={format(currentDate, "MMMM yyyy", { locale: ptBR })}
         action={
-          <Button onClick={() => { setSelectedDate(format(currentDate, "yyyy-MM-dd")); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Button onClick={handleNewTask} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
             <Plus className="w-4 h-4" /> Nova Tarefa
           </Button>
         }
       />
 
       {/* View Toggle + Navigation */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 md:mb-6 gap-2">
         <Tabs value={view} onValueChange={setView}>
           <TabsList className="bg-secondary">
-            <TabsTrigger value="semana">Semana</TabsTrigger>
-            <TabsTrigger value="dia">Dia</TabsTrigger>
+            <TabsTrigger value="semana" className="text-xs md:text-sm">Semana</TabsTrigger>
+            <TabsTrigger value="dia" className="text-xs md:text-sm">Dia</TabsTrigger>
           </TabsList>
         </Tabs>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => (view === "semana" ? navigateWeek(-1) : navigateDay(-1))}>
+        <div className="flex items-center gap-1 md:gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => (view === "semana" ? navigateWeek(-1) : navigateDay(-1))}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="font-mono text-xs">
+          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="font-mono text-xs h-8 px-2">
             Hoje
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => (view === "semana" ? navigateWeek(1) : navigateDay(1))}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => (view === "semana" ? navigateWeek(1) : navigateDay(1))}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {view === "semana" ? (
-        <div className="grid grid-cols-7 gap-3">
-          {weekDays.map((day) => {
-            const dayTasks = getTasksForDate(day);
-            const isToday = isSameDay(day, new Date());
-            return (
-              <div key={day.toISOString()} className="min-h-[300px]">
-                <div className={`text-center mb-3 pb-2 border-b ${isToday ? "border-primary" : "border-border"}`}>
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {format(day, "EEE", { locale: ptBR })}
-                  </p>
-                  <p className={`font-display text-lg font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
-                    {format(day, "d")}
-                  </p>
+        <>
+          {/* Desktop: 7 colunas */}
+          <div className="hidden md:grid grid-cols-7 gap-3">
+            {weekDays.map((day) => {
+              const dayTasks = getTasksForDate(day);
+              const isToday = isSameDay(day, new Date());
+              return (
+                <div key={day.toISOString()} className="min-h-[300px]">
+                  <div className={`text-center mb-3 pb-2 border-b ${isToday ? "border-primary" : "border-border"}`}>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {format(day, "EEE", { locale: ptBR })}
+                    </p>
+                    <p className={`font-display text-lg font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
+                      {format(day, "d")}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {dayTasks.map((task) => (
+                      <TaskCard key={task.id} task={task} />
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  {dayTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
+              );
+            })}
+          </div>
+
+          {/* Mobile: lista dos dias da semana empilhados */}
+          <div className="md:hidden space-y-4">
+            {weekDays.map((day) => {
+              const dayTasks = getTasksForDate(day);
+              const isToday = isSameDay(day, new Date());
+              return (
+                <div key={day.toISOString()}>
+                  <div className={`flex items-center gap-3 mb-2 pb-2 border-b ${isToday ? "border-primary" : "border-border"}`}>
+                    <p className={`font-display text-base font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
+                      {format(day, "d")}
+                    </p>
+                    <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                      {format(day, "EEEE", { locale: ptBR })}
+                    </p>
+                    {isToday && <span className="ml-auto font-mono text-[10px] bg-primary/15 text-primary px-2 py-0.5 rounded-full">Hoje</span>}
+                  </div>
+                  {dayTasks.length === 0 ? (
+                    <p className="text-xs text-muted-foreground pl-1 pb-1">Sem tarefas</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {dayTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+                    </div>
+                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <div>
           <div className="text-center mb-6">
-            <p className="font-display text-2xl font-bold text-foreground">
+            <p className="font-display text-xl md:text-2xl font-bold text-foreground">
               {format(currentDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
           <div className="max-w-2xl mx-auto space-y-3">
-            {getTasksForDate(currentDate).length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-12">Nenhuma tarefa para este dia</p>
+            {getTasksForDate(currentDate).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <CalendarDays className="w-10 h-10 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Nenhuma tarefa para este dia</p>
+                <Button variant="outline" size="sm" onClick={handleNewTask}>
+                  <Plus className="w-4 h-4 mr-1" /> Adicionar tarefa
+                </Button>
+              </div>
+            ) : (
+              getTasksForDate(currentDate).map((task) => (
+                <TaskCard key={task.id} task={task} />
+              ))
             )}
-            {getTasksForDate(currentDate).map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
           </div>
         </div>
       )}
+
+      {/* FAB mobile */}
+      <button
+        onClick={handleNewTask}
+        className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+        aria-label="Nova Tarefa"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
 
       <TaskFormDialog open={showForm} onOpenChange={setShowForm} defaultDate={selectedDate} />
     </div>

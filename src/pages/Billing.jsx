@@ -20,7 +20,7 @@ export default function Billing() {
   const [filterStatus, setFilterStatus] = useState("all");
   const queryClient = useQueryClient();
 
-  const { data: billings = [] } = useQuery({
+  const { data: billings = [], isLoading } = useQuery({
     queryKey: ["billings"],
     queryFn: () => base44.entities.Billing.list("-created_date", 200),
   });
@@ -50,6 +50,14 @@ export default function Billing() {
 
   const pendingTotal = billings.filter((b) => b.status === "pendente").reduce((sum, b) => sum + (b.valor || 0), 0);
   const overdueTotal = billings.filter((b) => b.status === "atrasado").reduce((sum, b) => sum + (b.valor || 0), 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>

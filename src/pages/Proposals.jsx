@@ -22,7 +22,7 @@ export default function Proposals() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const { data: proposals = [] } = useQuery({
+  const { data: proposals = [], isLoading } = useQuery({
     queryKey: ["proposals"],
     queryFn: () => base44.entities.Proposal.list("-created_date", 200),
   });
@@ -35,6 +35,14 @@ export default function Proposals() {
     const matchStatus = filterStatus === "all" || p.status === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>

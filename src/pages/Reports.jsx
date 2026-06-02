@@ -19,20 +19,22 @@ const tooltipStyle = {
 };
 
 export default function Reports() {
-  const { data: revenues = [] } = useQuery({
+  const { data: revenues = [], isLoading: loadingRevenues } = useQuery({
     queryKey: ["revenues"],
     queryFn: () => base44.entities.Revenue.list("-ano", 24),
   });
 
-  const { data: proposals = [] } = useQuery({
+  const { data: proposals = [], isLoading: loadingProposals } = useQuery({
     queryKey: ["proposals"],
     queryFn: () => base44.entities.Proposal.list("-created_date", 500),
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: loadingClients } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("-valor_total", 200),
   });
+
+  const isLoading = loadingRevenues || loadingProposals || loadingClients;
 
   // Revenue by month
   const revenueData = revenues
@@ -81,6 +83,14 @@ export default function Reports() {
       {children}
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>
