@@ -5,11 +5,7 @@ import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2 } from "lu
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -52,13 +48,8 @@ export default function Billing() {
     })
     .reduce((sum, b) => sum + (b.valor || 0), 0);
 
-  const pendingTotal = billings
-    .filter((b) => b.status === "pendente")
-    .reduce((sum, b) => sum + (b.valor || 0), 0);
-
-  const overdueTotal = billings
-    .filter((b) => b.status === "atrasado")
-    .reduce((sum, b) => sum + (b.valor || 0), 0);
+  const pendingTotal = billings.filter((b) => b.status === "pendente").reduce((sum, b) => sum + (b.valor || 0), 0);
+  const overdueTotal = billings.filter((b) => b.status === "atrasado").reduce((sum, b) => sum + (b.valor || 0), 0);
 
   return (
     <div>
@@ -66,27 +57,27 @@ export default function Billing() {
         title="Faturamento"
         subtitle="Controle de cobranças e recebimentos"
         action={
-          <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
             <Plus className="w-4 h-4" /> Nova Cobrança
           </Button>
         }
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard title="Recebido no Mês" value={`R$ ${thisMonthReceived.toLocaleString("pt-BR")}`} icon={CheckCircle2} />
         <KpiCard title="Pendente" value={`R$ ${pendingTotal.toLocaleString("pt-BR")}`} icon={DollarSign} />
         <KpiCard title="Atrasado" value={`R$ ${overdueTotal.toLocaleString("pt-BR")}`} icon={AlertCircle} />
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-secondary border-border" />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-32 md:w-40 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
@@ -96,52 +87,93 @@ export default function Billing() {
         </Select>
       </div>
 
-      {/* Table */}
       {filtered.length === 0 ? (
         <EmptyState icon={Receipt} title="Nenhuma cobrança" description="Adicione sua primeira cobrança." />
       ) : (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Cliente</th>
-                <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Descrição</th>
-                <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Vencimento</th>
-                <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Status</th>
-                <th className="text-right px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Valor</th>
-                <th className="px-5 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((b) => (
-                <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
-                  <td className="px-5 py-3.5 text-sm font-medium text-foreground">{b.client_nome}</td>
-                  <td className="px-5 py-3.5 text-sm text-muted-foreground">{b.descricao || "—"}</td>
-                  <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">
-                    {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
-                  </td>
-                  <td className="px-5 py-3.5"><StatusBadge status={b.status} /></td>
-                  <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
-                    R$ {(b.valor || 0).toLocaleString("pt-BR")}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    {b.status !== "recebido" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-green-400 hover:text-green-300"
-                        onClick={() => toggleStatus.mutate({ id: b.id, status: "recebido" })}
-                      >
-                        Marcar recebido
-                      </Button>
-                    )}
-                  </td>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block bg-card border border-border rounded-xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Cliente</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Descrição</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Vencimento</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Status</th>
+                  <th className="text-right px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Valor</th>
+                  <th className="px-5 py-3"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((b) => (
+                  <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
+                    <td className="px-5 py-3.5 text-sm font-medium text-foreground">{b.client_nome}</td>
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground">{b.descricao || "—"}</td>
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">
+                      {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
+                    </td>
+                    <td className="px-5 py-3.5"><StatusBadge status={b.status} /></td>
+                    <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
+                      R$ {(b.valor || 0).toLocaleString("pt-BR")}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {b.status !== "recebido" && (
+                        <Button variant="ghost" size="sm" className="text-xs text-green-400 hover:text-green-300"
+                          onClick={() => toggleStatus.mutate({ id: b.id, status: "recebido" })}>
+                          Marcar recebido
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {filtered.map((b) => (
+              <div key={b.id} className="bg-card border border-border rounded-xl p-4 gold-border-hover">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-medium text-foreground text-sm">{b.client_nome}</p>
+                    {b.descricao && <p className="text-xs text-muted-foreground mt-0.5">{b.descricao}</p>}
+                  </div>
+                  <StatusBadge status={b.status} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-wider">Vencimento</p>
+                    <p className="text-sm text-foreground font-mono">
+                      {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
+                    </p>
+                  </div>
+                  <p className="font-display font-bold text-primary text-lg">
+                    R$ {(b.valor || 0).toLocaleString("pt-BR")}
+                  </p>
+                </div>
+                {b.status !== "recebido" && (
+                  <button
+                    onClick={() => toggleStatus.mutate({ id: b.id, status: "recebido" })}
+                    className="mt-3 w-full py-2 rounded-lg border border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-colors"
+                  >
+                    Marcar como recebido
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       )}
+
+      {/* FAB mobile */}
+      <button
+        onClick={() => { setEditBilling(null); setShowForm(true); }}
+        className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+        aria-label="Nova Cobrança"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
 
       <BillingFormDialog open={showForm} onOpenChange={setShowForm} billing={editBilling} />
     </div>

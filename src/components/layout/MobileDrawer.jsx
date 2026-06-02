@@ -1,0 +1,105 @@
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  KanbanSquare,
+  Users,
+  CalendarDays,
+  FileText,
+  BarChart3,
+  Receipt,
+  Crown,
+  LogOut,
+  X,
+} from "lucide-react";
+import { base44 } from "@/api/base44Client";
+
+const navItems = [
+  { label: "Visão Geral", icon: LayoutDashboard, path: "/" },
+  { label: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
+  { label: "Clientes", icon: Users, path: "/clientes" },
+  { label: "Agenda", icon: CalendarDays, path: "/agenda" },
+  { label: "Propostas", icon: FileText, path: "/propostas" },
+  { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
+  { label: "Faturamento", icon: Receipt, path: "/faturamento" },
+];
+
+export default function MobileDrawer({ open, onClose }) {
+  const location = useLocation();
+
+  // Close on route change
+  useEffect(() => { onClose(); }, [location.pathname]);
+
+  // Prevent body scroll when open
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 md:hidden">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      {/* Drawer panel */}
+      <div className="absolute left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border flex flex-col shadow-2xl animate-in slide-in-from-left duration-200">
+        {/* Header */}
+        <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-display text-lg font-bold text-foreground">
+                Concierge<span className="text-primary">OS</span>
+              </h1>
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Dashboard</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+                }`}
+              >
+                <item.icon className={`w-[18px] h-[18px] ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                <span>{item.label}</span>
+                {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 border-t border-sidebar-border">
+          <button
+            onClick={() => base44.auth.logout()}
+            className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all w-full"
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+            <span>Sair</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

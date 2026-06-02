@@ -57,5 +57,22 @@
     "client_nome",
     "destino",
     "status"
-  ]
+  ],
+  "rls": {
+    "enabled": true,
+    "rules": {
+      "select": {
+        "filter": "created_by_id = auth.uid() OR auth.role = 'admin'"
+      },
+      "insert": {
+        "check": "created_by_id = auth.uid()"
+      },
+      "update": {
+        "filter": "created_by_id = auth.uid() OR auth.role = 'admin'"
+      },
+      "delete": {
+        "filter": "created_by_id = auth.uid() OR auth.role = 'admin'"
+      }
+    }
+  }
 }

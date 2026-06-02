@@ -59,7 +59,7 @@ export default function Dashboard() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard
           title="Receita do Mês"
           value={`R$ ${monthRevenue.toLocaleString("pt-BR")}`}
@@ -86,7 +86,7 @@ export default function Dashboard() {
       </div>
 
       {/* Pipeline mini + Agenda */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <div className="xl:col-span-2">
           <DashboardPipeline proposals={proposals} />
         </div>
@@ -94,7 +94,7 @@ export default function Dashboard() {
       </div>
 
       {/* Revenue chart + Recent clients */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         <div className="xl:col-span-2">
           <DashboardRevenueChart revenues={revenues} />
         </div>
