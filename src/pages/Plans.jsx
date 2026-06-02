@@ -3,61 +3,15 @@ import { Star, Check, Zap, Building2, Crown, X, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PageHeader from "@/components/shared/PageHeader";
+import { useLanguage } from "@/lib/i18n";
 
-const plans = [
-  {
-    id: "starter",
-    name: "Starter",
-    price: "R$ 97",
-    period: "/mês",
-    icon: Zap,
-    popular: false,
-    description: "Perfeito para começar",
-    features: [
-      "Até 5 clientes ativos",
-      "Pipeline de vendas",
-      "Agenda de tarefas",
-      "Propostas básicas",
-      "Suporte por email",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "R$ 197",
-    period: "/mês",
-    icon: Star,
-    popular: true,
-    description: "O favorito dos concierges",
-    features: [
-      "Clientes ilimitados",
-      "Pipeline completo com D&D",
-      "PDF de proposta premium",
-      "Relatórios completos",
-      "Faturamento e cobranças",
-      "Suporte prioritário",
-    ],
-  },
-  {
-    id: "agency",
-    name: "Agency",
-    price: "R$ 397",
-    period: "/mês",
-    icon: Building2,
-    popular: false,
-    description: "Para operações maiores",
-    features: [
-      "Tudo do plano Pro",
-      "Multi-usuário",
-      "White-label",
-      "API access",
-      "Onboarding dedicado",
-      "SLA garantido",
-    ],
-  },
-];
+const planPrices = {
+  starter: { "pt-BR": "R$ 97", en: "$19", es: "€18" },
+  pro:     { "pt-BR": "R$ 197", en: "$39", es: "€37" },
+  agency:  { "pt-BR": "R$ 397", en: "$79", es: "€75" },
+};
 
-function WaitlistModal({ plan, onClose }) {
+function WaitlistModal({ plan, onClose, t }) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -72,9 +26,9 @@ function WaitlistModal({ plan, onClose }) {
           <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <Crown className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-foreground mb-2">Em breve</h2>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t("plans_coming_soon")}</h2>
           <p className="text-muted-foreground text-sm">
-            O plano <strong className="text-primary">{plan.name}</strong> estará disponível em breve. Entre na lista de espera e seja o primeiro a saber!
+            <strong className="text-primary">{plan.name}</strong> {t("plans_waitlist_desc")}
           </p>
         </div>
         {submitted ? (
@@ -82,26 +36,17 @@ function WaitlistModal({ plan, onClose }) {
             <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-3">
               <Check className="w-6 h-6 text-green-400" />
             </div>
-            <p className="text-foreground font-medium">Você está na lista!</p>
-            <p className="text-muted-foreground text-sm mt-1">Entraremos em contato em breve.</p>
+            <p className="text-foreground font-medium">{t("plans_on_list")}</p>
+            <p className="text-muted-foreground text-sm mt-1">{t("plans_contact_soon")}</p>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-9 bg-secondary border-border"
-              />
+              <Input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-9 bg-secondary border-border" />
             </div>
-            <Button
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-              onClick={() => email && setSubmitted(true)}
-            >
-              Entrar na lista de espera
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold" onClick={() => email && setSubmitted(true)}>
+              {t("plans_waitlist_cta")}
             </Button>
           </div>
         )}
@@ -111,24 +56,66 @@ function WaitlistModal({ plan, onClose }) {
 }
 
 export default function Plans() {
+  const { t, lang } = useLanguage();
   const [selectedPlan, setSelectedPlan] = useState(null);
+
+  const plans = [
+    {
+      id: "starter",
+      name: "Starter",
+      icon: Zap,
+      popular: false,
+      description: t("plan_starter_desc"),
+      features: [
+        t("plan_feature_clients_5"),
+        t("plan_feature_pipeline"),
+        t("plan_feature_schedule"),
+        t("plan_feature_proposals_basic"),
+        t("plan_feature_email_support"),
+      ],
+    },
+    {
+      id: "pro",
+      name: "Pro",
+      icon: Star,
+      popular: true,
+      description: t("plan_pro_desc"),
+      features: [
+        t("plan_feature_unlimited_clients"),
+        t("plan_feature_pipeline_dnd"),
+        t("plan_feature_pdf"),
+        t("plan_feature_reports"),
+        t("plan_feature_billing"),
+        t("plan_feature_priority_support"),
+      ],
+    },
+    {
+      id: "agency",
+      name: "Agency",
+      icon: Building2,
+      popular: false,
+      description: t("plan_agency_desc"),
+      features: [
+        t("plan_feature_pro_all"),
+        t("plan_feature_multiuser"),
+        t("plan_feature_whitelabel"),
+        t("plan_feature_api"),
+        t("plan_feature_onboarding"),
+        t("plan_feature_sla"),
+      ],
+    },
+  ];
 
   return (
     <div>
-      <PageHeader
-        title="Planos"
-        subtitle="Escolha o plano ideal para sua operação"
-      />
+      <PageHeader title={t("plans_title")} subtitle={t("plans_subtitle")} />
 
-      {/* Intro */}
-      <p className="text-muted-foreground text-sm mb-8 max-w-xl">
-        Todos os planos incluem período de teste de 7 dias. Cancele quando quiser, sem multas.
-      </p>
+      <p className="text-muted-foreground text-sm mb-8 max-w-xl">{t("plans_trial_note")}</p>
 
-      {/* Plans grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
         {plans.map((plan) => {
           const Icon = plan.icon;
+          const price = planPrices[plan.id][lang] || planPrices[plan.id]["pt-BR"];
           return (
             <div
               key={plan.id}
@@ -141,7 +128,7 @@ export default function Plans() {
               {plan.popular && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                   <span className="bg-primary text-primary-foreground text-[11px] font-mono uppercase tracking-wider px-3 py-1 rounded-full font-bold">
-                    ✦ Mais popular
+                    ✦ {t("plans_most_popular")}
                   </span>
                 </div>
               )}
@@ -157,8 +144,8 @@ export default function Plans() {
               </div>
 
               <div className="mb-6">
-                <span className="font-display text-3xl font-bold text-foreground">{plan.price}</span>
-                <span className="text-muted-foreground text-sm">{plan.period}</span>
+                <span className="font-display text-3xl font-bold text-foreground">{price}</span>
+                <span className="text-muted-foreground text-sm">{t("plans_per_month")}</span>
               </div>
 
               <ul className="space-y-2.5 flex-1 mb-6">
@@ -178,20 +165,19 @@ export default function Plans() {
                     : "bg-secondary text-foreground hover:bg-secondary/80"
                 }`}
               >
-                Assinar {plan.name}
+                {t("plans_subscribe")} {plan.name}
               </Button>
             </div>
           );
         })}
       </div>
 
-      {/* Trust note */}
       <p className="text-xs text-muted-foreground mt-8 text-center max-w-md mx-auto">
-        ✦ Pagamento seguro · Sem contratos · Cancele a qualquer momento
+        ✦ {t("plans_trust")}
       </p>
 
       {selectedPlan && (
-        <WaitlistModal plan={selectedPlan} onClose={() => setSelectedPlan(null)} />
+        <WaitlistModal plan={selectedPlan} onClose={() => setSelectedPlan(null)} t={t} />
       )}
     </div>
   );

@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { X } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 export default function TrialBanner({ daysLeft, onDismiss }) {
+  const { t } = useLanguage();
   if (daysLeft === null) return null;
 
   const expired = daysLeft <= 0;
@@ -13,12 +15,16 @@ export default function TrialBanner({ daysLeft, onDismiss }) {
     }`}>
       <span className="text-primary">✦</span>
       {expired ? (
-        <span>Seu período de teste encerrou. <Link to="/planos" className="underline text-primary font-semibold">Escolha um plano</Link> para continuar.</span>
+        <span>
+          {t("trial_expired")}{" "}
+          <Link to="/planos" className="underline text-primary font-semibold">{t("trial_choose_plan")}</Link>{" "}
+          {t("trial_to_continue")}
+        </span>
       ) : (
         <span>
-          Você está no período de teste —{" "}
-          <strong className="text-primary">{daysLeft} {daysLeft === 1 ? "dia restante" : "dias restantes"}</strong>.{" "}
-          <Link to="/planos" className="underline text-primary hover:text-primary/80 transition-colors">Ver Planos</Link>
+          {t("trial_banner")}{" "}
+          <strong className="text-primary">{daysLeft} {daysLeft === 1 ? t("trial_day_left") : t("trial_days_left")}</strong>.{" "}
+          <Link to="/planos" className="underline text-primary hover:text-primary/80 transition-colors">{t("trial_view_plans")}</Link>
         </span>
       )}
       {!expired && onDismiss && (

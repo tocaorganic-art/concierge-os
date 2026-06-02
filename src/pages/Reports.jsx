@@ -2,6 +2,7 @@ import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/shared/PageHeader";
+import { useLanguage } from "@/lib/i18n";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   LineChart, Line, PieChart, Pie, Cell,
@@ -19,6 +20,7 @@ const tooltipStyle = {
 };
 
 export default function Reports() {
+  const { t } = useLanguage();
   const { data: revenues = [], isLoading: loadingRevenues } = useQuery({
     queryKey: ["revenues"],
     queryFn: () => base44.entities.Revenue.list("-ano", 24),
@@ -97,7 +99,7 @@ export default function Reports() {
       <PageHeader title="Relatórios" subtitle="Análise de desempenho" />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <ChartCard title="Receita por Mês">
+        <ChartCard title={t("chart_revenue")}>
           {revenueData.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
           ) : (
@@ -113,7 +115,7 @@ export default function Reports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Taxa de Conversão (%)">
+        <ChartCard title={t("chart_conversion")}>
           {conversionData.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
           ) : (
@@ -129,7 +131,7 @@ export default function Reports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Top Clientes por Valor">
+        <ChartCard title={t("chart_top_clients")}>
           {topClients.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
           ) : (
@@ -158,7 +160,7 @@ export default function Reports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Sazonalidade de Demanda">
+        <ChartCard title={t("chart_seasonality")}>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={seasonality}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />

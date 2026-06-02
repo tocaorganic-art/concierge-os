@@ -8,10 +8,13 @@ import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import TaskFormDialog from "@/components/agenda/TaskFormDialog";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS, es } from "date-fns/locale";
+import { useLanguage } from "@/lib/i18n";
 
 export default function Agenda() {
-  const [view, setView] = useState("semana");
+  const { t, lang } = useLanguage();
+  const dateLocale = lang === "en" ? enUS : lang === "es" ? es : ptBR;
+  const [view, setView] = useState("dia");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -32,14 +35,13 @@ export default function Agenda() {
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
   const navigateWeek = (dir) => setCurrentDate((d) => addDays(d, dir * 7));
   const navigateDay = (dir) => setCurrentDate((d) => addDays(d, dir));
 
   const getTasksForDate = (date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return tasks
-      .filter((t) => t.data === dateStr)
+      .filter((tk) => tk.data === dateStr)
       .sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
   };
 
@@ -47,6 +49,35 @@ export default function Agenda() {
     setSelectedDate(format(currentDate, "yyyy-MM-dd"));
     setShowForm(true);
   };
+
+  const TaskCard = ({ task }) => (
+    <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
+      task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
+    }`}>
+      <button onClick={() => toggleTask.mutate(task)} className="mt-0.5 flex-shrink-0">
+        {task.status === "concluido" ? (
+          <CheckCircle2 className="w-5 h-5 text-green-400" />
+        ) : (
+          <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
+        )}
+      </button>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <p className={`text-sm font-medium leading-tight ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}>
+            {task.titulo}
+          </p>
+          {task.horario && (
+            <span className="font-mono text-xs font-bold text-primary flex-shrink-0">{task.horario}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap mt-1">
+          {task.tipo && <StatusBadge status={task.tipo} />}
+          {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
+          {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
+        </div>
+      </div>
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -67,70 +98,71 @@ export default function Agenda() {
     );
   }
 
-  const TaskCard = ({ task }) => (
-    <div
-      className={`flex items-start gap-2.5 p-3 rounded-lg border border-border transition-all gold-border-hover ${
-        task.status === "concluido" ? "opacity-50" : "bg-card"
-      }`}
-    >
-      <button onClick={() => toggleTask.mutate(task)} className="mt-0.5 flex-shrink-0">
-        {task.status === "concluido" ? (
-          <CheckCircle2 className="w-4 h-4 text-green-400" />
-        ) : (
-          <Circle className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
-        )}
-      </button>
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}>
-          {task.titulo}
-        </p>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          {task.horario && <span className="font-mono text-[11px] text-muted-foreground">{task.horario}</span>}
-          {task.tipo && <StatusBadge status={task.tipo} />}
-          {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
-          {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       <PageHeader
-        title="Agenda"
-        subtitle={format(currentDate, "MMMM yyyy", { locale: ptBR })}
+        title={t("nav_schedule")}
+        subtitle={format(currentDate, "MMMM yyyy", { locale: dateLocale })}
         action={
           <Button onClick={handleNewTask} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> Nova Tarefa
+            <Plus className="w-4 h-4" /> {t("btn_new_task")}
           </Button>
         }
       />
 
-      {/* View Toggle + Navigation */}
+      {/* Controls */}
       <div className="flex items-center justify-between mb-4 md:mb-6 gap-2">
-        <Tabs value={view} onValueChange={setView}>
-          <TabsList className="bg-secondary">
-            <TabsTrigger value="semana" className="text-xs md:text-sm">Semana</TabsTrigger>
-            <TabsTrigger value="dia" className="text-xs md:text-sm">Dia</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="hidden md:block">
+          <Tabs value={view} onValueChange={setView}>
+            <TabsList className="bg-secondary">
+              <TabsTrigger value="semana">{t("view_week")}</TabsTrigger>
+              <TabsTrigger value="dia">{t("view_day")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="md:hidden flex-1">
+          <p className="font-display text-base font-semibold text-foreground capitalize">
+            {format(currentDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
+          </p>
+        </div>
+
         <div className="flex items-center gap-1 md:gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => (view === "semana" ? navigateWeek(-1) : navigateDay(-1))}>
+          <Button variant="ghost" size="icon" className="h-8 w-8"
+            onClick={() => (view === "semana" && window.innerWidth >= 768 ? navigateWeek(-1) : navigateDay(-1))}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="font-mono text-xs h-8 px-2">
-            Hoje
+            {t("btn_today")}
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => (view === "semana" ? navigateWeek(1) : navigateDay(1))}>
+          <Button variant="ghost" size="icon" className="h-8 w-8"
+            onClick={() => (view === "semana" && window.innerWidth >= 768 ? navigateWeek(1) : navigateDay(1))}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {view === "semana" ? (
-        <>
-          {/* Desktop: 7 colunas */}
-          <div className="hidden md:grid grid-cols-7 gap-3">
+      {/* ── MOBILE: sempre view diária ── */}
+      <div className="md:hidden">
+        <div className="space-y-3">
+          {getTasksForDate(currentDate).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <CalendarDays className="w-10 h-10 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">{t("no_tasks_day")}</p>
+              <Button variant="outline" size="sm" onClick={handleNewTask}>
+                <Plus className="w-4 h-4 mr-1" /> {t("btn_add_task")}
+              </Button>
+            </div>
+          ) : (
+            getTasksForDate(currentDate).map((task) => <TaskCard key={task.id} task={task} />)
+          )}
+        </div>
+      </div>
+
+      {/* ── DESKTOP ── */}
+      <div className="hidden md:block">
+        {view === "semana" ? (
+          <div className="grid grid-cols-7 gap-3">
             {weekDays.map((day) => {
               const dayTasks = getTasksForDate(day);
               const isToday = isSameDay(day, new Date());
@@ -138,80 +170,47 @@ export default function Agenda() {
                 <div key={day.toISOString()} className="min-h-[300px]">
                   <div className={`text-center mb-3 pb-2 border-b ${isToday ? "border-primary" : "border-border"}`}>
                     <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      {format(day, "EEE", { locale: ptBR })}
+                      {format(day, "EEE", { locale: dateLocale })}
                     </p>
                     <p className={`font-display text-lg font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
                       {format(day, "d")}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    {dayTasks.map((task) => (
-                      <TaskCard key={task.id} task={task} />
-                    ))}
+                    {dayTasks.map((task) => <TaskCard key={task.id} task={task} />)}
                   </div>
                 </div>
               );
             })}
           </div>
-
-          {/* Mobile: lista dos dias da semana empilhados */}
-          <div className="md:hidden space-y-4">
-            {weekDays.map((day) => {
-              const dayTasks = getTasksForDate(day);
-              const isToday = isSameDay(day, new Date());
-              return (
-                <div key={day.toISOString()}>
-                  <div className={`flex items-center gap-3 mb-2 pb-2 border-b ${isToday ? "border-primary" : "border-border"}`}>
-                    <p className={`font-display text-base font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
-                      {format(day, "d")}
-                    </p>
-                    <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                      {format(day, "EEEE", { locale: ptBR })}
-                    </p>
-                    {isToday && <span className="ml-auto font-mono text-[10px] bg-primary/15 text-primary px-2 py-0.5 rounded-full">Hoje</span>}
-                  </div>
-                  {dayTasks.length === 0 ? (
-                    <p className="text-xs text-muted-foreground pl-1 pb-1">Sem tarefas</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {dayTasks.map((task) => <TaskCard key={task.id} task={task} />)}
-                    </div>
-                  )}
+        ) : (
+          <div>
+            <div className="text-center mb-6">
+              <p className="font-display text-2xl font-bold text-foreground capitalize">
+                {format(currentDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
+              </p>
+            </div>
+            <div className="max-w-2xl mx-auto space-y-3">
+              {getTasksForDate(currentDate).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <CalendarDays className="w-10 h-10 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">{t("no_tasks_day")}</p>
+                  <Button variant="outline" size="sm" onClick={handleNewTask}>
+                    <Plus className="w-4 h-4 mr-1" /> {t("btn_add_task")}
+                  </Button>
                 </div>
-              );
-            })}
+              ) : (
+                getTasksForDate(currentDate).map((task) => <TaskCard key={task.id} task={task} />)
+              )}
+            </div>
           </div>
-        </>
-      ) : (
-        <div>
-          <div className="text-center mb-6">
-            <p className="font-display text-xl md:text-2xl font-bold text-foreground">
-              {format(currentDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-            </p>
-          </div>
-          <div className="max-w-2xl mx-auto space-y-3">
-            {getTasksForDate(currentDate).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-4">
-                <CalendarDays className="w-10 h-10 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Nenhuma tarefa para este dia</p>
-                <Button variant="outline" size="sm" onClick={handleNewTask}>
-                  <Plus className="w-4 h-4 mr-1" /> Adicionar tarefa
-                </Button>
-              </div>
-            ) : (
-              getTasksForDate(currentDate).map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* FAB mobile */}
       <button
         onClick={handleNewTask}
         className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-        aria-label="Nova Tarefa"
+        aria-label={t("btn_new_task")}
       >
         <Plus className="w-6 h-6" />
       </button>

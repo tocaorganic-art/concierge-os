@@ -12,8 +12,10 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClientProfileSheet from "@/components/clients/ClientProfileSheet";
+import { useLanguage } from "@/lib/i18n";
 
 export default function Clients() {
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [editClient, setEditClient] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -34,38 +36,37 @@ export default function Clients() {
   return (
     <div>
       <PageHeader
-        title="Clientes"
-        subtitle={`${clients.length} clientes cadastrados`}
+        title={t("nav_clients")}
+        subtitle={`${clients.length} ${t("clients_registered")}`}
         action={
           <Button onClick={() => { setEditClient(null); setShowForm(true); }} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> Novo Cliente
+            <Plus className="w-4 h-4" /> {t("btn_new_client")}
           </Button>
         }
       />
 
-      {/* Filters */}
       <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-secondary border-border" />
+          <Input placeholder={t("placeholder_search_client")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-secondary border-border" />
         </div>
         <Select value={filterTipo} onValueChange={setFilterTipo}>
           <SelectTrigger className="w-32 md:w-40 bg-secondary border-border">
-            <SelectValue placeholder="Tipo" />
+            <SelectValue placeholder={t("field_type")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="familia">Família</SelectItem>
-            <SelectItem value="casal">Casal</SelectItem>
-            <SelectItem value="grupo">Grupo</SelectItem>
+            <SelectItem value="all">{t("filter_all_types")}</SelectItem>
+            <SelectItem value="familia">{t("type_family")}</SelectItem>
+            <SelectItem value="casal">{t("type_couple")}</SelectItem>
+            <SelectItem value="grupo">{t("type_group")}</SelectItem>
             <SelectItem value="vip">VIP</SelectItem>
-            <SelectItem value="corporativo">Corporativo</SelectItem>
+            <SelectItem value="corporativo">{t("type_corporate")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={User} title="Nenhum cliente encontrado" description="Adicione seu primeiro cliente para começar." />
+        <EmptyState icon={User} title={t("no_clients")} description={t("add_first_client")} />
       ) : (
         <>
           {/* Desktop table */}
@@ -73,11 +74,11 @@ export default function Clients() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Nome</th>
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Email</th>
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Telefone</th>
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Tipo</th>
-                  <th className="text-right px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Valor Total</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("field_name")}</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("field_email")}</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("field_phone")}</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("field_type")}</th>
+                  <th className="text-right px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("field_total_value")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +96,7 @@ export default function Clients() {
                     <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">{client.telefone || "—"}</td>
                     <td className="px-5 py-3.5">{client.tipo ? <StatusBadge status={client.tipo} /> : "—"}</td>
                     <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
-                      {client.valor_total ? `R$ ${client.valor_total.toLocaleString("pt-BR")}` : "—"}
+                      {client.valor_total ? `${t("currency_symbol")} ${client.valor_total.toLocaleString(t("locale_date"))}` : "—"}
                     </td>
                   </tr>
                 ))}
@@ -120,7 +121,7 @@ export default function Clients() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-mono text-xs">{client.telefone || "—"}</span>
                   {client.valor_total > 0 && (
-                    <span className="font-display font-bold text-primary">R$ {client.valor_total.toLocaleString("pt-BR")}</span>
+                    <span className="font-display font-bold text-primary">{t("currency_symbol")} {client.valor_total.toLocaleString(t("locale_date"))}</span>
                   )}
                 </div>
               </div>
@@ -129,11 +130,10 @@ export default function Clients() {
         </>
       )}
 
-      {/* FAB mobile */}
       <button
         onClick={() => { setEditClient(null); setShowForm(true); }}
         className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-        aria-label="Novo Cliente"
+        aria-label={t("btn_new_client")}
       >
         <Plus className="w-6 h-6" />
       </button>

@@ -14,20 +14,23 @@ import {
   Star,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/lib/i18n";
+import LanguageSelector from "./LanguageSelector";
 
-const navItems = [
-  { label: "Visão Geral", icon: LayoutDashboard, path: "/" },
-  { label: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
-  { label: "Clientes", icon: Users, path: "/clientes" },
-  { label: "Agenda", icon: CalendarDays, path: "/agenda" },
-  { label: "Propostas", icon: FileText, path: "/propostas" },
-  { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
-  { label: "Faturamento", icon: Receipt, path: "/faturamento" },
-  { label: "Planos", icon: Star, path: "/planos" },
+const navKeys = [
+  { key: "nav_overview", icon: LayoutDashboard, path: "/" },
+  { key: "nav_pipeline", icon: KanbanSquare, path: "/pipeline" },
+  { key: "nav_clients", icon: Users, path: "/clientes" },
+  { key: "nav_schedule", icon: CalendarDays, path: "/agenda" },
+  { key: "nav_proposals", icon: FileText, path: "/propostas" },
+  { key: "nav_reports", icon: BarChart3, path: "/relatorios" },
+  { key: "nav_billing", icon: Receipt, path: "/faturamento" },
+  { key: "nav_plans", icon: Star, path: "/planos" },
 ];
 
 export default function MobileDrawer({ open, onClose }) {
   const location = useLocation();
+  const { t } = useLanguage();
 
   // Close on route change
   useEffect(() => { onClose(); }, [location.pathname]);
@@ -70,9 +73,14 @@ export default function MobileDrawer({ open, onClose }) {
           </button>
         </div>
 
+        {/* Language selector */}
+        <div className="border-b border-sidebar-border">
+          <LanguageSelector />
+        </div>
+
         {/* Nav */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
+          {navKeys.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -85,7 +93,7 @@ export default function MobileDrawer({ open, onClose }) {
                 }`}
               >
                 <item.icon className={`w-[18px] h-[18px] ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                <span>{item.label}</span>
+                <span>{t(item.key)}</span>
                 {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
               </Link>
             );
@@ -98,7 +106,7 @@ export default function MobileDrawer({ open, onClose }) {
             className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all w-full"
           >
             <LogOut className="w-[18px] h-[18px]" />
-            <span>Sair</span>
+            <span>{t("nav_signout")}</span>
           </button>
         </div>
       </div>

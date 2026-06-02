@@ -8,8 +8,11 @@ import DashboardPipeline from "@/components/dashboard/DashboardPipeline";
 import DashboardAgenda from "@/components/dashboard/DashboardAgenda";
 import DashboardClients from "@/components/dashboard/DashboardClients";
 import DashboardRevenueChart from "@/components/dashboard/DashboardRevenueChart";
+import { useLanguage } from "@/lib/i18n";
 
 export default function Dashboard() {
+  const { t, lang } = useLanguage();
+
   const { data: proposals = [] } = useQuery({
     queryKey: ["proposals"],
     queryFn: () => base44.entities.Proposal.list("-created_date", 100),
@@ -30,10 +33,10 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Revenue.list("-ano", 12),
   });
 
-  // KPIs
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
+  const localeDate = t("locale_date");
 
   const monthRevenue = revenues
     .filter((r) => r.mes === currentMonth && r.ano === currentYear)
@@ -51,41 +54,41 @@ export default function Dashboard() {
     ? Math.round((confirmed / proposals.length) * 100)
     : 0;
 
+  const currSymbol = t("currency_symbol");
+
   return (
     <div>
       <PageHeader
-        title="Visão Geral"
-        subtitle={`${now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}`}
+        title={t("nav_overview")}
+        subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
       />
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard
-          title="Receita do Mês"
-          value={`R$ ${monthRevenue.toLocaleString("pt-BR")}`}
+          title={t("dash_monthly_revenue")}
+          value={`${currSymbol} ${monthRevenue.toLocaleString(localeDate)}`}
           icon={DollarSign}
           trend={12}
-          trendLabel="vs. mês anterior"
+          trendLabel={t("dash_vs_last_month")}
         />
         <KpiCard
-          title="Propostas Ativas"
+          title={t("dash_active_proposals")}
           value={activeProposals}
           icon={FileText}
         />
         <KpiCard
-          title="Taxa de Conversão"
+          title={t("dash_conversion_rate")}
           value={`${conversionRate}%`}
           icon={TrendingUp}
           trend={5}
         />
         <KpiCard
-          title="Clientes Ativos"
+          title={t("dash_active_clients")}
           value={clients.length}
           icon={Users}
         />
       </div>
 
-      {/* Pipeline mini + Agenda */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <div className="xl:col-span-2">
           <DashboardPipeline proposals={proposals} />
@@ -93,7 +96,6 @@ export default function Dashboard() {
         <DashboardAgenda tasks={tasks} />
       </div>
 
-      {/* Revenue chart + Recent clients */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         <div className="xl:col-span-2">
           <DashboardRevenueChart revenues={revenues} />

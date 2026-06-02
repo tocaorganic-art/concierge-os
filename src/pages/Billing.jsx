@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +15,7 @@ import KpiCard from "@/components/shared/KpiCard";
 import BillingFormDialog from "@/components/billing/BillingFormDialog";
 
 export default function Billing() {
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [editBilling, setEditBilling] = useState(null);
   const [search, setSearch] = useState("");
@@ -62,20 +64,20 @@ export default function Billing() {
   return (
     <div>
       <PageHeader
-        title="Faturamento"
-        subtitle="Controle de cobranças e recebimentos"
+        title={t("billing_title")}
+        subtitle={t("billing_subtitle")}
         action={
           <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> Nova Cobrança
+            <Plus className="w-4 h-4" /> {t("btn_new_charge")}
           </Button>
         }
       />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-        <KpiCard title="Recebido no Mês" value={`R$ ${thisMonthReceived.toLocaleString("pt-BR")}`} icon={CheckCircle2} />
-        <KpiCard title="Pendente" value={`R$ ${pendingTotal.toLocaleString("pt-BR")}`} icon={DollarSign} />
-        <KpiCard title="Atrasado" value={`R$ ${overdueTotal.toLocaleString("pt-BR")}`} icon={AlertCircle} />
+        <KpiCard title={t("billing_received_month")} value={`${t("currency_symbol")} ${thisMonthReceived.toLocaleString(t("locale_date"))}`} icon={CheckCircle2} />
+        <KpiCard title={t("billing_pending")} value={`${t("currency_symbol")} ${pendingTotal.toLocaleString(t("locale_date"))}`} icon={DollarSign} />
+        <KpiCard title={t("billing_overdue")} value={`${t("currency_symbol")} ${overdueTotal.toLocaleString(t("locale_date"))}`} icon={AlertCircle} />
       </div>
 
       {/* Filters */}
@@ -101,15 +103,15 @@ export default function Billing() {
             <DollarSign className="w-8 h-8 text-muted-foreground/50" />
           </div>
           <div className="text-center">
-            <p className="text-foreground font-medium mb-1">Nenhuma cobrança registrada ainda</p>
-            <p className="text-muted-foreground text-sm">Crie sua primeira cobrança para começar a acompanhar os recebimentos.</p>
+            <p className="text-foreground font-medium mb-1">{t("billing_no_charges")}</p>
+            <p className="text-muted-foreground text-sm">{t("billing_no_charges_desc")}</p>
           </div>
           <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> Nova Cobrança
+            <Plus className="w-4 h-4" /> {t("btn_new_charge")}
           </Button>
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Receipt} title="Nenhuma cobrança encontrada" description="Tente ajustar os filtros de busca." />
+        <EmptyState icon={Receipt} title={t("billing_no_charges_filtered")} description={t("billing_adjust_filters")} />
       ) : (
         <>
           {/* Desktop table */}
@@ -117,11 +119,11 @@ export default function Billing() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Cliente</th>
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Descrição</th>
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Vencimento</th>
-                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Status</th>
-                  <th className="text-right px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Valor</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("col_client")}</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("col_description")}</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("col_due_date")}</th>
+                  <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("col_status")}</th>
+                  <th className="text-right px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t("col_value")}</th>
                   <th className="px-5 py-3"></th>
                 </tr>
               </thead>
@@ -141,7 +143,7 @@ export default function Billing() {
                       {b.status !== "recebido" && (
                         <Button variant="ghost" size="sm" className="text-xs text-green-400 hover:text-green-300"
                           onClick={() => toggleStatus.mutate({ id: b.id, status: "recebido" })}>
-                          Marcar recebido
+                          {t("billing_mark_received")}
                         </Button>
                       )}
                     </td>
@@ -178,7 +180,7 @@ export default function Billing() {
                     onClick={() => toggleStatus.mutate({ id: b.id, status: "recebido" })}
                     className="mt-3 w-full py-2 rounded-lg border border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-colors"
                   >
-                    Marcar como recebido
+                    {t("billing_mark_received_full")}
                   </button>
                 )}
               </div>

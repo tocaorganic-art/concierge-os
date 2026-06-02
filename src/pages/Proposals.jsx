@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, FileText, MapPin, Calendar } from "lucide-react";
 import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
+import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +19,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import ProposalFormDialog from "@/components/proposals/ProposalFormDialog";
 
 export default function Proposals() {
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [editProposal, setEditProposal] = useState(null);
   const [search, setSearch] = useState("");
@@ -48,11 +50,11 @@ export default function Proposals() {
   return (
     <div>
       <PageHeader
-        title="Propostas"
-        subtitle={`${proposals.length} propostas registradas`}
+        title={t("nav_proposals")}
+        subtitle={`${proposals.length} ${t("proposals_registered")}`}
         action={
           <Button onClick={() => { setEditProposal(null); setShowForm(true); }} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> Nova Proposta
+            <Plus className="w-4 h-4" /> {t("btn_new_proposal")}
           </Button>
         }
       />
@@ -60,23 +62,23 @@ export default function Proposals() {
       <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar por cliente ou destino..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-secondary border-border" />
+          <Input placeholder={t("placeholder_search_proposal")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-secondary border-border" />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-32 md:w-40 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-32 md:w-40 bg-secondary border-border"><SelectValue placeholder={t("field_status")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="lead">Lead</SelectItem>
-            <SelectItem value="proposta">Proposta</SelectItem>
-            <SelectItem value="confirmado">Confirmado</SelectItem>
-            <SelectItem value="concluido">Concluído</SelectItem>
-            <SelectItem value="cancelado">Cancelado</SelectItem>
+            <SelectItem value="all">{t("filter_all")}</SelectItem>
+            <SelectItem value="lead">{t("status_lead")}</SelectItem>
+            <SelectItem value="proposta">{t("status_proposta")}</SelectItem>
+            <SelectItem value="confirmado">{t("status_confirmado")}</SelectItem>
+            <SelectItem value="concluido">{t("status_concluido")}</SelectItem>
+            <SelectItem value="cancelado">{t("status_cancelado")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={FileText} title="Nenhuma proposta" description="Crie sua primeira proposta para começar." />
+        <EmptyState icon={FileText} title={t("no_proposals")} description={t("create_first_proposal")} />
       ) : (
         <>
         <div className="grid gap-3">
@@ -94,7 +96,7 @@ export default function Proposals() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {p.valor > 0 && (
                     <p className="font-display text-lg font-bold text-primary">
-                      R$ {p.valor.toLocaleString("pt-BR")}
+                      {t("currency_symbol")} {p.valor.toLocaleString(t("locale_date"))}
                     </p>
                   )}
                   <ProposalPdfButton proposal={p} />
@@ -107,8 +109,8 @@ export default function Proposals() {
                 {p.data_chegada && (
                   <span className="flex items-center gap-1.5 text-xs">
                     <Calendar className="w-3.5 h-3.5" />
-                    {new Date(p.data_chegada).toLocaleDateString("pt-BR")}
-                    {p.data_saida && ` — ${new Date(p.data_saida).toLocaleDateString("pt-BR")}`}
+                    {new Date(p.data_chegada).toLocaleDateString(t("locale_date"))}
+                     {p.data_saida && ` — ${new Date(p.data_saida).toLocaleDateString(t("locale_date"))}`}
                   </span>
                 )}
                 {p.num_pax > 0 && <span className="font-mono text-xs">{p.num_pax} pax</span>}

@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/lib/i18n";
 
 export default function ProposalPdfButton({ proposal, variant = "ghost", size = "sm" }) {
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   const generatePdf = async () => {
     setLoading(true);
@@ -45,14 +47,14 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(...dimmed);
-      doc.text("PROPOSTA COMERCIAL", 20, 29);
+      doc.text(t("pdf_commercial_proposal"), 20, 29);
 
       // Concierge name (right)
       if (user?.full_name) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(...dimmed);
-        doc.text("Preparado por", W - 20, 18, { align: "right" });
+        doc.text(t("pdf_prepared_by"), W - 20, 18, { align: "right" });
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.setTextColor(...white);
@@ -99,22 +101,25 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
       };
 
       // Chegada
-      labelStyle(); doc.text("CHECK-IN", col1, infoY);
-      valueStyle(); doc.text(proposal.data_chegada ? new Date(proposal.data_chegada).toLocaleDateString("pt-BR") : "—", col1, infoY + 5);
+      labelStyle(); doc.text(t("pdf_checkin"), col1, infoY);
+      valueStyle(); doc.text(proposal.data_chegada ? new Date(proposal.data_chegada).toLocaleDateString(t("locale_date")) : "—", col1, infoY + 5);
 
       // Saída
-      labelStyle(); doc.text("CHECK-OUT", col2, infoY);
-      valueStyle(); doc.text(proposal.data_saida ? new Date(proposal.data_saida).toLocaleDateString("pt-BR") : "—", col2, infoY + 5);
+      labelStyle(); doc.text(t("pdf_checkout"), col2, infoY);
+      valueStyle(); doc.text(proposal.data_saida ? new Date(proposal.data_saida).toLocaleDateString(t("locale_date")) : "—", col2, infoY + 5);
 
       infoY += 18;
 
       // PAX
-      labelStyle(); doc.text("PASSAGEIROS", col1, infoY);
-      valueStyle(); doc.text(proposal.num_pax > 0 ? `${proposal.num_pax} pessoa${proposal.num_pax > 1 ? "s" : ""}` : "—", col1, infoY + 5);
+      labelStyle(); doc.text(t("pdf_guests"), col1, infoY);
+      valueStyle(); doc.text(proposal.num_pax > 0 ? `${proposal.num_pax}` : "—", col1, infoY + 5);
 
       // Status
-      const statusMap = { lead: "Lead", proposta: "Em análise", confirmado: "Confirmado", concluido: "Concluído", cancelado: "Cancelado" };
-      labelStyle(); doc.text("STATUS", col2, infoY);
+      const statusMap = {
+        lead: t("pdf_status_lead"), proposta: t("pdf_status_proposta"),
+        confirmado: t("pdf_status_confirmado"), concluido: t("pdf_status_concluido"), cancelado: t("pdf_status_cancelado"),
+      };
+      labelStyle(); doc.text(t("pdf_status"), col2, infoY);
       valueStyle(); doc.text(statusMap[proposal.status] || proposal.status || "—", col2, infoY + 5);
 
       y += 62;
@@ -124,7 +129,7 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
         doc.setTextColor(...gold);
-        doc.text("SERVIÇOS INCLUÍDOS", 20, y);
+        doc.text(t("pdf_services"), 20, y);
         y += 6;
 
         doc.setFont("helvetica", "normal");
@@ -166,12 +171,12 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.setTextColor(...dark);
-        doc.text("INVESTIMENTO TOTAL", W / 2, y + 8, { align: "center" });
+        doc.text(t("pdf_total_investment"), W / 2, y + 8, { align: "center" });
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
         doc.setTextColor(...dark);
-        doc.text(`R$ ${proposal.valor.toLocaleString("pt-BR")}`, W / 2, y + 20, { align: "center" });
+        doc.text(`${t("currency_symbol")} ${proposal.valor.toLocaleString(t("locale_date"))}`, W / 2, y + 20, { align: "center" });
         y += 36;
       }
 
@@ -185,8 +190,8 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
       doc.setTextColor(...dimmed);
-      const today = new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
-      doc.text(`Proposta gerada em ${today} · Concierge OS`, W / 2, H - 9, { align: "center" });
+      const today = new Date().toLocaleDateString(t("locale_date"), { day: "numeric", month: "long", year: "numeric" });
+      doc.text(`${t("pdf_generated_on")} ${today} · Concierge OS`, W / 2, H - 9, { align: "center" });
 
       // Bottom gold bar
       doc.setFillColor(...gold);
@@ -206,7 +211,7 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
       onClick={(e) => { e.stopPropagation(); generatePdf(); }}
       disabled={loading}
       className="gap-1.5 text-muted-foreground hover:text-primary"
-      title="Gerar PDF da proposta"
+      title={t("btn_generate_pdf")}
     >
       {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
       <span className="hidden sm:inline">PDF</span>

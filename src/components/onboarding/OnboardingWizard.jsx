@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Crown, ChevronRight, Check, X } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +10,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-const STEPS = ["Bem-vindo", "Primeiro cliente", "Primeira proposta"];
-
 export default function OnboardingWizard({ user, onComplete }) {
+  const { t } = useLanguage();
   const [step, setStep] = useState(0);
+  const STEPS = [t("onboard_welcome"), t("onboard_first_client"), t("onboard_first_proposal")];
   const [businessName, setBusinessName] = useState(user?.full_name || "");
   const [specialty, setSpecialty] = useState("");
   const [createdClient, setCreatedClient] = useState(null);
@@ -58,7 +59,7 @@ export default function OnboardingWizard({ user, onComplete }) {
           onClick={finish}
           className="absolute -top-10 right-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          Pular configuração <X className="w-3 h-3" />
+          {t("onboard_skip_config")} <X className="w-3 h-3" />
         </button>
 
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
@@ -110,12 +111,12 @@ export default function OnboardingWizard({ user, onComplete }) {
                 </p>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    Como você quer chamar sua operação?
+                    {t("onboard_business_name_q")}
                   </Label>
                   <Input
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="Ex: Viagens do João, Luxe Travel..."
+                    placeholder={t("onboard_business_name_placeholder")}
                     className="mt-1.5 bg-secondary border-border"
                   />
                 </div>
@@ -138,13 +139,13 @@ export default function OnboardingWizard({ user, onComplete }) {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
-                    Pular
+                    {t("onboard_skip")}
                   </Button>
                   <Button
                     className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
                     onClick={() => setStep(1)}
                   >
-                    Continuar <ChevronRight className="w-4 h-4" />
+                    {t("onboard_continue")} <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -153,9 +154,9 @@ export default function OnboardingWizard({ user, onComplete }) {
             {/* STEP 1 */}
             {step === 1 && (
               <div className="space-y-4">
-                <p className="text-muted-foreground text-sm">Adicione seu primeiro cliente para começar a usar o pipeline.</p>
+                <p className="text-muted-foreground text-sm">{t("onboard_client_desc")}</p>
                 <div>
-                  <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Nome *</Label>
+                  <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("field_name")} *</Label>
                   <Input value={clientForm.nome} onChange={(e) => setClientForm(f => ({ ...f, nome: e.target.value }))} className="mt-1.5 bg-secondary border-border" placeholder="Nome completo" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -183,14 +184,14 @@ export default function OnboardingWizard({ user, onComplete }) {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
-                    Pular por agora
+                    {t("onboard_skip")}
                   </Button>
                   <Button
                     className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
                     disabled={!clientForm.nome || createClient.isPending}
                     onClick={() => createClient.mutate(clientForm)}
                   >
-                    {createClient.isPending ? "Salvando..." : "Adicionar →"}
+                    {createClient.isPending ? t("btn_save") + "..." : t("onboard_add") + " →"}
                   </Button>
                 </div>
               </div>
@@ -200,7 +201,7 @@ export default function OnboardingWizard({ user, onComplete }) {
             {step === 2 && (
               <div className="space-y-4">
                 <p className="text-muted-foreground text-sm">
-                  {createdClient ? `Ótimo! Crie uma proposta para ${createdClient.nome}.` : "Crie sua primeira proposta de viagem."}
+                  {createdClient ? `${t("onboard_proposal_desc_client")} ${createdClient.nome}.` : t("onboard_proposal_desc")}
                 </p>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente</Label>
@@ -226,7 +227,7 @@ export default function OnboardingWizard({ user, onComplete }) {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="outline" className="flex-1" onClick={finish}>
-                    Pular por agora
+                    {t("onboard_skip")}
                   </Button>
                   <Button
                     className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
@@ -241,7 +242,7 @@ export default function OnboardingWizard({ user, onComplete }) {
                       status: "lead",
                     })}
                   >
-                    {createProposal.isPending ? "Criando..." : "✦ Criar proposta"}
+                    {createProposal.isPending ? t("btn_save") + "..." : `✦ ${t("onboard_create_proposal")}`}
                   </Button>
                 </div>
               </div>
