@@ -7,19 +7,19 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const STRIPE_PK = "pk_test_51THAMTRX4Ldl6df54rIqLtTN7csl8rLT32GwcloBxGPxdp7DSt3TKDGqqo5kIImeF8BLjH3hhgESnao6NCY6TRJL00VepMsogH";
 
-// Price IDs criados no Stripe
+// Price IDs reais do Stripe (gerados via stripeSetup em 2026-06-03)
 const PRICE_IDS = {
   starter: {
-    mensal: "price_1Te3cXRX4Ldl6df5IAh3yfD1",
-    anual:  "price_1Te3cYRX4Ldl6df5cHN3kxVi",
+    mensal: "price_1Te7qJRX4Ldl6df54K6Y5Gk5",
+    anual:  "price_1Te7qJRX4Ldl6df5DiM3j04Z",
   },
   pro: {
-    mensal: "price_1Te3cYRX4Ldl6df5SQnau1tk",
-    anual:  "price_1Te3cYRX4Ldl6df5uIFG7JdT",
+    mensal: "price_1Te7qKRX4Ldl6df5hChLwuSH",
+    anual:  "price_1Te7qKRX4Ldl6df5N4CZunsQ",
   },
   agency: {
-    mensal: "price_1Te3cYRX4Ldl6df5mOBWn42n",
-    anual:  "price_1Te3cZRX4Ldl6df5hyAyMxC9",
+    mensal: "price_1Te7qKRX4Ldl6df5GvlzcCEz",
+    anual:  "price_1Te7qKRX4Ldl6df5F5dh32i7",
   },
 };
 

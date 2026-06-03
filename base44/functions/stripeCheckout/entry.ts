@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.21.0';
 
-const APP_URL = "https://amazing-elite-concierge-flow.base44.app";
+const APP_URL = "https://toca-tr-ia-copy-5aa120a0.base44.app";
 
 Deno.serve(async (req) => {
   try {
