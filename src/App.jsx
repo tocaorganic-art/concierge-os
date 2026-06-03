@@ -27,6 +27,7 @@ import ClientPortal from "@/pages/ClientPortal";
 import Parceiros from "@/pages/Parceiros";
 import ConciergeKPIs from "@/pages/ConciergeKPIs";
 import ClientProfile from "@/pages/ClientProfile";
+import Obrigado from "@/pages/Obrigado";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -50,6 +51,7 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      <Route path="/obrigado" element={<Obrigado />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
