@@ -1,170 +1,171 @@
-import React from "react";
-import { Sparkles, Brain, Calendar, FileText, BarChart3, MessageCircle, Zap, Star } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Sparkles, Send, Bot, User, Loader2, Trash2, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { generateWithAI } from "@/functions/generateWithAI";
 import PageHeader from "@/components/shared/PageHeader";
+import { base44 } from "@/api/base44Client";
 
-const features = [
-  {
-    icon: Calendar,
-    title: "Agenda Inteligente",
-    badge: "Agenda",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    items: [
-      "\"Sugerir horário com IA\" analisa seus compromissos e encontra o melhor slot livre",
-      "Lembretes automáticos: notificação 1h e 15min antes de cada tarefa",
-      "Exportar qualquer tarefa diretamente para o Google Calendar com 1 clique",
-      "Campo \"lembrar com antecedência\" (15min, 30min, 1h, 1 dia)",
-    ],
-  },
-  {
-    icon: FileText,
-    title: "Propostas com IA",
-    badge: "Propostas",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    items: [
-      "\"Gerar com IA\" cria proposta completa com título, serviços e descrição personalizada",
-      "Suporte a 6 tipos: Viagem de luxo, Casamento, Evento corporativo e mais",
-      "Faça upload de proposta existente (PDF/DOCX) como referência de estilo",
-      "Edite antes de salvar — a IA é um ponto de partida, você finaliza",
-    ],
-  },
-  {
-    icon: BarChart3,
-    title: "Relatórios Avançados",
-    badge: "Relatórios",
-    color: "text-green-400",
-    bg: "bg-green-500/10",
-    items: [
-      "Gráfico de funil: Lead → Proposta → Confirmado → Concluído com % de conversão",
-      "Painel de recomendações: 3 insights acionáveis gerados pela IA com seus dados reais",
-      "Receita acumulada com área chart + Top 5 clientes + distribuição por tipo",
-      "Exportar relatório completo em PDF com todos os gráficos",
-    ],
-  },
-  {
-    icon: MessageCircle,
-    title: "WhatsApp Integrado",
-    badge: "Clientes & Propostas",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    items: [
-      "Botão WhatsApp em cada cliente abre conversa direta com mensagem pré-formatada",
-      "\"Enviar via WhatsApp\" em propostas gera mensagem completa com todos os detalhes",
-      "Tarefas do tipo Chamada: botão \"Iniciar WhatsApp\" para o cliente vinculado",
-      "4 templates prontos + gerador livre de mensagens via IA",
-    ],
-  },
+const SUGGESTIONS = [
+  "Como aumentar minha taxa de conversão de leads?",
+  "Escreva uma proposta para viagem de lua de mel em Paris",
+  "Quais perguntas fazer na primeira reunião com um cliente VIP?",
+  "Como estruturar um follow-up após 7 dias sem resposta?",
+  "Dicas para fechar mais propostas de alto valor",
 ];
 
-const AiBadge = () => (
-  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20">
-    ✦ IA
-  </span>
-);
+function ChatMessage({ msg }) {
+  const isUser = msg.role === "user";
+  return (
+    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+      <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${isUser ? "bg-primary/20" : "bg-primary/10 border border-primary/20"}`}>
+        {isUser ? <User className="w-4 h-4 text-primary" /> : <Sparkles className="w-4 h-4 text-primary" />}
+      </div>
+      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${isUser ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-card border border-border text-foreground rounded-tl-sm"}`}>
+        {msg.content}
+      </div>
+    </div>
+  );
+}
 
 export default function TocaTrIA() {
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content: "Olá! Sou a Toca TrIA ✦\n\nSou sua assistente de IA especializada em concierge e turismo de luxo. Posso ajudar com propostas, estratégias de vendas, follow-up de clientes, gestão de agenda e muito mais.\n\nComo posso te ajudar hoje?",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [userContext, setUserContext] = useState("");
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    base44.auth.me().then((u) => {
+      if (u) setUserContext(`Nome: ${u.full_name || ""}, Email: ${u.email || ""}`);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const send = async (text) => {
+    const content = text || input.trim();
+    if (!content || loading) return;
+    setInput("");
+
+    const userMsg = { role: "user", content };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setLoading(true);
+
+    const res = await generateWithAI({
+      type: "chat",
+      payload: {
+        messages: newMessages,
+        user_context: userContext,
+      },
+    });
+
+    setMessages([...newMessages, { role: "assistant", content: res.data.result }]);
+    setLoading(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([{
+      role: "assistant",
+      content: "Chat reiniciado ✦\n\nComo posso te ajudar?",
+    }]);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto pb-16">
-      <PageHeader
-        title="Toca TrIA"
-        subtitle="Inteligência artificial integrada em todas as funcionalidades"
-      />
-
-      {/* Hero */}
-      <div className="relative bg-card border border-primary/20 rounded-2xl p-8 mb-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Bem-vindo à Toca TrIA</h2>
-              <p className="text-sm text-muted-foreground">Powered by Claude AI (Anthropic)</p>
-            </div>
+    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-80px)]">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-primary" />
           </div>
-          <p className="text-foreground/80 text-sm leading-relaxed max-w-2xl">
-            A Toca TrIA é a evolução do Concierge OS — uma plataforma onde a inteligência artificial trabalha junto
-            com você para automatizar tarefas repetitivas, gerar propostas profissionais e extrair insights do seu pipeline.
-            Cada recurso marcado com <AiBadge /> usa IA real para tornar seu trabalho mais inteligente.
-          </p>
-        </div>
-      </div>
-
-      {/* Features grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        {features.map((f) => {
-          const Icon = f.icon;
-          return (
-            <div key={f.title} className="bg-card border border-border rounded-xl p-6 hover:border-primary/30 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-9 h-9 rounded-lg ${f.bg} flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 ${f.color}`} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-display font-semibold text-foreground">{f.title}</h3>
-                    <AiBadge />
-                  </div>
-                  <p className="text-[11px] font-mono text-muted-foreground">{f.badge}</p>
-                </div>
-              </div>
-              <ul className="space-y-2">
-                {f.items.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-foreground/75">
-                    <Zap className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* How it works */}
-      <div className="bg-card border border-border rounded-xl p-6 mb-8">
-        <h2 className="font-display text-lg font-bold text-foreground mb-5 flex items-center gap-2">
-          <Brain className="w-5 h-5 text-primary" /> Como funciona a IA
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { step: "01", title: "Você fornece o contexto", desc: "Informe dados básicos como cliente, destino, tipo de serviço ou objetivo da mensagem." },
-            { step: "02", title: "IA gera o conteúdo", desc: "Claude (Anthropic) processa seus dados e gera proposta, mensagem ou análise personalizada em segundos." },
-            { step: "03", title: "Você revisa e usa", desc: "Todo conteúdo pode ser editado antes de salvar. A IA sugere, você decide." },
-          ].map((s) => (
-            <div key={s.step} className="flex gap-3">
-              <span className="font-mono text-2xl font-bold text-primary/30">{s.step}</span>
-              <div>
-                <p className="font-semibold text-sm text-foreground mb-1">{s.title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tips */}
-      <div className="bg-primary/5 border border-primary/15 rounded-xl p-5">
-        <div className="flex items-start gap-3">
-          <Star className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-foreground mb-2">Dicas para melhores resultados</p>
-            <ul className="space-y-1.5">
-              {[
-                "Quanto mais detalhes você fornecer, mais personalizada será a resposta da IA",
-                "Em propostas, use o campo de observações para informar preferências específicas do cliente",
-                "No gerador de mensagens WhatsApp, descreva o contexto da conversa para mensagens mais precisas",
-                "As recomendações de Relatórios são mais precisas com mais dados históricos no pipeline",
-              ].map((tip) => (
-                <li key={tip} className="text-xs text-muted-foreground flex items-start gap-2">
-                  <span className="text-primary">✦</span> {tip}
-                </li>
-              ))}
-            </ul>
+            <h1 className="font-display text-xl font-bold text-foreground">Toca TrIA</h1>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+              Assistente IA · Concierge OS
+            </p>
           </div>
         </div>
+        <Button variant="ghost" size="icon" onClick={clearChat} title="Limpar conversa">
+          <Trash2 className="w-4 h-4 text-muted-foreground" />
+        </Button>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-2">
+        {messages.map((msg, i) => (
+          <ChatMessage key={i} msg={msg} />
+        ))}
+
+        {loading && (
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-primary/10 border border-primary/20">
+              <Sparkles className="w-4 h-4 text-primary" />
+            </div>
+            <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
+              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+              <span className="text-sm text-muted-foreground">Pensando...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Suggestions (only when 1 message) */}
+        {messages.length === 1 && !loading && (
+          <div className="space-y-2 pt-2">
+            <p className="text-xs text-muted-foreground pl-11">Sugestões para começar:</p>
+            <div className="flex flex-wrap gap-2 pl-11">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  className="text-xs bg-card border border-border hover:border-primary/30 text-foreground/70 hover:text-foreground px-3 py-1.5 rounded-full transition-all"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="pt-3 border-t border-border">
+        <div className="flex gap-2 items-end bg-card border border-border rounded-xl p-2">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Pergunte qualquer coisa sobre concierge, propostas, clientes..."
+            className="flex-1 min-h-[44px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none text-sm p-1"
+            rows={1}
+          />
+          <Button
+            size="icon"
+            onClick={() => send()}
+            disabled={!input.trim() || loading}
+            className="h-9 w-9 flex-shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+        <p className="text-[10px] text-muted-foreground text-center mt-1.5">Enter para enviar · Shift+Enter para nova linha</p>
       </div>
     </div>
   );

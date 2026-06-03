@@ -94,6 +94,34 @@ Responda apenas com JSON puro (sem markdown):
     { "titulo": "...", "descricao": "...", "tipo": "..." }
   ]
 }`;
+    } else if (type === "chat") {
+      const { messages: chatHistory, user_context } = payload;
+      const systemPrompt = `Você é a Toca TrIA, a assistente de IA do Concierge OS — uma plataforma para operadores de turismo de luxo e concierge no Brasil.
+
+Você ajuda com:
+- Criação e melhoria de propostas comerciais
+- Estratégias de vendas e follow-up de leads
+- Gestão de clientes e relacionamento
+- Organização de agenda e tarefas
+- Insights sobre o pipeline de vendas
+- Dicas de concierge, turismo de luxo e hospitalidade
+- Comunicação profissional (WhatsApp, email, etc.)
+
+Contexto do usuário: ${user_context || "operador de concierge"}
+
+Seja direta, prática e amigável. Responda sempre em português brasileiro. Use emojis com moderação quando apropriado.`;
+
+      const formattedMessages = chatHistory.map(m => ({ role: m.role, content: m.content }));
+
+      const message = await anthropic.messages.create({
+        model: "claude-opus-4-5",
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: formattedMessages,
+      });
+
+      return Response.json({ result: message.content[0].text.trim() });
+
     } else if (type === "schedule_suggestion") {
       const { tasks_today, new_task_duration } = payload;
       const occupied = tasks_today.filter(t => t.horario).map(t => t.horario).sort();
