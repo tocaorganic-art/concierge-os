@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, User } from "lucide-react";
+import { Plus, Search, User, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,7 @@ import ClientProfileSheet from "@/components/clients/ClientProfileSheet";
 import UpgradeModal from "@/components/monetization/UpgradeModal";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
+import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 
 const STARTER_LIMIT = 5;
 
@@ -27,6 +28,7 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState("all");
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [whatsappClient, setWhatsappClient] = useState(null);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
@@ -120,7 +122,16 @@ export default function Clients() {
                       </div>
                     </td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{client.email || "—"}</td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">{client.telefone || "—"}</td>
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">
+                      <div className="flex items-center gap-2">
+                        <span>{client.telefone || "—"}</span>
+                        {client.telefone && (
+                          <button onClick={(e) => { e.stopPropagation(); setWhatsappClient(client); }} className="text-green-400 hover:text-green-300 transition-colors" title="WhatsApp">
+                            <MessageCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-5 py-3.5">{client.tipo ? <StatusBadge status={client.tipo} /> : "—"}</td>
                     <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
                       {client.valor_total ? `${t("currency_symbol")} ${client.valor_total.toLocaleString(t("locale_date"))}` : "—"}
@@ -147,9 +158,16 @@ export default function Clients() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-mono text-xs">{client.telefone || "—"}</span>
-                  {client.valor_total > 0 && (
-                    <span className="font-display font-bold text-primary">{t("currency_symbol")} {client.valor_total.toLocaleString(t("locale_date"))}</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {client.valor_total > 0 && (
+                      <span className="font-display font-bold text-primary">{t("currency_symbol")} {client.valor_total.toLocaleString(t("locale_date"))}</span>
+                    )}
+                    {client.telefone && (
+                      <button onClick={(e) => { e.stopPropagation(); setWhatsappClient(client); }} className="text-green-400 hover:text-green-300 transition-colors">
+                        <MessageCircle className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -167,6 +185,16 @@ export default function Clients() {
 
       <ClientFormDialog open={showForm} onOpenChange={setShowForm} client={editClient} />
       <ClientProfileSheet client={selectedClient} onClose={() => setSelectedClient(null)} onEdit={(c) => { setEditClient(c); setShowForm(true); setSelectedClient(null); }} />
+
+      {whatsappClient && (
+        <WhatsAppModal
+          open={!!whatsappClient}
+          onOpenChange={(v) => { if (!v) setWhatsappClient(null); }}
+          client_nome={whatsappClient.nome}
+          telefone={whatsappClient.telefone}
+          context=""
+        />
+      )}
 
       <UpgradeModal
         open={showUpgrade}

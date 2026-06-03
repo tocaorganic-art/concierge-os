@@ -13,6 +13,7 @@ import {
   Star,
   Settings,
   Lock,
+  Sparkles,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
@@ -34,7 +35,7 @@ const navKeys = [
 export default function Sidebar() {
   const location = useLocation();
   const { t } = useLanguage();
-  const { hasProAccess, plan } = usePlan();
+  const { hasProAccess } = usePlan();
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col z-50">
@@ -46,7 +47,7 @@ export default function Sidebar() {
           </div>
           <div>
             <h1 className="font-display text-lg font-bold text-foreground tracking-tight">
-              Concierge<span className="text-primary">OS</span>
+              Toca Tr<span className="text-primary">IA</span>
             </h1>
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Dashboard</p>
           </div>
@@ -82,6 +83,24 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Toca TrIA special link */}
+        <div className="pt-2 mt-2 border-t border-sidebar-border">
+          <Link
+            to="/toca-tria"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/toca-tria"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <Sparkles className={`w-[18px] h-[18px] transition-colors ${
+              location.pathname === "/toca-tria" ? "text-primary" : "text-primary/60 group-hover:text-primary"
+            }`} />
+            <span className="flex-1">Toca TrIA</span>
+            <span className="text-[9px] font-mono font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full border border-primary/20">✦ IA</span>
+          </Link>
+        </div>
       </nav>
 
       {/* Footer */}

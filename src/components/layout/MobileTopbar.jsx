@@ -10,11 +10,12 @@ const routeTitles = {
   "/propostas": "Propostas",
   "/relatorios": "Relatórios",
   "/faturamento": "Faturamento",
+  "/toca-tria": "Toca TrIA",
 };
 
 export default function MobileTopbar({ onMenuOpen }) {
   const location = useLocation();
-  const title = routeTitles[location.pathname] || "Concierge OS";
+  const title = routeTitles[location.pathname] || "Toca TrIA";
 
   return (
     <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 bg-sidebar border-b border-sidebar-border md:hidden">

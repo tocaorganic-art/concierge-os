@@ -5,9 +5,11 @@ import PageHeader from "@/components/shared/PageHeader";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import PlanGate from "@/components/monetization/PlanGate";
+import FunnelChart from "@/components/reports/FunnelChart";
+import AIRecommendations from "@/components/reports/AIRecommendations";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  LineChart, Line,
+  AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -18,6 +20,18 @@ const tooltipStyle = {
   fontSize: "12px",
   fontFamily: "JetBrains Mono",
 };
+
+const PIE_COLORS = ["hsl(43 50% 54%)", "hsl(200 60% 50%)", "hsl(160 50% 45%)", "hsl(280 50% 55%)", "hsl(20 70% 55%)"];
+
+const ChartCard = ({ title, children, badge }) => (
+  <div className="bg-card border border-border rounded-xl p-5">
+    <div className="flex items-center gap-2 mb-4">
+      <h3 className="font-display text-lg font-semibold text-foreground">{title}</h3>
+      {badge && <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">{badge}</span>}
+    </div>
+    {children}
+  </div>
+);
 
 export default function Reports() {
   const { t } = useLanguage();
@@ -35,49 +49,41 @@ export default function Reports() {
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("-valor_total", 200),
   });
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => base44.entities.Task.list("-data", 200),
+  });
 
   const isLoading = loadingRevenues || loadingProposals || loadingClients || planLoading;
 
+  // Receita acumulada (área chart)
   const revenueData = revenues
     .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
     .slice(-12)
-    .map((r) => ({ name: `${monthNames[r.mes - 1]}/${r.ano % 100}`, receita: r.valor }));
+    .reduce((acc, r) => {
+      const prev = acc.length > 0 ? acc[acc.length - 1].acumulado : 0;
+      acc.push({ name: `${monthNames[r.mes - 1]}/${r.ano % 100}`, receita: r.valor, acumulado: prev + r.valor });
+      return acc;
+    }, []);
 
-  const conversionData = revenues
-    .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
-    .slice(-12)
-    .map((r) => {
-      const monthProposals = proposals.filter((p) => {
-        const d = new Date(p.created_date);
-        return d.getMonth() + 1 === r.mes && d.getFullYear() === r.ano;
-      });
-      const confirmed = monthProposals.filter((p) => p.status === "confirmado" || p.status === "concluido").length;
-      const rate = monthProposals.length > 0 ? Math.round((confirmed / monthProposals.length) * 100) : 0;
-      return { name: `${monthNames[r.mes - 1]}/${r.ano % 100}`, taxa: rate };
-    });
-
+  // Top 5 clientes
   const topClients = [...clients]
     .filter((c) => c.valor_total > 0)
     .sort((a, b) => (b.valor_total || 0) - (a.valor_total || 0))
     .slice(0, 5)
-    .map((c) => ({ name: c.nome, valor: c.valor_total }));
+    .map((c) => ({ name: c.nome.split(" ")[0], valor: c.valor_total }));
 
-  const seasonality = Array.from({ length: 12 }, (_, i) => {
-    const count = proposals.filter((p) => p.data_chegada && new Date(p.data_chegada).getMonth() === i).length;
-    return { name: monthNames[i], demanda: count };
-  });
+  // Pizza por tipo de cliente
+  const tipoCount = clients.reduce((acc, c) => {
+    if (c.tipo) acc[c.tipo] = (acc[c.tipo] || 0) + 1;
+    return acc;
+  }, {});
+  const pieData = Object.entries(tipoCount).map(([name, value]) => ({ name, value }));
 
   const totalProposals = proposals.length;
   const confirmed = proposals.filter((p) => p.status === "confirmado" || p.status === "concluido").length;
   const conversionRate = totalProposals > 0 ? Math.round((confirmed / totalProposals) * 100) : null;
   const totalRevenue = revenues.reduce((s, r) => s + (r.valor || 0), 0);
-
-  const ChartCard = ({ title, children }) => (
-    <div className="bg-card border border-border rounded-xl p-5">
-      <h3 className="font-display text-lg font-semibold text-foreground mb-4">{title}</h3>
-      {children}
-    </div>
-  );
 
   if (isLoading) {
     return (
@@ -89,7 +95,7 @@ export default function Reports() {
 
   const reportsContent = (
     <div>
-      {/* Summary KPIs */}
+      {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
           { label: t("reports_total_proposals"), value: totalProposals || "—" },
@@ -104,78 +110,75 @@ export default function Reports() {
         ))}
       </div>
 
+      {/* AI Recommendations */}
+      <div className="mb-6">
+        <AIRecommendations proposals={proposals} clients={clients} tasks={tasks} />
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Funnel */}
+        <ChartCard title="Funil de Vendas" badge="✦ IA">
+          <FunnelChart proposals={proposals} />
+        </ChartCard>
+
+        {/* Receita acumulada (área) */}
         <ChartCard title={t("chart_revenue")}>
           {revenueData.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={revenueData}>
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(43 50% 54%)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(43 50% 54%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="receita" fill="hsl(43 50% 54%)" radius={[4, 4, 0, 0]} />
+                <Area type="monotone" dataKey="acumulado" stroke="hsl(43 50% 54%)" fill="url(#gradReceita)" strokeWidth={2} name="Acumulado" />
+                <Area type="monotone" dataKey="receita" stroke="hsl(200 60% 50%)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" name="Mensal" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        {/* Top clientes barras horizontais */}
+        <ChartCard title={t("chart_top_clients")}>
+          {topClients.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={topClients} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" horizontal={false} />
+                <XAxis type="number" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="name" width={70} tick={{ fill: "hsl(220 10% 70%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`R$ ${v.toLocaleString("pt-BR")}`, "Valor"]} />
+                <Bar dataKey="valor" fill="hsl(43 50% 54%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
 
-        <ChartCard title={t("chart_conversion")}>
-          {conversionData.length === 0 ? (
+        {/* Donut por tipo */}
+        <ChartCard title="Distribuição por Tipo de Cliente">
+          {pieData.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
           ) : (
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={conversionData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v}%`, "Taxa"]} />
-                <Line type="monotone" dataKey="taxa" stroke="hsl(200 60% 50%)" strokeWidth={2} dot={{ r: 4, fill: "hsl(200 60% 50%)" }} />
-              </LineChart>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="45%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value">
+                  {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend
+                  formatter={(val) => <span style={{ color: "hsl(220 10% 70%)", fontSize: 11, fontFamily: "JetBrains Mono" }}>{val}</span>}
+                />
+              </PieChart>
             </ResponsiveContainer>
           )}
-        </ChartCard>
-
-        <ChartCard title={t("chart_top_clients")}>
-          {topClients.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-12">Sem dados</p>
-          ) : (
-            <div className="space-y-3">
-              {topClients.map((c, i) => {
-                const max = topClients[0]?.valor || 1;
-                const pct = (c.valor / max) * 100;
-                return (
-                  <div key={c.name} className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-muted-foreground w-5">{i + 1}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-foreground">{c.name}</span>
-                        <span className="font-display text-sm font-semibold text-primary">
-                          {t("currency_symbol")} {c.valor.toLocaleString(t("locale_date"))}
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </ChartCard>
-
-        <ChartCard title={t("chart_seasonality")}>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={seasonality}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [v, "Propostas"]} />
-              <Bar dataKey="demanda" fill="hsl(160 50% 45%)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
         </ChartCard>
       </div>
     </div>

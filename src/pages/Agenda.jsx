@@ -1,15 +1,28 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays, MessageCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import TaskFormDialog from "@/components/agenda/TaskFormDialog";
+import TaskReminderBanner from "@/components/agenda/TaskReminderBanner";
+import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
 import { useLanguage } from "@/lib/i18n";
+
+function buildGCalUrl(task) {
+  if (!task.data) return null;
+  const [h, m] = (task.horario || "09:00").split(":").map(Number);
+  const start = new Date(task.data);
+  start.setHours(h, m, 0);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const params = new URLSearchParams({ action: "TEMPLATE", text: task.titulo, dates: `${fmt(start)}/${fmt(end)}`, details: task.descricao || "" });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
 
 export default function Agenda() {
   const { t, lang } = useLanguage();
@@ -18,6 +31,7 @@ export default function Agenda() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [whatsappTask, setWhatsappTask] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading, isError } = useQuery({
@@ -50,34 +64,57 @@ export default function Agenda() {
     setShowForm(true);
   };
 
-  const TaskCard = ({ task }) => (
-    <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
-      task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
-    }`}>
-      <button onClick={() => toggleTask.mutate(task)} className="mt-0.5 flex-shrink-0">
-        {task.status === "concluido" ? (
-          <CheckCircle2 className="w-5 h-5 text-green-400" />
-        ) : (
-          <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
-        )}
-      </button>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <p className={`text-sm font-medium leading-tight ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}>
-            {task.titulo}
-          </p>
-          {task.horario && (
-            <span className="font-mono text-xs font-bold text-primary flex-shrink-0">{task.horario}</span>
+  const TaskCard = ({ task }) => {
+    const gcalUrl = buildGCalUrl(task);
+    return (
+      <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
+        task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
+      }`}>
+        <button onClick={() => toggleTask.mutate(task)} className="mt-0.5 flex-shrink-0">
+          {task.status === "concluido" ? (
+            <CheckCircle2 className="w-5 h-5 text-green-400" />
+          ) : (
+            <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
           )}
-        </div>
-        <div className="flex items-center gap-2 flex-wrap mt-1">
-          {task.tipo && <StatusBadge status={task.tipo} />}
-          {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
-          {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className={`text-sm font-medium leading-tight ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}>
+              {task.titulo}
+            </p>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {task.horario && (
+                <span className="font-mono text-xs font-bold text-primary">{task.horario}</span>
+              )}
+              {gcalUrl && (
+                <a href={gcalUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors" title="Exportar para Google Calendar">
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+              {task.tipo === "chamada" && task.client_id && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setWhatsappTask(task); }}
+                  className="w-6 h-6 flex items-center justify-center rounded text-green-400 hover:bg-green-500/10 transition-colors"
+                  title="Iniciar WhatsApp"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap mt-1">
+            {task.tipo && <StatusBadge status={task.tipo} />}
+            {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
+            {task.lembrete_antecedencia && (
+              <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">🔔 {task.lembrete_antecedencia}</span>
+            )}
+            {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -110,6 +147,8 @@ export default function Agenda() {
         }
       />
 
+      <TaskReminderBanner tasks={tasks} />
+
       {/* Controls */}
       <div className="flex items-center justify-between mb-4 md:mb-6 gap-2">
         <div className="hidden md:block">
@@ -120,13 +159,11 @@ export default function Agenda() {
             </TabsList>
           </Tabs>
         </div>
-
         <div className="md:hidden flex-1">
           <p className="font-display text-base font-semibold text-foreground capitalize">
             {format(currentDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
           </p>
         </div>
-
         <div className="flex items-center gap-1 md:gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8"
             onClick={() => (view === "semana" && window.innerWidth >= 768 ? navigateWeek(-1) : navigateDay(-1))}>
@@ -142,7 +179,7 @@ export default function Agenda() {
         </div>
       </div>
 
-      {/* ── MOBILE: sempre view diária ── */}
+      {/* Mobile */}
       <div className="md:hidden">
         <div className="space-y-3">
           {getTasksForDate(currentDate).length === 0 ? (
@@ -159,7 +196,7 @@ export default function Agenda() {
         </div>
       </div>
 
-      {/* ── DESKTOP ── */}
+      {/* Desktop */}
       <div className="hidden md:block">
         {view === "semana" ? (
           <div className="grid grid-cols-7 gap-3">
@@ -216,6 +253,16 @@ export default function Agenda() {
       </button>
 
       <TaskFormDialog open={showForm} onOpenChange={setShowForm} defaultDate={selectedDate} />
+
+      {whatsappTask && (
+        <WhatsAppModal
+          open={!!whatsappTask}
+          onOpenChange={(v) => { if (!v) setWhatsappTask(null); }}
+          client_nome={whatsappTask.client_nome}
+          telefone=""
+          context={`Olá ${whatsappTask.client_nome}, tudo bem? Estou ligando para ${whatsappTask.titulo}`}
+        />
+      )}
     </div>
   );
 }

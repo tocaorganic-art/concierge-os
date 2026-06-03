@@ -55,6 +55,21 @@
       ],
       "default": "media",
       "description": "Prioridade da tarefa"
+    },
+    "lembrete_antecedencia": {
+      "type": "string",
+      "enum": [
+        "15min",
+        "30min",
+        "1h",
+        "1dia"
+      ],
+      "description": "Com quanto de anteced\u00eancia lembrar"
+    },
+    "lembrete_ativo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o lembrete est\u00e1 ativo"
     }
   },
   "required": [
