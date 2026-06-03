@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import Sidebar from "./Sidebar";
 import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
+import MobileBottomNav from "./MobileBottomNav";
 import TrialBanner from "./TrialBanner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import TutorialModal from "@/components/tutorial/TutorialModal";
@@ -74,7 +75,7 @@ export default function AppLayout() {
       </div>
 
       {/* Main content */}
-      <main className="md:ml-64 min-h-screen pt-14 md:pt-0">
+      <main className="md:ml-64 min-h-screen pt-14 md:pt-0 pb-16 md:pb-0">
         {showBanner && (
           <TrialBanner
             daysLeft={trialDaysLeft}
@@ -85,6 +86,9 @@ export default function AppLayout() {
           <Outlet />
         </div>
       </main>
+
+      {/* Mobile bottom nav */}
+      <MobileBottomNav />
 
       {/* Onboarding wizard */}
       {showOnboarding && user && (

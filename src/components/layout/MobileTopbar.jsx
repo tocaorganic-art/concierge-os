@@ -1,6 +1,8 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
-import { Menu, Crown } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Menu, Crown, ArrowLeft } from "lucide-react";
+
+const PRIMARY_ROUTES = ["/", "/pipeline", "/clientes", "/agenda"];
 
 const routeTitles = {
   "/": "Visão Geral",
@@ -11,23 +13,40 @@ const routeTitles = {
   "/relatorios": "Relatórios",
   "/faturamento": "Faturamento",
   "/toca-tria": "Toca TrIA",
+  "/configuracoes": "Configurações",
+  "/planos": "Planos",
 };
 
 export default function MobileTopbar({ onMenuOpen }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const title = routeTitles[location.pathname] || "Toca TrIA";
+  const isPrimary = PRIMARY_ROUTES.includes(location.pathname);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 bg-sidebar border-b border-sidebar-border md:hidden">
-      <button
-        onClick={onMenuOpen}
-        className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
-        aria-label="Abrir menu"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
+    <div
+      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 bg-sidebar border-b border-sidebar-border md:hidden"
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+    >
+      {isPrimary ? (
+        <button
+          onClick={onMenuOpen}
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+          aria-label="Abrir menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate(-1)}
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+          aria-label="Voltar"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      )}
       <h1 className="font-display text-base font-semibold text-foreground">{title}</h1>
-      <div className="w-9 h-9 flex items-center justify-center">
+      <div className="w-11 h-11 flex items-center justify-center">
         <Crown className="w-4 h-4 text-primary" />
       </div>
     </div>

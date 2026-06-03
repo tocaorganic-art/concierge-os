@@ -111,6 +111,24 @@
   box-shadow: 0 0 16px rgba(201, 168, 76, 0.06);
 }
 
+/* Mobile WebView: disable overscroll bounce and unwanted text selection */
+html, body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+button, a, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Safe area support */
+.safe-top    { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
