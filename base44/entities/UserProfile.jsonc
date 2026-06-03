@@ -47,6 +47,30 @@
     "primary_color": {
       "type": "string",
       "description": "Cor prim\u00e1ria white-label"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "ID do cliente no Stripe"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "incomplete"
+      ],
+      "description": "Status da assinatura no Stripe"
+    },
+    "trial_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fim do trial"
+    },
+    "stripe_price_id": {
+      "type": "string",
+      "description": "Price ID ativo no Stripe"
     }
   },
   "required": [
