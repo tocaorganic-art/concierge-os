@@ -89,6 +89,42 @@ export default function Sidebar({ onOpenTutorial }) {
         {/* Solicitações + Toca TrIA */}
         <div className="pt-2 mt-2 border-t border-sidebar-border space-y-1">
           <Link
+            to="/kpis"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/kpis"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <span className="text-base">📊</span>
+            <span className="flex-1">KPIs Concierge</span>
+            {location.pathname === "/kpis" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
+          <Link
+            to="/parceiros"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/parceiros"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <span className="text-base">🤝</span>
+            <span className="flex-1">Parceiros</span>
+            {location.pathname === "/parceiros" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
+          <Link
+            to="/meu-perfil"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/meu-perfil"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <span className="text-base">✨</span>
+            <span className="flex-1">Meu Perfil</span>
+            {location.pathname === "/meu-perfil" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
+          <Link
             to="/portal"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
               location.pathname === "/portal"

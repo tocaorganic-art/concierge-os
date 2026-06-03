@@ -24,6 +24,9 @@ import Settings from "@/pages/Settings";
 import TocaTrIA from "@/pages/TocaTrIA";
 import Solicitacoes from "@/pages/Solicitacoes";
 import ClientPortal from "@/pages/ClientPortal";
+import Parceiros from "@/pages/Parceiros";
+import ConciergeKPIs from "@/pages/ConciergeKPIs";
+import ClientProfile from "@/pages/ClientProfile";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +68,9 @@ const AuthenticatedApp = () => {
           <Route path="/toca-tria" element={<TocaTrIA />} />
           <Route path="/solicitacoes" element={<Solicitacoes />} />
           <Route path="/portal" element={<ClientPortal />} />
+          <Route path="/parceiros" element={<Parceiros />} />
+          <Route path="/kpis" element={<ConciergeKPIs />} />
+          <Route path="/meu-perfil" element={<ClientProfile />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
