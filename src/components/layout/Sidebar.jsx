@@ -89,6 +89,18 @@ export default function Sidebar({ onOpenTutorial }) {
         {/* Solicitações + Toca TrIA */}
         <div className="pt-2 mt-2 border-t border-sidebar-border space-y-1">
           <Link
+            to="/portal"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/portal"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <Crown className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/portal" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+            <span className="flex-1">Portal Cliente</span>
+            {location.pathname === "/portal" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
+          <Link
             to="/solicitacoes"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
               location.pathname === "/solicitacoes"
