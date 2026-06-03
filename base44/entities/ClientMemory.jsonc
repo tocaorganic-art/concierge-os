@@ -1,0 +1,102 @@
+{
+  "name": "ClientMemory",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "client_nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "preferencias_bebida": {
+      "type": "string",
+      "description": "Prefer\u00eancias de bebida"
+    },
+    "restricoes_alimentares": {
+      "type": "string",
+      "description": "Restri\u00e7\u00f5es alimentares"
+    },
+    "viaja_com": {
+      "type": "string",
+      "enum": [
+        "sozinho",
+        "casal",
+        "familia_filhos",
+        "grupo_amigos",
+        "corporativo"
+      ],
+      "description": "Com quem costuma viajar"
+    },
+    "tipo_hospedagem": {
+      "type": "string",
+      "enum": [
+        "hotel_luxo",
+        "villa_privada",
+        "pousada",
+        "resort",
+        "airbnb"
+      ],
+      "description": "Tipo de hospedagem preferido"
+    },
+    "estilos": {
+      "type": "string",
+      "description": "Estilos preferidos (beach club, gastronomia, aventura...)"
+    },
+    "destinos_favoritos": {
+      "type": "string",
+      "description": "Destinos favoritos"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Outras observa\u00e7\u00f5es importantes"
+    },
+    "plano": {
+      "type": "string",
+      "enum": [
+        "essencial",
+        "premium",
+        "black"
+      ],
+      "description": "Plano do cliente"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

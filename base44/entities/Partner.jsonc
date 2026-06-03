@@ -1,0 +1,75 @@
+{
+  "name": "Partner",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do parceiro"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "restaurante",
+        "passeio",
+        "transfer",
+        "hospedagem",
+        "evento",
+        "outros"
+      ],
+      "description": "Categoria do parceiro"
+    },
+    "cidade": {
+      "type": "string",
+      "description": "Cidade de atua\u00e7\u00e3o"
+    },
+    "estado": {
+      "type": "string",
+      "description": "Estado"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone/WhatsApp"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email do parceiro"
+    },
+    "comissao_pct": {
+      "type": "number",
+      "description": "% de comiss\u00e3o"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o dos servi\u00e7os"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Parceiro ativo"
+    }
+  },
+  "required": [
+    "nome",
+    "categoria"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

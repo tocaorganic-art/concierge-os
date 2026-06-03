@@ -89,6 +89,29 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object;
+        const customerId = invoice.customer;
+
+        // Find the UserProfile tied to this Stripe customer
+        const profiles = await base44.asServiceRole.entities.UserProfile.filter({ stripe_customer_id: customerId });
+        const profile = profiles?.[0];
+        if (!profile) break;
+
+        // Find open proposals (lead or proposta) for this user and move them to "confirmado"
+        const proposals = await base44.asServiceRole.entities.Proposal.filter({ client_id: profile.user_id });
+        const open = proposals.filter((p) => ["lead", "proposta"].includes(p.status));
+        for (const p of open) {
+          await base44.asServiceRole.entities.Proposal.update(p.id, { status: "confirmado" });
+        }
+
+        // Also update subscription status to active on successful payment
+        await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+          subscription_status: "active",
+        });
+        break;
+      }
+
       case "invoice.payment_failed": {
         const invoice = event.data.object;
         const customerId = invoice.customer;
