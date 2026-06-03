@@ -1,55 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { Check, X, Crown, Star, Zap, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Check, X, Crown, Star, Zap, ChevronDown, ChevronUp, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/lib/i18n";
 import { stripeCheckout } from "@/functions/stripeCheckout";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
-const STRIPE_PK = "pk_test_51THAMTRX4Ldl6df54rIqLtTN7csl8rLT32GwcloBxGPxdp7DSt3TKDGqqo5kIImeF8BLjH3hhgESnao6NCY6TRJL00VepMsogH";
-
-// Price IDs reais do Stripe (gerados via stripeSetup em 2026-06-03)
+// Price IDs reais do Stripe
 const PRICE_IDS = {
-  starter: {
+  essencial: {
     mensal: "price_1Te7qJRX4Ldl6df54K6Y5Gk5",
     anual:  "price_1Te7qJRX4Ldl6df5DiM3j04Z",
   },
-  pro: {
+  premium: {
     mensal: "price_1Te7qKRX4Ldl6df5hChLwuSH",
     anual:  "price_1Te7qKRX4Ldl6df5N4CZunsQ",
   },
-  agency: {
+  black: {
     mensal: "price_1Te7qKRX4Ldl6df5GvlzcCEz",
     anual:  "price_1Te7qKRX4Ldl6df5F5dh32i7",
   },
 };
 
 const PRICES = {
-  starter: { mensal: "R$ 97", anual: "R$ 77" },
-  pro:     { mensal: "R$ 197", anual: "R$ 157" },
-  agency:  { mensal: "R$ 397", anual: "R$ 317" },
+  essencial: { mensal: "R$ 97",  anual: "R$ 77"  },
+  premium:   { mensal: "R$ 297", anual: "R$ 237" },
+  black:     { mensal: "R$ 997", anual: "R$ 797" },
 };
 
 const FEATURES_TABLE = [
-  { label: "Clientes ativos",          starter: "Até 5",      pro: "Ilimitados",  agency: "Ilimitados" },
-  { label: "Pipeline Kanban",          starter: true,          pro: true,          agency: true },
-  { label: "Agenda de tarefas",        starter: true,          pro: true,          agency: true },
-  { label: "Propostas + PDF",          starter: true,          pro: true,          agency: true },
-  { label: "App mobile",               starter: true,          pro: true,          agency: true },
-  { label: "Relatórios completos",     starter: false,         pro: true,          agency: true },
-  { label: "Exportação de dados",      starter: false,         pro: true,          agency: true },
-  { label: "Suporte prioritário",      starter: false,         pro: true,          agency: true },
-  { label: "Múltiplas moedas no PDF",  starter: false,         pro: true,          agency: true },
-  { label: "White-label (logo própria)",starter: false,        pro: false,         agency: true },
-  { label: "Multi-usuário (3 seats)",  starter: false,         pro: false,         agency: true },
-  { label: "API access",               starter: false,         pro: false,         agency: true },
-  { label: "Onboarding dedicado",      starter: false,         pro: false,         agency: true },
+  { label: "Concierge IA 24h",             essencial: true,        premium: true,       black: true },
+  { label: "Roteiros personalizados",       essencial: true,        premium: true,       black: true },
+  { label: "Reservas de restaurantes",      essencial: true,        premium: true,       black: true },
+  { label: "Indicações locais",             essencial: true,        premium: true,       black: true },
+  { label: "Chat WhatsApp",                 essencial: true,        premium: true,       black: true },
+  { label: "Concierge humano",              essencial: false,       premium: true,       black: true },
+  { label: "Reservas prioritárias",         essencial: false,       premium: true,       black: true },
+  { label: "Planejamento completo de viagem", essencial: false,     premium: true,       black: true },
+  { label: "Experiências exclusivas",       essencial: false,       premium: true,       black: true },
+  { label: "Suporte emergencial 24h",       essencial: false,       premium: true,       black: true },
+  { label: "Concierge dedicado",            essencial: false,       premium: false,      black: true },
+  { label: "Yacht & Helicóptero",           essencial: false,       premium: false,      black: true },
+  { label: "Villas & Chef privado",         essencial: false,       premium: false,      black: true },
+  { label: "Eventos VIP",                   essencial: false,       premium: false,      black: true },
+  { label: "White-glove service",           essencial: false,       premium: false,      black: true },
 ];
 
 const FAQS = [
   { q: "Posso cancelar a qualquer momento?", a: "Sim, sem multa ou fidelidade. Cancele quando quiser diretamente nas configurações." },
   { q: "O que acontece após o trial?", a: "Você escolhe um plano ou sua conta entra em modo pausa — seus dados ficam salvos." },
   { q: "Aceita cupom de desconto?", a: "Sim! Insira o código no checkout ao assinar qualquer plano." },
-  { q: "Plano Agency suporta quantos usuários?", a: "Até 3 usuários simultâneos com acessos individuais à mesma conta." },
+  { q: "Plano Black tem limite de solicitações?", a: "Não. Concierge dedicado disponível 24h para todas as suas necessidades." },
 ];
 
 function FeatureCell({ value }) {
@@ -80,7 +79,7 @@ export default function Plans() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("success")) {
-      setToast({ type: "success", msg: "✓ Assinatura ativada! Bem-vindo ao Concierge OS." });
+      setToast({ type: "success", msg: "✓ Assinatura ativada! Bem-vindo ao Toca Concierge." });
       setTimeout(() => setToast(null), 5000);
     } else if (params.get("canceled")) {
       setToast({ type: "info", msg: "Checkout cancelado. Você pode assinar quando quiser." });
@@ -103,28 +102,51 @@ export default function Plans() {
 
   const plans = [
     {
-      id: "starter",
-      name: "Starter",
-      tagline: "Perfeito para começar",
+      id: "essencial",
+      name: "Essencial",
+      tagline: "Concierge IA sempre disponível",
       icon: Zap,
       highlight: false,
-      features: ["Até 5 clientes ativos", "Pipeline Kanban", "Agenda de tarefas", "Propostas básicas + PDF", "App mobile"],
+      emoji: "🏝️",
+      features: [
+        "Concierge IA 24h",
+        "Roteiros personalizados",
+        "Reservas de restaurantes",
+        "Indicações locais",
+        "Chat WhatsApp",
+      ],
     },
     {
-      id: "pro",
-      name: "Pro",
-      tagline: "Para quem quer escalar",
+      id: "premium",
+      name: "Premium",
+      tagline: "Concierge humano + IA",
       icon: Star,
       highlight: true,
-      features: ["Clientes ilimitados", "Tudo do Starter", "Relatórios completos", "Exportação de dados", "Suporte prioritário", "Múltiplas moedas no PDF"],
+      emoji: "✦",
+      features: [
+        "Tudo do Essencial",
+        "Concierge humano dedicado",
+        "Reservas prioritárias",
+        "Planejamento completo de viagem",
+        "Experiências exclusivas",
+        "Suporte emergencial 24h",
+      ],
     },
     {
-      id: "agency",
-      name: "Agency",
-      tagline: "Para agências e operações",
+      id: "black",
+      name: "Black",
+      tagline: "O melhor da experiência",
       icon: Crown,
       highlight: false,
-      features: ["Tudo do Pro", "White-label (logo própria)", "Multi-usuário (3 seats)", "API access", "Onboarding dedicado"],
+      emoji: "🖤",
+      features: [
+        "Tudo do Premium",
+        "Concierge dedicado exclusivo",
+        "Yacht & Helicóptero",
+        "Villas & Chef privado",
+        "Eventos VIP",
+        "White-glove service",
+      ],
     },
   ];
 
@@ -143,11 +165,15 @@ export default function Plans() {
 
       {/* Header */}
       <div className="text-center mb-10">
+        <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary text-xs font-mono px-3 py-1 rounded-full mb-4">
+          <Sparkles className="w-3 h-3" /> Toca Concierge · Planos
+        </div>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-          Planos simples, sem surpresas
+          Seu concierge pessoal para viver o destino
         </h1>
         <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
-          Todos os planos incluem 7 dias grátis. Cancele quando quiser, sem multas.
+          Não apenas visitar — <em>viver</em>. Curadoria, conveniência e experiências exclusivas.
+          7 dias grátis em todos os planos.
         </p>
 
         {/* Billing toggle */}
@@ -173,12 +199,15 @@ export default function Plans() {
         {plans.map((plan) => {
           const Icon = plan.icon;
           const isLoading = loadingPlan === plan.id;
+          const isBlack = plan.id === "black";
           return (
             <div
               key={plan.id}
               className={`relative flex flex-col rounded-2xl border p-6 transition-all ${
                 plan.highlight
                   ? "border-primary bg-card shadow-lg shadow-primary/10 scale-[1.02]"
+                  : isBlack
+                  ? "border-foreground/20 bg-card hover:border-foreground/40"
                   : "border-border bg-card/50 hover:border-primary/40"
               }`}
             >
@@ -189,10 +218,17 @@ export default function Plans() {
                   </span>
                 </div>
               )}
+              {isBlack && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-foreground text-background text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                    🖤 Elite
+                  </span>
+                </div>
+              )}
 
               <div className="mb-5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${plan.highlight ? "bg-primary/20" : "bg-secondary"}`}>
-                  <Icon className={`w-5 h-5 ${plan.highlight ? "text-primary" : "text-muted-foreground"}`} />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-xl ${isBlack ? "bg-foreground/10" : plan.highlight ? "bg-primary/20" : "bg-secondary"}`}>
+                  {plan.emoji}
                 </div>
                 <h2 className="font-display text-xl font-bold text-foreground">{plan.name}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{plan.tagline}</p>
@@ -211,7 +247,7 @@ export default function Plans() {
               <ul className="space-y-2.5 mb-6 flex-1">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-sm text-foreground/80">
-                    <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isBlack ? "text-foreground/60" : "text-primary"}`} />
                     {f}
                   </li>
                 ))}
@@ -221,7 +257,7 @@ export default function Plans() {
                 onClick={() => handleCheckout(plan.id)}
                 disabled={!!loadingPlan}
                 variant={plan.highlight ? "default" : "outline"}
-                className={`w-full gap-2 ${plan.highlight ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
+                className={`w-full gap-2 ${isBlack ? "border-foreground/30 hover:bg-foreground/10" : plan.highlight ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 {isLoading ? "Redirecionando..." : "Iniciar 7 dias grátis"}
@@ -239,18 +275,18 @@ export default function Plans() {
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Recurso</th>
-                <th className="text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Starter</th>
-                <th className="text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-primary bg-primary/5">Pro</th>
-                <th className="text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Agency</th>
+                <th className="text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Essencial</th>
+                <th className="text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-primary bg-primary/5">Premium</th>
+                <th className="text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Black</th>
               </tr>
             </thead>
             <tbody>
               {FEATURES_TABLE.map((row, i) => (
                 <tr key={row.label} className={`border-b border-border/50 ${i % 2 === 0 ? "" : "bg-secondary/20"}`}>
                   <td className="px-5 py-3 text-sm text-foreground/80">{row.label}</td>
-                  <td className="px-4 py-3 text-center"><FeatureCell value={row.starter} /></td>
-                  <td className="px-4 py-3 text-center bg-primary/5"><FeatureCell value={row.pro} /></td>
-                  <td className="px-4 py-3 text-center"><FeatureCell value={row.agency} /></td>
+                  <td className="px-4 py-3 text-center"><FeatureCell value={row.essencial} /></td>
+                  <td className="px-4 py-3 text-center bg-primary/5"><FeatureCell value={row.premium} /></td>
+                  <td className="px-4 py-3 text-center"><FeatureCell value={row.black} /></td>
                 </tr>
               ))}
             </tbody>

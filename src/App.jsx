@@ -22,6 +22,7 @@ import Billing from "@/pages/Billing";
 import Plans from "@/pages/Plans";
 import Settings from "@/pages/Settings";
 import TocaTrIA from "@/pages/TocaTrIA";
+import Solicitacoes from "@/pages/Solicitacoes";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
           <Route path="/planos" element={<Plans />} />
           <Route path="/configuracoes" element={<Settings />} />
           <Route path="/toca-tria" element={<TocaTrIA />} />
+          <Route path="/solicitacoes" element={<Solicitacoes />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

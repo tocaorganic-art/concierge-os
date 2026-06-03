@@ -86,8 +86,20 @@ export default function Sidebar({ onOpenTutorial }) {
           );
         })}
 
-        {/* Toca TrIA special link */}
-        <div className="pt-2 mt-2 border-t border-sidebar-border">
+        {/* Solicitações + Toca TrIA */}
+        <div className="pt-2 mt-2 border-t border-sidebar-border space-y-1">
+          <Link
+            to="/solicitacoes"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/solicitacoes"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <span className="text-base">🏝️</span>
+            <span className="flex-1">Solicitações</span>
+            {location.pathname === "/solicitacoes" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
           <Link
             to="/toca-tria"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
