@@ -12,7 +12,9 @@ const PLANS = [
 
 Deno.serve(async (req) => {
   try {
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
+    const body = await req.json().catch(() => ({}));
+    const apiKey = body.api_key || Deno.env.get("STRIPE_SECRET_KEY");
+    const stripe = new Stripe(apiKey);
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user || user.role !== 'admin') {
