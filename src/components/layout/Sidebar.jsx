@@ -14,11 +14,13 @@ import {
   Settings,
   Lock,
   Sparkles,
+  PlayCircle,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import LanguageSelector from "./LanguageSelector";
+import TutorialModal from "@/components/tutorial/TutorialModal";
 
 const navKeys = [
   { key: "nav_overview", icon: LayoutDashboard, path: "/" },
@@ -32,7 +34,7 @@ const navKeys = [
   { key: "nav_settings", icon: Settings, path: "/configuracoes" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onOpenTutorial }) {
   const location = useLocation();
   const { t } = useLanguage();
   const { hasProAccess } = usePlan();
@@ -104,7 +106,14 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-sidebar-border">
+      <div className="p-3 border-t border-sidebar-border space-y-1">
+        <button
+          onClick={onOpenTutorial}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-sidebar-accent transition-all w-full group"
+        >
+          <PlayCircle className="w-[18px] h-[18px] group-hover:text-primary transition-colors" />
+          <span>{t("nav_tutorial")}</span>
+        </button>
         <button
           onClick={() => base44.auth.logout()}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all w-full"

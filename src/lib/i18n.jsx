@@ -219,6 +219,22 @@ const translations = {
 
     // Settings nav
     nav_settings: "Configurações",
+    nav_tutorial: "Ver tutorial",
+
+    // Tutorial
+    tut_prev: "Anterior",
+    tut_next: "Próximo",
+    tut_skip: "Pular",
+    tut_s2_title: "A rotina trava.",
+    tut_s2_text: "Propostas que demoram horas, follow-ups esquecidos, agenda espalhada em três apps diferentes.",
+    tut_s3_title: "Pipeline visual",
+    tut_s3_text: "Organize suas propostas arrastando. Do lead ao fechamento, tudo em um lugar.",
+    tut_s4_title: "Propostas em 1 clique",
+    tut_s4_text: "A inteligência artificial gera propostas em PDF premium, sugere horários e escreve suas mensagens de WhatsApp.",
+    tut_s5_title: "Decida com dados",
+    tut_s5_text: "Relatórios completos e recomendações da IA para você fechar mais negócios com menos esforço.",
+    tut_s6_title: "Pronto para operar no próximo nível?",
+    tut_s6_cta: "Começar agora",
 
     // Currency
     currency_symbol: "R$",
@@ -428,6 +444,23 @@ const translations = {
     pdf_status_cancelado: "Cancelled",
 
     nav_settings: "Settings",
+    nav_tutorial: "Watch tutorial",
+
+    // Tutorial
+    tut_prev: "Previous",
+    tut_next: "Next",
+    tut_skip: "Skip",
+    tut_s2_title: "The routine gets in the way.",
+    tut_s2_text: "Proposals that take hours, forgotten follow-ups, schedule spread across three different apps.",
+    tut_s3_title: "Visual Pipeline",
+    tut_s3_text: "Organize your proposals by dragging. From lead to closing, everything in one place.",
+    tut_s4_title: "Proposals in 1 click",
+    tut_s4_text: "Artificial intelligence generates premium PDF proposals, suggests time slots, and writes your WhatsApp messages.",
+    tut_s5_title: "Decide with data",
+    tut_s5_text: "Complete reports and AI recommendations to help you close more deals with less effort.",
+    tut_s6_title: "Ready to operate at the next level?",
+    tut_s6_cta: "Get started",
+
     currency_symbol: "$",
     locale_date: "en-US",
   },
@@ -635,6 +668,23 @@ const translations = {
     pdf_status_cancelado: "Cancelado",
 
     nav_settings: "Configuración",
+    nav_tutorial: "Ver tutorial",
+
+    // Tutorial
+    tut_prev: "Anterior",
+    tut_next: "Siguiente",
+    tut_skip: "Omitir",
+    tut_s2_title: "La rutina bloquea.",
+    tut_s2_text: "Propuestas que tardan horas, seguimientos olvidados, agenda repartida en tres apps diferentes.",
+    tut_s3_title: "Pipeline visual",
+    tut_s3_text: "Organiza tus propuestas arrastrando. Del lead al cierre, todo en un solo lugar.",
+    tut_s4_title: "Propuestas en 1 clic",
+    tut_s4_text: "La inteligencia artificial genera propuestas en PDF premium, sugiere horarios y redacta tus mensajes de WhatsApp.",
+    tut_s5_title: "Decide con datos",
+    tut_s5_text: "Informes completos y recomendaciones de IA para que cierres más negocios con menos esfuerzo.",
+    tut_s6_title: "¿Listo para operar al siguiente nivel?",
+    tut_s6_cta: "Empezar ahora",
+
     currency_symbol: "€",
     locale_date: "es-ES",
   },

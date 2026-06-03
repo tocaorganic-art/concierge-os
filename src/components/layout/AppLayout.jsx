@@ -6,11 +6,13 @@ import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
 import TrialBanner from "./TrialBanner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import TutorialModal from "@/components/tutorial/TutorialModal";
 
 export default function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [trialDaysLeft, setTrialDaysLeft] = useState(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
@@ -21,6 +23,12 @@ export default function AppLayout() {
 
       // Onboarding
       if (u.first_login !== false) setShowOnboarding(true);
+
+      // Tutorial — show automatically if not seen yet (after onboarding)
+      const tutorialSeen = localStorage.getItem(`tutorial_seen_${u.id}`);
+      if (!tutorialSeen && u.first_login === false) {
+        setTimeout(() => setShowTutorial(true), 800);
+      }
 
       // Load plan from UserProfile
       try {
@@ -56,7 +64,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       {/* Desktop sidebar */}
       <div className="hidden md:block">
-        <Sidebar />
+        <Sidebar onOpenTutorial={() => setShowTutorial(true)} />
       </div>
 
       {/* Mobile topbar + drawer */}
@@ -82,9 +90,25 @@ export default function AppLayout() {
       {showOnboarding && user && (
         <OnboardingWizard
           user={user}
-          onComplete={() => setShowOnboarding(false)}
+          onComplete={() => {
+            setShowOnboarding(false);
+            // Show tutorial after onboarding completes for the first time
+            const tutorialSeen = user?.id ? localStorage.getItem(`tutorial_seen_${user.id}`) : null;
+            if (!tutorialSeen) {
+              setTimeout(() => setShowTutorial(true), 500);
+            }
+          }}
         />
       )}
+
+      {/* Tutorial modal */}
+      <TutorialModal
+        open={showTutorial}
+        onClose={() => {
+          setShowTutorial(false);
+          if (user?.id) localStorage.setItem(`tutorial_seen_${user.id}`, "1");
+        }}
+      />
     </div>
   );
 }
