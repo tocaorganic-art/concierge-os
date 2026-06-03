@@ -1,29 +1,48 @@
-import React, { useState } from "react";
-import { Check, X, Crown, Star, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Check, X, Crown, Star, Zap, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
-import CheckoutModal from "@/components/monetization/CheckoutModal";
+import { stripeCheckout } from "@/functions/stripeCheckout";
+import { useNavigate, useLocation } from "react-router-dom";
+
+const STRIPE_PK = "pk_test_51THAMTRX4Ldl6df54rIqLtTN7csl8rLT32GwcloBxGPxdp7DSt3TKDGqqo5kIImeF8BLjH3hhgESnao6NCY6TRJL00VepMsogH";
+
+// Price IDs criados no Stripe
+const PRICE_IDS = {
+  starter: {
+    mensal: "price_1Te3cXRX4Ldl6df5IAh3yfD1",
+    anual:  "price_1Te3cYRX4Ldl6df5cHN3kxVi",
+  },
+  pro: {
+    mensal: "price_1Te3cYRX4Ldl6df5SQnau1tk",
+    anual:  "price_1Te3cYRX4Ldl6df5uIFG7JdT",
+  },
+  agency: {
+    mensal: "price_1Te3cYRX4Ldl6df5mOBWn42n",
+    anual:  "price_1Te3cZRX4Ldl6df5hyAyMxC9",
+  },
+};
 
 const PRICES = {
-  starter: { monthly: { BRL: "R$ 97", USD: "$19", EUR: "€18" }, annual: { BRL: "R$ 77", USD: "$15", EUR: "€14" } },
-  pro:     { monthly: { BRL: "R$ 197", USD: "$39", EUR: "€37" }, annual: { BRL: "R$ 157", USD: "$31", EUR: "€30" } },
-  agency:  { monthly: { BRL: "R$ 397", USD: "$79", EUR: "€75" }, annual: { BRL: "R$ 317", USD: "$63", EUR: "€60" } },
+  starter: { mensal: "R$ 97", anual: "R$ 77" },
+  pro:     { mensal: "R$ 197", anual: "R$ 157" },
+  agency:  { mensal: "R$ 397", anual: "R$ 317" },
 };
 
 const FEATURES_TABLE = [
-  { label: "Clientes ativos", starter: "Até 5", pro: "Ilimitados", agency: "Ilimitados" },
-  { label: "Pipeline Kanban", starter: true, pro: true, agency: true },
-  { label: "Agenda de tarefas", starter: true, pro: true, agency: true },
-  { label: "Propostas + PDF", starter: true, pro: true, agency: true },
-  { label: "App mobile", starter: true, pro: true, agency: true },
-  { label: "Relatórios completos", starter: false, pro: true, agency: true },
-  { label: "Exportação de dados", starter: false, pro: true, agency: true },
-  { label: "Suporte prioritário", starter: false, pro: true, agency: true },
-  { label: "Múltiplas moedas no PDF", starter: false, pro: true, agency: true },
-  { label: "White-label (logo própria)", starter: false, pro: false, agency: true },
-  { label: "Multi-usuário (3 seats)", starter: false, pro: false, agency: true },
-  { label: "API access", starter: false, pro: false, agency: true },
-  { label: "Onboarding dedicado", starter: false, pro: false, agency: true },
+  { label: "Clientes ativos",          starter: "Até 5",      pro: "Ilimitados",  agency: "Ilimitados" },
+  { label: "Pipeline Kanban",          starter: true,          pro: true,          agency: true },
+  { label: "Agenda de tarefas",        starter: true,          pro: true,          agency: true },
+  { label: "Propostas + PDF",          starter: true,          pro: true,          agency: true },
+  { label: "App mobile",               starter: true,          pro: true,          agency: true },
+  { label: "Relatórios completos",     starter: false,         pro: true,          agency: true },
+  { label: "Exportação de dados",      starter: false,         pro: true,          agency: true },
+  { label: "Suporte prioritário",      starter: false,         pro: true,          agency: true },
+  { label: "Múltiplas moedas no PDF",  starter: false,         pro: true,          agency: true },
+  { label: "White-label (logo própria)",starter: false,        pro: false,         agency: true },
+  { label: "Multi-usuário (3 seats)",  starter: false,         pro: false,         agency: true },
+  { label: "API access",               starter: false,         pro: false,         agency: true },
+  { label: "Onboarding dedicado",      starter: false,         pro: false,         agency: true },
 ];
 
 const FAQS = [
@@ -43,27 +62,44 @@ function FaqItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border border-border rounded-xl overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors"
-      >
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors">
         <span className="font-medium text-sm text-foreground">{q}</span>
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
       </button>
-      {open && (
-        <div className="px-5 pb-4 text-sm text-muted-foreground border-t border-border pt-3">{a}</div>
-      )}
+      {open && <div className="px-5 pb-4 text-sm text-muted-foreground border-t border-border pt-3">{a}</div>}
     </div>
   );
 }
 
 export default function Plans() {
-  const { lang } = useLanguage();
-  const currency = lang === "en" ? "USD" : lang === "es" ? "EUR" : "BRL";
-  const [billing, setBilling] = useState("monthly");
-  const [checkoutPlan, setCheckoutPlan] = useState(null);
+  const [billing, setBilling] = useState("mensal");
+  const [loadingPlan, setLoadingPlan] = useState(null);
+  const [toast, setToast] = useState(null);
+  const location = useLocation();
 
-  const price = (plan) => PRICES[plan][billing][currency];
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("success")) {
+      setToast({ type: "success", msg: "✓ Assinatura ativada! Bem-vindo ao Concierge OS." });
+      setTimeout(() => setToast(null), 5000);
+    } else if (params.get("canceled")) {
+      setToast({ type: "info", msg: "Checkout cancelado. Você pode assinar quando quiser." });
+      setTimeout(() => setToast(null), 4000);
+    }
+  }, []);
+
+  const handleCheckout = async (planId) => {
+    setLoadingPlan(planId);
+    const price_id = PRICE_IDS[planId][billing];
+    const res = await stripeCheckout({ price_id, plan_id: planId, cycle: billing });
+    const url = res?.data?.url;
+    if (url) {
+      window.location.href = url;
+    } else {
+      setToast({ type: "error", msg: "Erro ao iniciar checkout. Tente novamente." });
+      setLoadingPlan(null);
+    }
+  };
 
   const plans = [
     {
@@ -72,15 +108,7 @@ export default function Plans() {
       tagline: "Perfeito para começar",
       icon: Zap,
       highlight: false,
-      cta: "Iniciar 7 dias grátis",
-      ctaVariant: "outline",
-      features: [
-        "Até 5 clientes ativos",
-        "Pipeline Kanban",
-        "Agenda de tarefas",
-        "Propostas básicas + PDF",
-        "App mobile",
-      ],
+      features: ["Até 5 clientes ativos", "Pipeline Kanban", "Agenda de tarefas", "Propostas básicas + PDF", "App mobile"],
     },
     {
       id: "pro",
@@ -88,16 +116,7 @@ export default function Plans() {
       tagline: "Para quem quer escalar",
       icon: Star,
       highlight: true,
-      cta: "Iniciar 7 dias grátis",
-      ctaVariant: "default",
-      features: [
-        "Clientes ilimitados",
-        "Tudo do Starter",
-        "Relatórios completos",
-        "Exportação de dados",
-        "Suporte prioritário",
-        "Múltiplas moedas no PDF",
-      ],
+      features: ["Clientes ilimitados", "Tudo do Starter", "Relatórios completos", "Exportação de dados", "Suporte prioritário", "Múltiplas moedas no PDF"],
     },
     {
       id: "agency",
@@ -105,20 +124,23 @@ export default function Plans() {
       tagline: "Para agências e operações",
       icon: Crown,
       highlight: false,
-      cta: "Falar com vendas",
-      ctaVariant: "outline",
-      features: [
-        "Tudo do Pro",
-        "White-label (logo própria)",
-        "Multi-usuário (3 seats)",
-        "API access",
-        "Onboarding dedicado",
-      ],
+      features: ["Tudo do Pro", "White-label (logo própria)", "Multi-usuário (3 seats)", "API access", "Onboarding dedicado"],
     },
   ];
 
   return (
     <div className="max-w-5xl mx-auto pb-20">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-xl border ${
+          toast.type === "success" ? "bg-green-500/15 border-green-500/30 text-green-400" :
+          toast.type === "error" ? "bg-red-500/15 border-red-500/30 text-red-400" :
+          "bg-secondary border-border text-foreground"
+        }`}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center mb-10">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
@@ -128,17 +150,17 @@ export default function Plans() {
           Todos os planos incluem 7 dias grátis. Cancele quando quiser, sem multas.
         </p>
 
-        {/* Toggle */}
+        {/* Billing toggle */}
         <div className="inline-flex items-center gap-1 bg-secondary border border-border rounded-xl p-1 mt-6">
           <button
-            onClick={() => setBilling("monthly")}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${billing === "monthly" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
+            onClick={() => setBilling("mensal")}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${billing === "mensal" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
           >
             Mensal
           </button>
           <button
-            onClick={() => setBilling("annual")}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${billing === "annual" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
+            onClick={() => setBilling("anual")}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${billing === "anual" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
           >
             Anual
             <span className="text-[10px] font-mono bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full">-20%</span>
@@ -150,6 +172,7 @@ export default function Plans() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
         {plans.map((plan) => {
           const Icon = plan.icon;
+          const isLoading = loadingPlan === plan.id;
           return (
             <div
               key={plan.id}
@@ -177,11 +200,11 @@ export default function Plans() {
 
               <div className="mb-5">
                 <div className="flex items-end gap-1">
-                  <span className="font-display text-3xl font-bold text-foreground">{price(plan.id)}</span>
+                  <span className="font-display text-3xl font-bold text-foreground">{PRICES[plan.id][billing]}</span>
                   <span className="text-muted-foreground text-sm mb-1">/mês</span>
                 </div>
-                {billing === "annual" && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5 font-mono">cobrado anualmente</p>
+                {billing === "anual" && (
+                  <p className="text-[11px] text-green-400 mt-0.5 font-mono">cobrado anualmente · 20% off</p>
                 )}
               </div>
 
@@ -195,11 +218,13 @@ export default function Plans() {
               </ul>
 
               <Button
-                onClick={() => setCheckoutPlan(plan.id)}
+                onClick={() => handleCheckout(plan.id)}
+                disabled={!!loadingPlan}
                 variant={plan.highlight ? "default" : "outline"}
-                className={`w-full ${plan.highlight ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
+                className={`w-full gap-2 ${plan.highlight ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
               >
-                {plan.cta}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {isLoading ? "Redirecionando..." : "Iniciar 7 dias grátis"}
               </Button>
             </div>
           );
@@ -241,18 +266,9 @@ export default function Plans() {
         </div>
       </div>
 
-      {/* Trust badge */}
       <p className="text-center text-xs text-muted-foreground mt-10 font-mono">
-        ✦ Pagamento seguro · Sem contratos · Cancele a qualquer momento
+        ✦ Pagamento seguro via Stripe · Sem contratos · Cancele a qualquer momento
       </p>
-
-      <CheckoutModal
-        open={!!checkoutPlan}
-        onOpenChange={(v) => !v && setCheckoutPlan(null)}
-        plan={checkoutPlan}
-        billingCycle={billing}
-        price={checkoutPlan ? price(checkoutPlan) : ""}
-      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, User, CreditCard, Users, Image, Globe, Trash2, Lock, Mail, Save } from "lucide-react";
+import { Settings as SettingsIcon, User, CreditCard, Users, Image, Globe, Trash2, Lock, Save, ExternalLink, Loader2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import PlanGate from "@/components/monetization/PlanGate";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import { useNavigate } from "react-router-dom";
+import { stripePortal } from "@/functions/stripePortal";
 
 function Section({ icon: Icon, title, children }) {
   return (
@@ -36,6 +37,7 @@ export default function Settings() {
   const [specialty, setSpecialty] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [saved, setSaved] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then((u) => {
@@ -71,6 +73,14 @@ export default function Settings() {
 
   const planLabel = { trial: "Trial (7 dias)", starter: "Starter", pro: "Pro", agency: "Agency" }[plan] || "—";
 
+  const handlePortal = async () => {
+    setPortalLoading(true);
+    const res = await stripePortal({});
+    const url = res?.data?.url;
+    if (url) window.location.href = url;
+    else setPortalLoading(false);
+  };
+
   return (
     <div className="max-w-2xl mx-auto pb-20">
       <PageHeader title="Configurações" subtitle="Gerencie sua conta e operação" />
@@ -105,14 +115,49 @@ export default function Settings() {
 
       {/* Meu Plano */}
       <Section icon={CreditCard} title="Meu Plano">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-foreground font-medium">Plano atual: <span className="text-primary font-bold">{planLabel}</span></p>
-            <p className="text-xs text-muted-foreground mt-0.5">Pagamento seguro · Cancele quando quiser</p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-foreground font-medium">Plano atual: <span className="text-primary font-bold">{planLabel}</span></p>
+              {profile?.subscription_status && (
+                <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+                  Status: <span className={{
+                    trialing: "text-blue-400",
+                    active: "text-green-400",
+                    past_due: "text-amber-400",
+                    canceled: "text-red-400",
+                  }[profile.subscription_status] || "text-muted-foreground"}>
+                    {{
+                      trialing: "Trial ativo",
+                      active: "Ativo",
+                      past_due: "Pagamento pendente",
+                      canceled: "Cancelado",
+                      incomplete: "Incompleto",
+                    }[profile.subscription_status] || profile.subscription_status}
+                  </span>
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-0.5">Pagamento seguro via Stripe · Cancele quando quiser</p>
+            </div>
           </div>
-          <Button onClick={() => navigate("/planos")} variant="outline" size="sm">
-            {plan === "trial" || plan === "starter" ? "Fazer Upgrade" : "Gerenciar Plano"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {profile?.stripe_customer_id && (
+              <Button onClick={handlePortal} variant="outline" size="sm" disabled={portalLoading} className="gap-2">
+                {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                Gerenciar assinatura
+              </Button>
+            )}
+            {(plan === "trial" || plan === "starter" || plan === "pro") && (
+              <Button onClick={() => navigate("/planos")} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Fazer upgrade
+              </Button>
+            )}
+            {(plan === "trial" || !profile?.stripe_customer_id) && (
+              <Button onClick={() => navigate("/planos")} variant="outline" size="sm">
+                Ver planos
+              </Button>
+            )}
+          </div>
         </div>
       </Section>
 

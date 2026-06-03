@@ -5,7 +5,7 @@ const APP_URL = "https://amazing-elite-concierge-flow.base44.app";
 
 Deno.serve(async (req) => {
   try {
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
+    const stripe = new Stripe(Deno.env.get("MY_STRIPE_SK"));
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
