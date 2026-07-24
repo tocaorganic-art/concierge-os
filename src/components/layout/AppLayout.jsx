@@ -63,7 +63,7 @@ export default function AppLayout() {
   const showBanner = !bannerDismissed && trialDaysLeft !== null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background overflow-hidden">
       {/* Desktop sidebar */}
       <div className="hidden md:block">
         <Sidebar onOpenTutorial={() => setShowTutorial(true)} />
@@ -76,7 +76,7 @@ export default function AppLayout() {
       </div>
 
       {/* Main content */}
-      <main className="md:ml-64 min-h-screen pt-14 md:pt-0 pb-16 md:pb-0">
+      <main className="md:ml-64 h-full overflow-y-auto pt-14 md:pt-0 pb-16 md:pb-0">
         {showBanner && (
           <TrialBanner
             daysLeft={trialDaysLeft}
