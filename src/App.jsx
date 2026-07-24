@@ -28,6 +28,7 @@ import Parceiros from "@/pages/Parceiros";
 import ConciergeKPIs from "@/pages/ConciergeKPIs";
 import ClientProfile from "@/pages/ClientProfile";
 import Obrigado from "@/pages/Obrigado";
+import PwaInstallPopup from "@/components/PwaInstallPopup";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -88,6 +89,7 @@ function App() {
         <Router>
           <AuthenticatedApp />
         </Router>
+        <PwaInstallPopup />
         <Toaster />
       </QueryClientProvider>
       </LanguageProvider>
