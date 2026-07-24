@@ -6,9 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+
 
 export default function OnboardingWizard({ user, onComplete }) {
   const { t } = useLanguage();
@@ -124,18 +122,18 @@ export default function OnboardingWizard({ user, onComplete }) {
                   <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
                     Sua especialidade
                   </Label>
-                  <Select value={specialty} onValueChange={setSpecialty}>
-                    <SelectTrigger className="mt-1.5 bg-secondary border-border">
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="luxo">Viagens de luxo</SelectItem>
-                      <SelectItem value="casamentos">Casamentos</SelectItem>
-                      <SelectItem value="corporativo">Eventos corporativos</SelectItem>
-                      <SelectItem value="local">Experiências locais</SelectItem>
-                      <SelectItem value="multiplos">Múltiplos</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <select
+                    value={specialty}
+                    onChange={(e) => setSpecialty(e.target.value)}
+                    className="mt-1.5 w-full h-9 rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer appearance-none"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="luxo">Viagens de luxo</option>
+                    <option value="casamentos">Casamentos</option>
+                    <option value="corporativo">Eventos corporativos</option>
+                    <option value="local">Experiências locais</option>
+                    <option value="multiplos">Múltiplos</option>
+                  </select>
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
@@ -171,16 +169,17 @@ export default function OnboardingWizard({ user, onComplete }) {
                 </div>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Tipo</Label>
-                  <Select value={clientForm.tipo} onValueChange={(v) => setClientForm(f => ({ ...f, tipo: v }))}>
-                    <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="familia">Família</SelectItem>
-                      <SelectItem value="casal">Casal</SelectItem>
-                      <SelectItem value="grupo">Grupo</SelectItem>
-                      <SelectItem value="vip">VIP</SelectItem>
-                      <SelectItem value="corporativo">Corporativo</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <select
+                    value={clientForm.tipo}
+                    onChange={(e) => setClientForm(f => ({ ...f, tipo: e.target.value }))}
+                    className="mt-1.5 w-full h-9 rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer appearance-none"
+                  >
+                    <option value="familia">Família</option>
+                    <option value="casal">Casal</option>
+                    <option value="grupo">Grupo</option>
+                    <option value="vip">VIP</option>
+                    <option value="corporativo">Corporativo</option>
+                  </select>
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>

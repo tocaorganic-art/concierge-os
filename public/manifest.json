@@ -1,21 +1,18 @@
 {
   "name": "Toca Concierge OS",
   "short_name": "Toca Concierge",
-  "description": "Sistema operacional de luxo para concierges independentes",
+  "description": "Sistema operacional de concierge de luxo — gerencie clientes, propostas e operações em um só lugar.",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1d24",
-  "theme_color": "#c5a059",
-  "lang": "pt-BR",
-  "categories": ["business", "lifestyle", "travel"],
+  "background_color": "#131620",
+  "theme_color": "#C9A84C",
   "icons": [
     {
-      "src": "https://base44.com/logo_v2.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/d02d9f6b3_generated_image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
