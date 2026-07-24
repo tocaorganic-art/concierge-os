@@ -3,9 +3,10 @@ import { Download, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "toca_pwa_popup_dismissed";
+const COOLDOWN_DAYS = 7;
 
 /**
- * Popup que aparece ao abrir a página em mobile,
+ * Popup que aparece ao abrir o site,
  * oferecendo instalação do app (PWA) com uso offline.
  */
 export default function PwaInstallPopup() {
@@ -14,16 +15,15 @@ export default function PwaInstallPopup() {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Não mostra em desktop
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-      window.matchMedia("(max-width: 768px)").matches;
-    if (!isMobile) return;
-
     // Não mostra se já está instalado (standalone)
     if (window.matchMedia("(display-mode: standalone)").matches) return;
 
-    // Não mostra se o usuário já dispensou nesta sessão
-    if (sessionStorage.getItem(STORAGE_KEY) === "1") return;
+    // Não mostra se o usuário dispensou recentemente
+    const dismissedAt = localStorage.getItem(STORAGE_KEY);
+    if (dismissedAt) {
+      const daysSince = (Date.now() - parseInt(dismissedAt, 10)) / (1000 * 60 * 60 * 24);
+      if (daysSince < COOLDOWN_DAYS) return;
+    }
 
     const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     setIsIOS(ios);
@@ -35,10 +35,13 @@ export default function PwaInstallPopup() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Mostra o popup em qualquer mobile após 1.5s
-    setTimeout(() => setVisible(true), 1500);
+    // Mostra o popup após 3s (dá tempo do app carregar)
+    const timer = setTimeout(() => setVisible(true), 3000);
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      clearTimeout(timer);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -49,18 +52,21 @@ export default function PwaInstallPopup() {
         setDeferredPrompt(null);
         dismiss();
       }
+    } else {
+      // Fallback: não há prompt nativo (iOS ou desktop sem suporte)
+      dismiss();
     }
   };
 
   const dismiss = () => {
     setVisible(false);
-    sessionStorage.setItem(STORAGE_KEY, "1");
+    localStorage.setItem(STORAGE_KEY, Date.now().toString());
   };
 
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300">
       <div className="relative w-full max-w-sm bg-card border border-border rounded-2xl p-6 shadow-2xl gold-glow">
         <button
           onClick={dismiss}
