@@ -76,7 +76,7 @@ export default function AppLayout() {
       </div>
 
       {/* Main content */}
-      <main className="md:ml-64 h-full overflow-y-auto pt-14 md:pt-0 pb-16 md:pb-0">
+      <main className="md:ml-64 h-full overflow-y-auto overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0">
         {showBanner && (
           <TrialBanner
             daysLeft={trialDaysLeft}

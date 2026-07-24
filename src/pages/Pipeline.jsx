@@ -183,26 +183,26 @@ export default function Pipeline() {
 
       {/* ── MOBILE: Uma coluna com botões de mover ── */}
       <div className="md:hidden">
-        <div className="flex items-center gap-2 mb-4">
-          <Button variant="ghost" size="icon" onClick={() => setMobileStageIdx((i) => Math.max(0, i - 1))} disabled={mobileStageIdx === 0} className="h-8 w-8">
+        <div className="flex items-center gap-1.5 mb-4">
+          <Button variant="ghost" size="icon" onClick={() => setMobileStageIdx((i) => Math.max(0, i - 1))} disabled={mobileStageIdx === 0} className="h-8 w-8 flex-shrink-0">
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <div className="flex-1 flex gap-1">
+          <div className="flex-1 flex gap-1 min-w-0">
             {stages.map((s, i) => (
               <button
                 key={s.key}
                 onClick={() => setMobileStageIdx(i)}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${
+                className={`flex-1 min-w-0 py-1.5 px-1 rounded-lg text-[10px] font-mono uppercase tracking-wide transition-all overflow-hidden ${
                   i === mobileStageIdx
                     ? "bg-primary/15 text-primary border border-primary/30"
                     : "bg-secondary text-muted-foreground"
                 }`}
               >
-                {s.label}
+                <span className="block truncate">{s.label}</span>
               </button>
             ))}
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setMobileStageIdx((i) => Math.min(stages.length - 1, i + 1))} disabled={mobileStageIdx === stages.length - 1} className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={() => setMobileStageIdx((i) => Math.min(stages.length - 1, i + 1))} disabled={mobileStageIdx === stages.length - 1} className="h-8 w-8 flex-shrink-0">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

@@ -1,60 +1,68 @@
-// Service Worker — Toca Concierge PWA
-// Cache offline para funcionamento sem internet
-
-const CACHE_NAME = 'toca-concierge-v1';
-const PRECACHE_URLS = [
+const CACHE_VERSION = 'toca-concierge-v3';
+const PRECACHE = [
   '/',
   '/index.html',
-  '/manifest.json',
+  '/manifest.json'
 ];
 
-// Instala: pré-cacheia recursos essenciais
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_VERSION)
+      .then((cache) => cache.addAll(PRECACHE))
+      .catch(() => {})
   );
   self.skipWaiting();
 });
 
-// Ativa: limpa caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+      Promise.all(
+        keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch: network-first com fallback para cache (app-shell)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-
-  // Ignora requisições não-GET (APIs POST, etc.)
   if (request.method !== 'GET') return;
 
-  // Ignora requisições para APIs externas
   const url = new URL(request.url);
+
+  // Only handle same-origin requests
   if (url.origin !== self.location.origin) return;
 
+  // Skip API/auth calls
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return;
+
+  // Network-first for navigation requests, fallback to cache
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+          return response;
+        })
+        .catch(() => caches.match(request).then((r) => r || caches.match('/index.html')))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for static assets
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        // Sucesso online: atualiza o cache
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        return response;
-      })
-      .catch(() => {
-        // Offline: serve do cache
-        return caches.match(request).then((cached) => {
-          if (cached) return cached;
-          // Fallback para a home em navegação
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
+    caches.match(request).then((cached) => {
+      const fetchPromise = fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
           }
-          return new Response('Offline', { status: 503, statusText: 'Offline' });
-        });
-      })
+          return response;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
+    })
   );
 });
