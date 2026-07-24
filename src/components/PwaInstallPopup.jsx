@@ -6,8 +6,9 @@ const STORAGE_KEY = "toca_pwa_popup_dismissed";
 const COOLDOWN_DAYS = 7;
 
 /**
- * Popup que aparece ao abrir o site,
+ * Banner não-bloqueante que aparece no canto da tela,
  * oferecendo instalação do app (PWA) com uso offline.
+ * Não cobre a tela inteira — o usuário pode continuar usando o app.
  */
 export default function PwaInstallPopup() {
   const [visible, setVisible] = useState(false);
@@ -35,8 +36,8 @@ export default function PwaInstallPopup() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Mostra o popup após 3s (dá tempo do app carregar)
-    const timer = setTimeout(() => setVisible(true), 3000);
+    // Mostra o banner após 4s
+    const timer = setTimeout(() => setVisible(true), 4000);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
@@ -53,7 +54,6 @@ export default function PwaInstallPopup() {
         dismiss();
       }
     } else {
-      // Fallback: não há prompt nativo (iOS ou desktop sem suporte)
       dismiss();
     }
   };
@@ -66,50 +66,40 @@ export default function PwaInstallPopup() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-sm bg-card border border-border rounded-2xl p-6 shadow-2xl gold-glow">
+    <div className="fixed bottom-4 right-4 z-50 max-w-xs animate-in slide-in-from-bottom-5 fade-in duration-500">
+      <div className="relative bg-card border border-border rounded-2xl p-4 shadow-2xl gold-glow pointer-events-auto">
         <button
           onClick={dismiss}
-          className="absolute top-3 right-3 p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          className="absolute top-2 right-2 p-1 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           aria-label="Fechar"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
 
-        <div className="flex flex-col items-center text-center">
-          <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center mb-4">
-            <Smartphone className="w-7 h-7 text-primary" />
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <Smartphone className="w-5 h-5 text-primary" />
           </div>
 
-          <h2 className="font-display text-xl font-bold text-foreground mb-1.5">
-            Baixe o App
-          </h2>
-          <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-            Instale o <span className="text-primary font-medium">Toca Concierge</span> no seu celular.
-            Funciona <span className="text-foreground font-medium">offline</span> e abre com um toque, como um app nativo.
-          </p>
+          <div className="flex-1 min-w-0 pr-4">
+            <h2 className="font-display text-sm font-bold text-foreground mb-0.5">
+              Baixe o App
+            </h2>
+            <p className="text-xs text-muted-foreground mb-3 leading-snug">
+              Instale o <span className="text-primary font-medium">Toca Concierge</span>. Funciona offline, como um app nativo.
+            </p>
 
-          {isIOS ? (
-            <div className="w-full space-y-3">
-              <div className="bg-secondary/60 border border-border rounded-xl p-3 text-xs text-muted-foreground text-left leading-relaxed">
-                <strong className="text-foreground">Como instalar no iPhone:</strong>
-                <br />
-                1. Toque em <span className="text-primary font-medium">Compartilhar</span>
-                <br />
-                2. Escolha <span className="text-primary font-medium">"Adicionar à Tela de Início"</span>
-                <br />
-                3. Confirme em <span className="text-primary font-medium">"Adicionar"</span>
-              </div>
-              <Button onClick={dismiss} className="w-full">
-                Entendi
+            {isIOS ? (
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                Toque em <span className="text-primary">Compartilhar</span> → "Adicionar à Tela de Início"
+              </p>
+            ) : (
+              <Button onClick={handleInstall} size="sm" className="w-full gap-1.5 h-8 text-xs">
+                <Download className="w-3.5 h-3.5" />
+                Baixe aqui
               </Button>
-            </div>
-          ) : (
-            <Button onClick={handleInstall} className="w-full gap-2" size="lg">
-              <Download className="w-4 h-4" />
-              Baixe aqui
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

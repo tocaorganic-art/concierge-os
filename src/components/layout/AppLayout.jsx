@@ -8,6 +8,7 @@ import MobileBottomNav from "./MobileBottomNav";
 import TrialBanner from "./TrialBanner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import TutorialModal from "@/components/tutorial/TutorialModal";
+import PwaInstallPopup from "@/components/PwaInstallPopup";
 
 export default function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -113,6 +114,9 @@ export default function AppLayout() {
           if (user?.id) localStorage.setItem(`tutorial_seen_${user.id}`, "1");
         }}
       />
+
+      {/* PWA install popup */}
+      <PwaInstallPopup />
     </div>
   );
 }
