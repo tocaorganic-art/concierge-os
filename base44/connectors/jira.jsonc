@@ -1,0 +1,9 @@
+{
+  "type": "jira",
+  "scopes": [
+    "read:jira-work",
+    "write:jira-work",
+    "read:me",
+    "offline_access"
+  ]
+}
