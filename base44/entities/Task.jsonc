@@ -70,6 +70,10 @@
       "type": "boolean",
       "default": false,
       "description": "Se o lembrete est\u00e1 ativo"
+    },
+    "calendar_event_id": {
+      "type": "string",
+      "description": "ID do evento vinculado no Google Agenda"
     }
   },
   "required": [
