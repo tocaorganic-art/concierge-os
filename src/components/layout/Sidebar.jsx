@@ -44,9 +44,11 @@ export default function Sidebar({ onOpenTutorial }) {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Crown className="w-5 h-5 text-primary" />
-          </div>
+          <img
+            src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
+            alt="Toca OS"
+            className="w-9 h-9 rounded-lg object-cover"
+          />
           <div>
             <h1 className="font-display text-lg font-bold text-foreground tracking-tight">
               Toca Tr<span className="text-primary">IA</span>

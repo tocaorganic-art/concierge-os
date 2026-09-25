@@ -46,9 +46,11 @@ export default function MobileTopbar({ onMenuOpen }) {
         </button>
       )}
       <h1 className="font-display text-base font-semibold text-foreground">{title}</h1>
-      <div className="w-11 h-11 flex items-center justify-center">
-        <Crown className="w-4 h-4 text-primary" />
-      </div>
+      <img
+        src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
+        alt="Toca OS"
+        className="w-7 h-7 rounded-md object-cover"
+      />
     </div>
   );
 }
