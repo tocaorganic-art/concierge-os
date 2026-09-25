@@ -51,7 +51,7 @@ export default function Sidebar({ onOpenTutorial }) {
           />
           <div>
             <h1 className="font-display text-lg font-bold text-foreground tracking-tight">
-              Toca Tr<span className="text-primary">IA</span>
+              Toca <span className="text-primary">OS</span>
             </h1>
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Dashboard</p>
           </div>

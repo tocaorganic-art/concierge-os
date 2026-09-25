@@ -20,7 +20,7 @@ const routeTitles = {
 export default function MobileTopbar({ onMenuOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const title = routeTitles[location.pathname] || "Toca TrIA";
+  const title = routeTitles[location.pathname] || "Toca OS";
   const isPrimary = PRIMARY_ROUTES.includes(location.pathname);
 
   return (

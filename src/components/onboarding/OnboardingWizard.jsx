@@ -71,9 +71,11 @@ export default function OnboardingWizard({ user, onComplete }) {
 
           {/* Header */}
           <div className="px-8 pt-8 pb-2 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Crown className="w-5 h-5 text-primary" />
-            </div>
+            <img
+              src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
+              alt="Toca OS"
+              className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+            />
             <div>
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                 Passo {step + 1} de {STEPS.length}

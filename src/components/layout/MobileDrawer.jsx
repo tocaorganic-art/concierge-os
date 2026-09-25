@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, KanbanSquare, Users, CalendarDays, FileText,
-  BarChart3, Receipt, Crown, LogOut, X, Star, Settings, Lock,
+  BarChart3, Receipt, LogOut, X, Star, Settings, Lock,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
@@ -40,12 +40,14 @@ export default function MobileDrawer({ open, onClose }) {
       <div className="absolute left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border flex flex-col shadow-2xl animate-in slide-in-from-left duration-200" style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-primary" />
-            </div>
+            <img
+              src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
+              alt="Toca OS"
+              className="w-9 h-9 rounded-lg object-cover"
+            />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">
-                Concierge<span className="text-primary">OS</span>
+                Toca <span className="text-primary">OS</span>
               </h1>
               <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Dashboard</p>
             </div>

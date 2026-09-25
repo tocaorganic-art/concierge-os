@@ -75,7 +75,7 @@ export default function ClientPortal() {
         {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary text-xs font-mono px-3 py-1 rounded-full mb-4">
-            <Crown className="w-3 h-3" /> Toca Concierge
+            <Crown className="w-3 h-3" /> Toca OS
           </div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">
             {greeting()}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}
