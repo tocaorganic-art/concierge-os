@@ -43,6 +43,16 @@ export default function Dashboard() {
     .filter((r) => r.mes === currentMonth && r.ano === currentYear)
     .reduce((sum, r) => sum + (r.valor || 0), 0);
 
+  // Tendência real: mês atual vs. mês anterior (só se houver receita no mês anterior)
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+  const prevRevenue = revenues
+    .filter((r) => r.mes === prevMonth && r.ano === prevYear)
+    .reduce((sum, r) => sum + (r.valor || 0), 0);
+  const revenueTrend = prevRevenue > 0
+    ? Math.round(((monthRevenue - prevRevenue) / prevRevenue) * 100)
+    : undefined;
+
   const activeProposals = proposals.filter(
     (p) => p.status === "lead" || p.status === "proposta"
   ).length;
@@ -70,7 +80,7 @@ export default function Dashboard() {
           title={t("dash_monthly_revenue")}
           value={`${currSymbol} ${monthRevenue.toLocaleString(localeDate)}`}
           icon={DollarSign}
-          trend={12}
+          trend={revenueTrend}
           trendLabel={t("dash_vs_last_month")}
         />
         <KpiCard
@@ -82,7 +92,6 @@ export default function Dashboard() {
           title={t("dash_conversion_rate")}
           value={`${conversionRate}%`}
           icon={TrendingUp}
-          trend={5}
         />
         <KpiCard
           title={t("dash_active_clients")}
