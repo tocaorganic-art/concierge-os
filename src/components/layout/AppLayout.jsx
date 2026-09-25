@@ -5,7 +5,6 @@ import Sidebar from "./Sidebar";
 import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
 import MobileBottomNav from "./MobileBottomNav";
-import TrialBanner from "./TrialBanner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import TutorialModal from "@/components/tutorial/TutorialModal";
 import PwaInstallPopup from "@/components/PwaInstallPopup";
@@ -15,8 +14,6 @@ export default function AppLayout() {
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [trialDaysLeft, setTrialDaysLeft] = useState(null);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -32,35 +29,8 @@ export default function AppLayout() {
         setTimeout(() => setShowTutorial(true), 800);
       }
 
-      // Load plan from UserProfile
-      try {
-        const profiles = await base44.entities.UserProfile.filter({ user_id: u.id });
-        let profile = profiles?.[0];
-        if (!profile) {
-          profile = await base44.entities.UserProfile.create({
-            user_id: u.id,
-            plan_id: "trial",
-            trial_start_date: new Date().toISOString().split("T")[0],
-          });
-        }
-        const planId = profile.plan_id || "trial";
-        if (planId === "trial") {
-          const startDate = profile.trial_start_date
-            ? new Date(profile.trial_start_date)
-            : new Date(u.created_date);
-          const diffDays = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24));
-          setTrialDaysLeft(7 - diffDays);
-        }
-      } catch {
-        // fallback to created_date
-        const createdAt = new Date(u.created_date);
-        const diffDays = Math.floor((new Date() - createdAt) / (1000 * 60 * 60 * 24));
-        setTrialDaysLeft(Math.max(0, 7 - diffDays));
-      }
     }).catch(() => {});
   }, []);
-
-  const showBanner = !bannerDismissed && trialDaysLeft !== null;
 
   return (
     <div className="h-screen bg-background overflow-hidden">
@@ -77,12 +47,6 @@ export default function AppLayout() {
 
       {/* Main content */}
       <main className="md:ml-64 h-full overflow-y-auto overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0">
-        {showBanner && (
-          <TrialBanner
-            daysLeft={trialDaysLeft}
-            onDismiss={trialDaysLeft > 0 ? () => setBannerDismissed(true) : null}
-          />
-        )}
         <div className="p-4 md:p-8">
           <Outlet />
         </div>
