@@ -6,7 +6,7 @@ import RequestModal from "@/components/concierge/RequestModal";
 import RequestHistory from "@/components/concierge/RequestHistory";
 import PixPaymentCard from "@/components/billing/PixPaymentCard";
 import { COMPANY_INFO } from "@/lib/paymentInfo";
-import { Loader2, Crown, MapPin, CalendarDays, Receipt, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { Loader2, Crown, MapPin, CalendarDays, Receipt, CheckCircle2, Clock, AlertTriangle, Paperclip } from "lucide-react";
 
 const STATUS_PROPOSTA = {
   lead: { label: "Em análise", className: "bg-secondary text-muted-foreground border-border" },
@@ -165,6 +165,11 @@ export default function ClientPortal() {
                         <div className="min-w-0">
                           <p className="text-foreground truncate max-w-[160px]">{b.descricao || "Parcela"}</p>
                           <p className="text-[11px] text-muted-foreground">Venc. {formatDate(b.data_vencimento)}</p>
+                          {b.comprovante_url && (
+                            <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-0.5">
+                              <Paperclip className="w-2.5 h-2.5" /> Comprovante
+                            </a>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className="font-display font-semibold text-primary">R$ {(b.valor || 0).toLocaleString("pt-BR")}</span>
