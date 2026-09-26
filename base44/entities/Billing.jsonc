@@ -41,6 +41,10 @@
       "type": "string",
       "format": "date",
       "description": "Data do pagamento efetivo"
+    },
+    "comprovante_url": {
+      "type": "string",
+      "description": "URL da foto/comprovante desta cobran\u00e7a (nota fiscal, or\u00e7amento, print de passagem, recibo de pagamento etc.) \u2014 vis\u00edvel para admin, equipe e para o cliente vinculado a esta cobran\u00e7a"
     }
   },
   "required": [
