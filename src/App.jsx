@@ -12,6 +12,7 @@ import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import AppLayout from "@/components/layout/AppLayout";
+import ClientLayout from "@/components/layout/ClientLayout";
 import Dashboard from "@/pages/Dashboard";
 import Pipeline from "@/pages/Pipeline";
 import Clients from "@/pages/Clients";
@@ -72,9 +73,11 @@ const AuthenticatedApp = () => {
           <Route path="/configuracoes" element={<Settings />} />
           <Route path="/toca-tria" element={<TocaTrIA />} />
           <Route path="/solicitacoes" element={<Solicitacoes />} />
-          <Route path="/portal" element={<ClientPortal />} />
           <Route path="/parceiros" element={<Parceiros />} />
           <Route path="/kpis" element={<ConciergeKPIs />} />
+        </Route>
+        <Route element={<ClientLayout />}>
+          <Route path="/portal" element={<ClientPortal />} />
           <Route path="/meu-perfil" element={<ClientProfile />} />
         </Route>
       </Route>
