@@ -20,7 +20,7 @@ import {
 
 const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "" };
 
-const CATEGORIAS_BASE = ["Pacote Principal", "Reserva Financeira"];
+const CATEGORIAS_BASE = ["Pacote Principal", "Contas a Pagar", "Reserva Financeira"];
 const NEW_CATEGORY_VALUE = "__nova__";
 
 function normalize(str) {
@@ -160,7 +160,10 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
               </Select>
             )}
             {form.categoria === "Reserva Financeira" && (
-              <p className="text-[11px] text-muted-foreground mt-1">Use esta categoria para cobranças adicionais cobertas pela reserva do cliente, ou para depósitos que ele faz para reforçá-la.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Use apenas para CRÉDITO real: depósito que o cliente faz para reforçar a reserva, ou saldo que sobra e vira crédito dele. Uma cobrança adicional a receber (som, passagem, carro etc.) é "Contas a Pagar", não isso.</p>
+            )}
+            {form.categoria === "Contas a Pagar" && (
+              <p className="text-[11px] text-muted-foreground mt-1">Cobrança adicional normal que o cliente deve pagar (fora do pacote principal).</p>
             )}
           </div>
           <div className="grid grid-cols-2 gap-4">
