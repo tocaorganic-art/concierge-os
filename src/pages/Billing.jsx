@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet } from "lucide-react";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +15,7 @@ import KpiCard from "@/components/shared/KpiCard";
 import BillingFormDialog from "@/components/billing/BillingFormDialog";
 
 export default function Billing() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [editBilling, setEditBilling] = useState(null);
   const [search, setSearch] = useState("");
@@ -90,7 +90,7 @@ export default function Billing() {
         <KpiCard title={t("billing_pending")} value={`${t("currency_symbol")} ${pendingTotal.toLocaleString(t("locale_date"))}`} icon={DollarSign} />
         <KpiCard title={t("billing_overdue")} value={`${t("currency_symbol")} ${overdueTotal.toLocaleString(t("locale_date"))}`} icon={AlertCircle} />
         {categoriasDisponiveis.some((c) => c.trim().toLowerCase() === "reserva financeira") && (
-          <KpiCard title="Reserva Financeira" value={`R$ ${reservaFinanceira.toLocaleString("pt-BR")}`} icon={Wallet} />
+          <KpiCard title={translateCategoria("Reserva Financeira", lang)} value={`R$ ${reservaFinanceira.toLocaleString("pt-BR")}`} icon={Wallet} />
         )}
       </div>
 
@@ -106,7 +106,7 @@ export default function Billing() {
             <SelectContent>
               <SelectItem value="all">Todas as categorias</SelectItem>
               {categoriasDisponiveis.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>{translateCategoria(c, lang)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -160,7 +160,7 @@ export default function Billing() {
                       {b.descricao || "—"}
                       {b.categoria && (
                         <span className="ml-2 inline-flex items-center text-[10px] font-mono uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20">
-                          {b.categoria}
+                          {translateCategoria(b.categoria, lang)}
                         </span>
                       )}
                     </td>
@@ -195,7 +195,7 @@ export default function Billing() {
                     {b.descricao && <p className="text-xs text-muted-foreground mt-0.5">{b.descricao}</p>}
                     {b.categoria && (
                       <span className="inline-flex items-center text-[10px] font-mono uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20 mt-1">
-                        {b.categoria}
+                        {translateCategoria(b.categoria, lang)}
                       </span>
                     )}
                   </div>
