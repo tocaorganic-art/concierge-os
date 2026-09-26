@@ -71,6 +71,9 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "data.client_id": "{{user.data.client_id}}"
         }
       ]
     },
