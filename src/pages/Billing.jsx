@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ export default function Billing() {
   const [editBilling, setEditBilling] = useState(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategoria, setFilterCategoria] = useState("all");
   const queryClient = useQueryClient();
 
   const { data: billings = [], isLoading } = useQuery({
@@ -35,7 +36,8 @@ export default function Billing() {
   const filtered = billings.filter((b) => {
     const matchSearch = !search || b.client_nome?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "all" || b.status === filterStatus;
-    return matchSearch && matchStatus;
+    const matchCategoria = filterCategoria === "all" || b.categoria === filterCategoria;
+    return matchSearch && matchStatus && matchCategoria;
   });
 
   const now = new Date();
@@ -52,6 +54,14 @@ export default function Billing() {
 
   const pendingTotal = billings.filter((b) => b.status === "pendente").reduce((sum, b) => sum + (b.valor || 0), 0);
   const overdueTotal = billings.filter((b) => b.status === "atrasado").reduce((sum, b) => sum + (b.valor || 0), 0);
+
+  const reservaFinanceira = billings
+    .filter((b) => (b.categoria || "").trim().toLowerCase() === "reserva financeira")
+    .reduce((sum, b) => sum + (b.status === "recebido" ? (b.valor || 0) : -(b.valor || 0)), 0);
+
+  const categoriasDisponiveis = Array.from(
+    new Set(billings.map((b) => b.categoria).filter(Boolean))
+  ).sort();
 
   if (isLoading) {
     return (
@@ -74,20 +84,34 @@ export default function Billing() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard title={t("billing_received_month")} value={`${t("currency_symbol")} ${thisMonthReceived.toLocaleString(t("locale_date"))}`} icon={CheckCircle2} />
         <KpiCard title={t("billing_pending")} value={`${t("currency_symbol")} ${pendingTotal.toLocaleString(t("locale_date"))}`} icon={DollarSign} />
         <KpiCard title={t("billing_overdue")} value={`${t("currency_symbol")} ${overdueTotal.toLocaleString(t("locale_date"))}`} icon={AlertCircle} />
+        {categoriasDisponiveis.some((c) => c.trim().toLowerCase() === "reserva financeira") && (
+          <KpiCard title="Reserva Financeira" value={`R$ ${reservaFinanceira.toLocaleString("pt-BR")}`} icon={Wallet} />
+        )}
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 mb-4 md:mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-secondary border-border" />
         </div>
+        {categoriasDisponiveis.length > 0 && (
+          <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+            <SelectTrigger className="w-full sm:w-48 bg-secondary border-border"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {categoriasDisponiveis.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-32 md:w-40 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
@@ -131,7 +155,14 @@ export default function Billing() {
                 {filtered.map((b) => (
                   <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
                     <td className="px-5 py-3.5 text-sm font-medium text-foreground">{b.client_nome}</td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground">{b.descricao || "—"}</td>
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground">
+                      {b.descricao || "—"}
+                      {b.categoria && (
+                        <span className="ml-2 inline-flex items-center text-[10px] font-mono uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20">
+                          {b.categoria}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">
                       {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
                     </td>
@@ -161,6 +192,11 @@ export default function Billing() {
                   <div>
                     <p className="font-medium text-foreground text-sm">{b.client_nome}</p>
                     {b.descricao && <p className="text-xs text-muted-foreground mt-0.5">{b.descricao}</p>}
+                    {b.categoria && (
+                      <span className="inline-flex items-center text-[10px] font-mono uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20 mt-1">
+                        {b.categoria}
+                      </span>
+                    )}
                   </div>
                   <StatusBadge status={b.status} />
                 </div>
