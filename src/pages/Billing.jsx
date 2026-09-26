@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet } from "lucide-react";
+import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,6 +167,11 @@ export default function Billing() {
                           {translateCategoria(b.categoria, lang)}
                         </span>
                       )}
+                      {b.comprovante_url && (
+                        <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" title="Ver comprovante" className="ml-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+                          <Paperclip className="w-3 h-3" /> Comprovante
+                        </a>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">
                       {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
@@ -201,6 +206,11 @@ export default function Billing() {
                       <span className="inline-flex items-center text-[10px] font-mono uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20 mt-1">
                         {translateCategoria(b.categoria, lang)}
                       </span>
+                    )}
+                    {b.comprovante_url && (
+                      <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+                        <Paperclip className="w-3 h-3" /> Comprovante
+                      </a>
                     )}
                   </div>
                   <StatusBadge status={b.status} />
