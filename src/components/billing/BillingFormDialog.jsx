@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { Camera, Loader2, ImageIcon, X } from "lucide-react";
 
-const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "" };
+const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "" };
 
 const CATEGORIAS_BASE = ["Pacote Principal", "Contas a Pagar", "Reserva Financeira"];
 const NEW_CATEGORY_VALUE = "__nova__";
@@ -33,6 +34,9 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
   const [form, setForm] = useState(defaultForm);
   const [creatingCategoria, setCreatingCategoria] = useState(false);
   const [novaCategoria, setNovaCategoria] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: clients = [] } = useQuery({
@@ -64,12 +68,14 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
         valor: billing.valor || "",
         status: billing.status || "pendente",
         data_vencimento: billing.data_vencimento || "",
+        comprovante_url: billing.comprovante_url || "",
       });
     } else {
       setForm(defaultForm);
     }
     setCreatingCategoria(false);
     setNovaCategoria("");
+    setUploadError("");
   }, [billing, open]);
 
   const mutation = useMutation({
@@ -98,6 +104,22 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     setForm((f) => ({ ...f, categoria: value }));
   };
 
+  const handleFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm((f) => ({ ...f, comprovante_url: file_url }));
+    } catch (err) {
+      setUploadError("Não consegui enviar o arquivo. Tente novamente.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     mutation.mutate({ ...form, valor: form.valor ? Number(form.valor) : 0 });
@@ -111,6 +133,48 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
             {billing ? "Editar Cobrança" : "Nova Cobrança"}
           </DialogTitle>
         </DialogHeader>
+        <div className="rounded-xl border border-dashed border-border bg-secondary/50 p-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+          {form.comprovante_url ? (
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <ImageIcon className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-foreground font-medium truncate">Comprovante anexado</p>
+                <a href={form.comprovante_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline">Ver arquivo</a>
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, comprovante_url: "" }))}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4" /> Anexar comprovante, nota fiscal ou orçamento
+                </>
+              )}
+            </button>
+          )}
+          {uploadError && <p className="text-xs text-red-400 mt-2">{uploadError}</p>}
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente</Label>
