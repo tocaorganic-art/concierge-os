@@ -134,6 +134,23 @@ const translations = {
     col_status: "Status",
     col_value: "Valor",
     placeholder_search_billing: "Buscar por cliente...",
+    billing_hint_reserva_financeira: "Use apenas para CRÉDITO real: depósito que o cliente faz para reforçar a reserva, ou saldo que sobra e vira crédito dele. Uma cobrança adicional a receber (som, passagem, carro etc.) é \"Contas a Pagar\", não isso.",
+    billing_hint_contas_a_pagar: "Cobrança adicional normal que o cliente deve pagar (fora do pacote principal).",
+
+    // Categorias (Despesas / Faturamento)
+    cat_pacote_principal: "Pacote Principal",
+    cat_contas_a_pagar: "Contas a Pagar",
+    cat_reserva_financeira: "Reserva Financeira",
+    cat_imovel: "Imóvel",
+    cat_equipe_pessoal: "Equipe/Pessoal",
+    cat_transporte: "Transporte",
+    cat_compras: "Compras",
+    cat_outros: "Outros",
+    cat_aluguel_de_som: "Aluguel de Som",
+    cat_festas: "Festas",
+    cat_dj: "DJ",
+    cat_churrasqueiro: "Churrasqueiro",
+    cat_massagista: "Massagista",
 
     // Plans
     plans_title: "Planos",
@@ -365,6 +382,23 @@ const translations = {
     col_status: "Status",
     col_value: "Value",
     placeholder_search_billing: "Search by client...",
+    billing_hint_reserva_financeira: "Use only for real CREDIT: a deposit the client makes to top up the reserve, or a leftover balance that becomes credit for them. An additional charge owed by the client (sound, flight, car, etc.) is \"Accounts Payable\", not this.",
+    billing_hint_contas_a_pagar: "A normal additional charge the client needs to pay (outside the main package).",
+
+    // Categories (Expenses / Billing)
+    cat_pacote_principal: "Main Package",
+    cat_contas_a_pagar: "Accounts Payable",
+    cat_reserva_financeira: "Financial Reserve",
+    cat_imovel: "Property",
+    cat_equipe_pessoal: "Team/Staff",
+    cat_transporte: "Transportation",
+    cat_compras: "Purchases",
+    cat_outros: "Other",
+    cat_aluguel_de_som: "Sound Equipment Rental",
+    cat_festas: "Parties",
+    cat_dj: "DJ",
+    cat_churrasqueiro: "BBQ Chef",
+    cat_massagista: "Masseuse",
 
     plans_title: "Plans",
     plans_subtitle: "Choose the ideal plan for your operation",
@@ -590,6 +624,23 @@ const translations = {
     col_status: "Estado",
     col_value: "Valor",
     placeholder_search_billing: "Buscar por cliente...",
+    billing_hint_reserva_financeira: "Úsalo solo para CRÉDITO real: un depósito que el cliente hace para reforzar la reserva, o un saldo sobrante que se convierte en crédito suyo. Un cargo adicional por cobrar (sonido, pasaje, auto, etc.) es \"Cuentas por Pagar\", no esto.",
+    billing_hint_contas_a_pagar: "Cargo adicional normal que el cliente debe pagar (fuera del paquete principal).",
+
+    // Categorías (Gastos / Facturación)
+    cat_pacote_principal: "Paquete Principal",
+    cat_contas_a_pagar: "Cuentas por Pagar",
+    cat_reserva_financeira: "Reserva Financiera",
+    cat_imovel: "Inmueble",
+    cat_equipe_pessoal: "Equipo/Personal",
+    cat_transporte: "Transporte",
+    cat_compras: "Compras",
+    cat_outros: "Otros",
+    cat_aluguel_de_som: "Alquiler de Sonido",
+    cat_festas: "Fiestas",
+    cat_dj: "DJ",
+    cat_churrasqueiro: "Parrillero",
+    cat_massagista: "Masajista",
 
     plans_title: "Planes",
     plans_subtitle: "Elige el plan ideal para tu operación",
@@ -728,6 +779,43 @@ export function useLanguage() {
   const ctx = useContext(LanguageContext);
   if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
   return ctx;
+}
+
+// ──────────────────────────────────────────────
+// CATEGORY NAME TRANSLATION (Despesas / Faturamento)
+// Categorias são texto livre (o usuário/IA pode criar novas a qualquer momento).
+// Este dicionário só traduz os nomes canônicos conhecidos — qualquer categoria
+// que não esteja aqui continua aparecendo exatamente como foi digitada/salva.
+// ──────────────────────────────────────────────
+const CATEGORIA_KEY_MAP = {
+  "pacote principal": "cat_pacote_principal",
+  "contas a pagar": "cat_contas_a_pagar",
+  "reserva financeira": "cat_reserva_financeira",
+  "imóvel": "cat_imovel",
+  "imovel": "cat_imovel",
+  "equipe/pessoal": "cat_equipe_pessoal",
+  "equipe": "cat_equipe_pessoal",
+  "transporte": "cat_transporte",
+  "compras": "cat_compras",
+  "outros": "cat_outros",
+  "aluguel de som": "cat_aluguel_de_som",
+  "festas": "cat_festas",
+  "dj": "cat_dj",
+  "churrasqueiro": "cat_churrasqueiro",
+  "massagista": "cat_massagista",
+};
+
+function normalizeCategoria(str) {
+  return (str || "").trim().toLowerCase();
+}
+
+// Traduz um nome de categoria salvo (sempre em português no banco) para o idioma
+// ativo. Categorias fora do dicionário (novas/personalizadas) retornam como estão.
+export function translateCategoria(categoria, lang) {
+  if (!categoria) return categoria;
+  const key = CATEGORIA_KEY_MAP[normalizeCategoria(categoria)];
+  if (!key) return categoria;
+  return translations[lang]?.[key] ?? translations["pt-BR"]?.[key] ?? categoria;
 }
 
 export { translations };
