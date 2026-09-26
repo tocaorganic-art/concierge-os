@@ -1,0 +1,45 @@
+{
+  "name": "Alerta de Pagamentos Pendentes",
+  "description": "Todo dia \u00e0s 9h (hor\u00e1rio de Bahia), verifica cobran\u00e7as pendentes que vencem em at\u00e9 2 dias e envia e-mail de alerta para o admin.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 9 * * *",
+      "one_time_date": null,
+      "timezone": "America/Bahia",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "payment_reminder_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "check_reminders": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkPaymentReminders",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Verificar pagamentos pendentes",
+            "description": "Envia e-mail se alguma cobran\u00e7a vence em at\u00e9 2 dias"
+          }
+        }
+      }
+    ]
+  }
+}
