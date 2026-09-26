@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Wallet, Home, Users, Car, ShoppingBag, MoreHorizontal, ExternalLink, Sparkles } from "lucide-react";
+import { Plus, Search, Wallet, Home, Users, Car, ShoppingBag, MoreHorizontal, ExternalLink, Sparkles, Paperclip } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -238,6 +238,11 @@ export default function Despesas() {
                       R$ {(e.valor || 0).toLocaleString("pt-BR")}
                     </p>
                   </div>
+                  {e.comprovante_url && (
+                    <a href={e.comprovante_url} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()} className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors">
+                      <Paperclip className="w-3 h-3" /> Comprovante
+                    </a>
+                  )}
                 </div>
               );
             })}
