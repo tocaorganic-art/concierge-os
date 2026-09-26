@@ -19,6 +19,7 @@ import Agenda from "@/pages/Agenda";
 import Proposals from "@/pages/Proposals";
 import Reports from "@/pages/Reports";
 import Billing from "@/pages/Billing";
+import Despesas from "@/pages/Despesas";
 import Plans from "@/pages/Plans";
 import Settings from "@/pages/Settings";
 import TocaTrIA from "@/pages/TocaTrIA";
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
           <Route path="/propostas" element={<Proposals />} />
           <Route path="/relatorios" element={<Reports />} />
           <Route path="/faturamento" element={<Billing />} />
+          <Route path="/despesas" element={<Despesas />} />
           <Route path="/planos" element={<Plans />} />
           <Route path="/configuracoes" element={<Settings />} />
           <Route path="/toca-tria" element={<TocaTrIA />} />
