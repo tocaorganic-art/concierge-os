@@ -4,7 +4,7 @@
   "properties": {
     "user_id": {
       "type": "string",
-      "description": "ID do usu\u00e1rio (refer\u00eancia ao User)"
+      "description": "ID do usu\u00e1rio (refer\u00eancia ao User) \u2014 pode ficar vazio at\u00e9 o primeiro login quando criado por convite"
     },
     "plan_id": {
       "type": "string",
@@ -71,6 +71,23 @@
     "stripe_price_id": {
       "type": "string",
       "description": "Price ID ativo no Stripe"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "equipe",
+        "cliente"
+      ],
+      "default": "equipe",
+      "description": "Tipo de acesso deste usu\u00e1rio dentro da conta: equipe (colaborador interno) ou cliente (acesso restrito ao Portal do Cliente)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Quando account_type = cliente: ID do registro Client ao qual este login est\u00e1 vinculado"
+    },
+    "invite_email": {
+      "type": "string",
+      "description": "Email usado no convite, para vincular este perfil ao usu\u00e1rio real no primeiro login (quando o perfil \u00e9 criado antes de a pessoa aceitar o convite)"
     }
   },
   "required": [
@@ -79,12 +96,24 @@
   ],
   "rls": {
     "create": {
-      "data.user_id": "{{user.id}}"
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
         {
           "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.invite_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -97,6 +126,9 @@
       "$or": [
         {
           "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.invite_email": "{{user.email}}"
         },
         {
           "user_condition": {
