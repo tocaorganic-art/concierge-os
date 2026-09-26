@@ -1,9 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useUserProfile } from "@/lib/useUserProfile";
 import RequestModal from "@/components/concierge/RequestModal";
 import RequestHistory from "@/components/concierge/RequestHistory";
-import { Loader2, Crown } from "lucide-react";
+import { Loader2, Crown, MapPin, CalendarDays, Receipt, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+
+const STATUS_PROPOSTA = {
+  lead: { label: "Em análise", className: "bg-secondary text-muted-foreground border-border" },
+  proposta: { label: "Proposta enviada", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  confirmado: { label: "Confirmado", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  concluido: { label: "Concluído", className: "bg-primary/10 text-primary border-primary/20" },
+  cancelado: { label: "Cancelado", className: "bg-red-500/10 text-red-400 border-red-500/20" },
+};
+
+const STATUS_PAGAMENTO = {
+  pendente: { label: "Pendente", icon: Clock, className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+  recebido: { label: "Pago", icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  atrasado: { label: "Atrasado", icon: AlertTriangle, className: "bg-red-500/10 text-red-400 border-red-500/20" },
+};
+
+function formatDate(d) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
+}
 
 const TIPOS = [
   {
@@ -41,18 +61,31 @@ const TIPOS = [
 ];
 
 export default function ClientPortal() {
-  const [user, setUser] = useState(null);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { user } = useUserProfile();
+  const clientId = user?.client_id;
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["my_requests"],
     queryFn: () => base44.entities.ServiceRequest.list("-created_date", 20),
   });
+
+  const { data: minhasPropostas = [] } = useQuery({
+    queryKey: ["my_proposals", clientId],
+    queryFn: () => base44.entities.Proposal.filter({ client_id: clientId }, "-created_date", 10),
+    enabled: Boolean(clientId),
+  });
+
+  const { data: meusPagamentos = [] } = useQuery({
+    queryKey: ["my_billing", clientId],
+    queryFn: () => base44.entities.Billing.filter({ client_id: clientId }, "data_vencimento", 50),
+    enabled: Boolean(clientId),
+  });
+
+  const proposta = minhasPropostas?.[0] || null;
+  const totalCobrado = meusPagamentos.reduce((sum, b) => sum + (b.valor || 0), 0);
+  const totalPago = meusPagamentos.filter((b) => b.status === "recebido").reduce((sum, b) => sum + (b.valor || 0), 0);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ServiceRequest.create(data),
@@ -82,6 +115,64 @@ export default function ClientPortal() {
           </h1>
           <p className="text-sm text-muted-foreground">Como posso ajudar você hoje?</p>
         </div>
+
+        {/* Minha Reserva */}
+        {clientId && (proposta || meusPagamentos.length > 0) && (
+          <div className="bg-card border border-border rounded-2xl p-5 mb-8">
+            {proposta && (
+              <div className="mb-4 pb-4 border-b border-border/60">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    <MapPin className="w-3.5 h-3.5 text-primary" /> {proposta.destino || "Sua experiência"}
+                  </div>
+                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${STATUS_PROPOSTA[proposta.status]?.className || "bg-secondary text-muted-foreground border-border"}`}>
+                    {STATUS_PROPOSTA[proposta.status]?.label || proposta.status}
+                  </span>
+                </div>
+                {(proposta.data_chegada || proposta.data_saida) && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <CalendarDays className="w-3 h-3" />
+                    {formatDate(proposta.data_chegada)} — {formatDate(proposta.data_saida)}
+                    {proposta.num_pax ? ` · ${proposta.num_pax} pessoas` : ""}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {meusPagamentos.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                    <Receipt className="w-3.5 h-3.5" /> Pagamentos
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    R$ {totalPago.toLocaleString("pt-BR")} de R$ {totalCobrado.toLocaleString("pt-BR")} pago
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {meusPagamentos.map((b) => {
+                    const meta = STATUS_PAGAMENTO[b.status] || STATUS_PAGAMENTO.pendente;
+                    const StatusIcon = meta.icon;
+                    return (
+                      <div key={b.id} className="flex items-center justify-between text-sm">
+                        <div className="min-w-0">
+                          <p className="text-foreground truncate max-w-[160px]">{b.descricao || "Parcela"}</p>
+                          <p className="text-[11px] text-muted-foreground">Venc. {formatDate(b.data_vencimento)}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="font-display font-semibold text-primary">R$ {(b.valor || 0).toLocaleString("pt-BR")}</span>
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${meta.className}`}>
+                            <StatusIcon className="w-2.5 h-2.5" /> {meta.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 4 Action Tiles */}
         <div className="grid grid-cols-2 gap-4 mb-10">
