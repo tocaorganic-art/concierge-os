@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useUserProfile } from "@/lib/useUserProfile";
 import Sidebar from "./Sidebar";
 import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
@@ -14,6 +15,7 @@ export default function AppLayout() {
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const { isClient, isLoading: isLoadingProfile } = useUserProfile();
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -31,6 +33,11 @@ export default function AppLayout() {
 
     }).catch(() => {});
   }, []);
+
+  // Login do tipo "cliente": nunca mostra o dashboard interno, só o Portal do Cliente.
+  if (!isLoadingProfile && isClient) {
+    return <Navigate to="/portal" replace />;
+  }
 
   return (
     <div className="h-screen bg-background overflow-hidden">
