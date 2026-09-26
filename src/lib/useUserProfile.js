@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { linkInvitedAccount } from "@/functions/linkInvitedAccount";
 
 // Resolve quem está logado e qual o tipo de acesso dele:
 // admin (dono da conta), equipe (colaborador interno) ou cliente (acesso restrito ao Portal do Cliente).
-// Também resolve o "auto-link": quando um perfil foi criado por convite antes da pessoa
-// aceitar (sem user_id ainda), este hook vincula o user_id real no primeiro login.
+//
+// No primeiro login depois de um convite, ainda não existe account_type/client_id no usuário —
+// então este hook chama a function linkInvitedAccount (com service role no backend) para vincular
+// o convite pendente (criado em Configurações > Minha Equipe) e gravar account_type/client_id
+// com segurança. Isso nunca é algo que o próprio usuário escreve em si mesmo.
 export function useUserProfile() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -15,26 +19,25 @@ export function useUserProfile() {
 
     async function load() {
       try {
-        const u = await base44.auth.me();
+        let u = await base44.auth.me();
         if (!u || cancelled) return;
-        setUser(u);
 
-        let p = null;
-        const byUserId = await base44.entities.UserProfile.filter({ user_id: u.id });
-        p = byUserId?.[0] || null;
-
-        if (!p && u.email) {
-          const pending = await base44.entities.UserProfile.filter({ invite_email: u.email });
-          if (pending?.[0] && !pending[0].user_id) {
-            p = await base44.entities.UserProfile.update(pending[0].id, { user_id: u.id });
-          } else if (pending?.[0]) {
-            p = pending[0];
+        if (!u.account_type && u.email) {
+          try {
+            await linkInvitedAccount({ user: { id: u.id, email: u.email } });
+            u = await base44.auth.me();
+          } catch {
+            // sem convite pendente, ou falha ao vincular — segue como equipe padrão
           }
         }
 
-        if (!cancelled) setProfile(p);
+        if (cancelled) return;
+        setUser(u);
+
+        const profiles = await base44.entities.UserProfile.filter({ user_id: u.id });
+        if (!cancelled) setProfile(profiles?.[0] || null);
       } catch {
-        // silencioso — trata como sem perfil (equipe/admin padrão)
+        // silencioso
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -45,7 +48,7 @@ export function useUserProfile() {
   }, []);
 
   const isAdmin = user?.role === "admin";
-  const isClient = profile?.account_type === "cliente";
+  const isClient = user?.account_type === "cliente";
   const isTeam = Boolean(user) && !isAdmin && !isClient;
 
   return { user, profile, isLoading, isAdmin, isClient, isTeam };
