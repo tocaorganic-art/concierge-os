@@ -18,10 +18,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const defaultForm = { client_id: "", client_nome: "", descricao: "", valor: "", status: "pendente", data_vencimento: "" };
+const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "" };
+
+const CATEGORIAS_BASE = ["Pacote Principal", "Reserva Financeira"];
+const NEW_CATEGORY_VALUE = "__nova__";
+
+function normalize(str) {
+  return (str || "").trim().toLowerCase();
+}
 
 export default function BillingFormDialog({ open, onOpenChange, billing }) {
   const [form, setForm] = useState(defaultForm);
+  const [creatingCategoria, setCreatingCategoria] = useState(false);
+  const [novaCategoria, setNovaCategoria] = useState("");
   const queryClient = useQueryClient();
 
   const { data: clients = [] } = useQuery({
@@ -29,12 +38,27 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     queryFn: () => base44.entities.Client.list("nome", 200),
   });
 
+  const { data: billings = [] } = useQuery({
+    queryKey: ["billings"],
+    queryFn: () => base44.entities.Billing.list("-created_date", 200),
+  });
+
+  const categoriasExistentes = React.useMemo(() => {
+    const vistas = new Map();
+    [...CATEGORIAS_BASE, ...billings.map((b) => b.categoria).filter(Boolean)].forEach((c) => {
+      const key = normalize(c);
+      if (key && !vistas.has(key)) vistas.set(key, c);
+    });
+    return Array.from(vistas.values());
+  }, [billings]);
+
   useEffect(() => {
     if (billing) {
       setForm({
         client_id: billing.client_id || "",
         client_nome: billing.client_nome || "",
         descricao: billing.descricao || "",
+        categoria: billing.categoria || "",
         valor: billing.valor || "",
         status: billing.status || "pendente",
         data_vencimento: billing.data_vencimento || "",
@@ -42,6 +66,8 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     } else {
       setForm(defaultForm);
     }
+    setCreatingCategoria(false);
+    setNovaCategoria("");
   }, [billing, open]);
 
   const mutation = useMutation({
@@ -58,6 +84,16 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
   const handleClientChange = (clientId) => {
     const client = clients.find((c) => c.id === clientId);
     setForm((f) => ({ ...f, client_id: clientId, client_nome: client?.nome || "" }));
+  };
+
+  const handleCategoriaChange = (value) => {
+    if (value === NEW_CATEGORY_VALUE) {
+      setCreatingCategoria(true);
+      setNovaCategoria("");
+      return;
+    }
+    setCreatingCategoria(false);
+    setForm((f) => ({ ...f, categoria: value }));
   };
 
   const handleSubmit = (e) => {
@@ -88,6 +124,44 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
           <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Descrição</Label>
             <Input value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} className="mt-1.5 bg-secondary border-border" placeholder="Pacote Maldivas, Transfer..." />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Categoria</Label>
+            {creatingCategoria ? (
+              <div className="mt-1.5 flex gap-2">
+                <Input
+                  autoFocus
+                  value={novaCategoria}
+                  onChange={(e) => setNovaCategoria(e.target.value)}
+                  placeholder="Ex: Reserva Financeira"
+                  className="bg-secondary border-border"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const val = novaCategoria.trim();
+                    if (val) setForm((f) => ({ ...f, categoria: val }));
+                    setCreatingCategoria(false);
+                  }}
+                >
+                  OK
+                </Button>
+              </div>
+            ) : (
+              <Select value={form.categoria || undefined} onValueChange={handleCategoriaChange}>
+                <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
+                <SelectContent>
+                  {categoriasExistentes.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                  <SelectItem value={NEW_CATEGORY_VALUE}>+ Criar nova categoria</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            {form.categoria === "Reserva Financeira" && (
+              <p className="text-[11px] text-muted-foreground mt-1">Use esta categoria para cobranças adicionais cobertas pela reserva do cliente, ou para depósitos que ele faz para reforçá-la.</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
