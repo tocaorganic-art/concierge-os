@@ -31,12 +31,15 @@ export default async function (req) {
     for (const b of alvos) {
       const urgencia = b._dias === 0 ? 'VENCE HOJE' : `vence em ${b._dias} dia${b._dias > 1 ? 's' : ''}`;
       const assunto = `[Concierge OS] Pagamento pendente — ${b.client_nome} — ${urgencia}`;
+      const linkDashboard = 'https://tocaconciergeos.base44.app/portal';
       const corpo = [
         `Cliente: ${b.client_nome}`,
         `Descrição: ${b.descricao || '—'}`,
         `Valor: R$ ${Number(b.valor || 0).toLocaleString('pt-BR')}`,
         `Vencimento: ${b.data_vencimento}`,
         `Status: ${urgencia}`,
+        '',
+        `Link do dashboard do cliente (envie para o cliente cobrar/lembrar): ${linkDashboard}`,
         '',
         'Este alerta é gerado automaticamente pelo Concierge OS (2 dias antes até o dia do vencimento).',
       ].join('\n');
