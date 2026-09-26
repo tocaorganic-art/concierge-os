@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Camera, Loader2, Sparkles, CheckCircle2, ImageIcon, X, Plus, Lock } from "lucide-react";
+import { useLanguage, translateCategoria } from "@/lib/i18n";
 
 const defaultForm = {
   client_id: "",
@@ -47,6 +48,7 @@ function normalize(str) {
 }
 
 export default function ExpenseFormDialog({ open, onOpenChange, expense, defaultClientId }) {
+  const { lang } = useLanguage();
   const [form, setForm] = useState(defaultForm);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -306,7 +308,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
                 <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar ou criar categoria" /></SelectTrigger>
                 <SelectContent>
                   {categoriasExistentes.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                    <SelectItem key={c} value={c}>{translateCategoria(c, lang)}</SelectItem>
                   ))}
                   <SelectItem value={NEW_CATEGORY_VALUE} className="text-primary font-medium">
                     <span className="flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Criar nova categoria</span>
