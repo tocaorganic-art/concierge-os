@@ -12,6 +12,7 @@ import PageHeader from "@/components/shared/PageHeader";
 import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
 import ExpenseFormDialog from "@/components/expenses/ExpenseFormDialog";
+import { useLanguage, translateCategoria } from "@/lib/i18n";
 
 function normalizeCat(str) {
   return (str || "")
@@ -34,15 +35,18 @@ function getCategoryMeta(cat) {
 }
 
 function CategoryBadge({ categoria }) {
+  const { t, lang } = useLanguage();
   const meta = getCategoryMeta(categoria);
+  const label = categoria ? translateCategoria(categoria, lang) : t("cat_outros");
   return (
     <Badge variant="outline" className={`${meta.className} font-mono text-[10px] uppercase tracking-wider border`}>
-      {categoria || "Outros"}
+      {label}
     </Badge>
   );
 }
 
 export default function Despesas() {
+  const { lang } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [editExpense, setEditExpense] = useState(null);
   const [search, setSearch] = useState("");
@@ -113,7 +117,7 @@ export default function Despesas() {
         <KpiCard title="Total de Custos" value={`R$ ${totalGeral.toLocaleString("pt-BR")}`} icon={Wallet} />
         {categoriasOrdenadas.slice(0, isAdmin ? 2 : 3).map(([cat, total]) => {
           const Icon = getCategoryMeta(cat).icon;
-          return <KpiCard key={cat} title={cat} value={`R$ ${total.toLocaleString("pt-BR")}`} icon={Icon} />;
+          return <KpiCard key={cat} title={translateCategoria(cat, lang)} value={`R$ ${total.toLocaleString("pt-BR")}`} icon={Icon} />;
         })}
         {isAdmin && (
           <KpiCard title="Minha Margem (Admin)" value={`R$ ${totalMargemAdmin.toLocaleString("pt-BR")}`} icon={Sparkles} />
@@ -140,7 +144,7 @@ export default function Despesas() {
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
             {categoriasDisponiveis.map((cat) => (
-              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              <SelectItem key={cat} value={cat}>{translateCategoria(cat, lang)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
