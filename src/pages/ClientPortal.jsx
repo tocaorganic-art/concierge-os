@@ -4,6 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import RequestModal from "@/components/concierge/RequestModal";
 import RequestHistory from "@/components/concierge/RequestHistory";
+import PixPaymentCard from "@/components/billing/PixPaymentCard";
+import { COMPANY_INFO } from "@/lib/paymentInfo";
 import { Loader2, Crown, MapPin, CalendarDays, Receipt, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 
 const STATUS_PROPOSTA = {
@@ -86,6 +88,11 @@ export default function ClientPortal() {
   const proposta = minhasPropostas?.[0] || null;
   const totalCobrado = meusPagamentos.reduce((sum, b) => sum + (b.valor || 0), 0);
   const totalPago = meusPagamentos.filter((b) => b.status === "recebido").reduce((sum, b) => sum + (b.valor || 0), 0);
+
+  // Mostra a forma de pagamento apenas quando há cobrança de "Contas a Pagar" pendente/atrasada
+  const temContasAPagarPendente = meusPagamentos.some(
+    (b) => (b.categoria || "").trim().toLowerCase() === "contas a pagar" && b.status !== "recebido"
+  );
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ServiceRequest.create(data),
@@ -174,6 +181,9 @@ export default function ClientPortal() {
           </div>
         )}
 
+        {/* Forma de pagamento — Contas a Pagar */}
+        {clientId && temContasAPagarPendente && <PixPaymentCard />}
+
         {/* 4 Action Tiles */}
         <div className="grid grid-cols-2 gap-4 mb-10">
           {TIPOS.map((tipo) => (
@@ -197,6 +207,11 @@ export default function ClientPortal() {
         ) : requests.length > 0 ? (
           <RequestHistory requests={requests} />
         ) : null}
+
+        {/* Rodapé — identificação da empresa */}
+        <p className="text-center text-[10px] text-muted-foreground/70 mt-10">
+          {COMPANY_INFO.nomeEmpresarial} · CNPJ {COMPANY_INFO.cnpjFormatado}
+        </p>
       </div>
 
       {/* Request Modal */}
