@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { LogOut } from "lucide-react";
@@ -6,6 +6,14 @@ import { LogOut } from "lucide-react";
 // Layout enxuto para quem acessa como "cliente" — sem o menu interno
 // (pipeline, propostas, despesas, faturamento etc.), só o Portal do Cliente.
 export default function ClientLayout() {
+  const [firstName, setFirstName] = useState("");
+
+  useEffect(() => {
+    base44.auth.me()
+      .then((u) => setFirstName(u?.full_name?.split(" ")[0] || ""))
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
@@ -18,14 +26,27 @@ export default function ClientLayout() {
             />
             <span className="font-display text-sm font-bold text-foreground">Toca <span className="text-primary">Concierge</span></span>
           </Link>
-          <button
-            onClick={() => base44.auth.logout()}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Sair"
-            title="Sair"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            {firstName && (
+              <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+                {firstName}
+              </span>
+            )}
+            <Link
+              to="/meu-perfil"
+              className="text-xs font-mono uppercase tracking-wider text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+            >
+              Meu Perfil
+            </Link>
+            <button
+              onClick={() => base44.auth.logout()}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Sair"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </header>
       <Outlet />
