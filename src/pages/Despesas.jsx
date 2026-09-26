@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Wallet, Home, Users, Car, MoreHorizontal, ExternalLink, Sparkles } from "lucide-react";
+
+const CATEGORIA_ICON_ALIASES = {};
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +23,11 @@ export default function Despesas() {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("all");
   const [filterClient, setFilterClient] = useState("all");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then((u) => setIsAdmin(u?.role === "admin")).catch(() => {});
+  }, []);
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses"],
@@ -43,9 +50,14 @@ export default function Despesas() {
   });
 
   const totalGeral = expenses.reduce((sum, e) => sum + (e.valor || 0), 0);
-  const totalImovel = expenses.filter((e) => e.categoria === "imovel").reduce((sum, e) => sum + (e.valor || 0), 0);
-  const totalEquipe = expenses.filter((e) => e.categoria === "equipe").reduce((sum, e) => sum + (e.valor || 0), 0);
-  const totalTransporte = expenses.filter((e) => e.categoria === "transporte").reduce((sum, e) => sum + (e.valor || 0), 0);
+  const categoriasOrdenadas = Object.entries(
+    expenses.reduce((acc, e) => {
+      const cat = e.categoria || "Outros";
+      acc[cat] = (acc[cat] || 0) + (e.valor || 0);
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1] - a[1]);
+  const totalMargemAdmin = expenses.reduce((sum, e) => sum + (e.margem_admin || 0), 0);
 
   if (isLoading) {
     return (
@@ -70,9 +82,13 @@ export default function Despesas() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard title="Total de Custos" value={`R$ ${totalGeral.toLocaleString("pt-BR")}`} icon={Wallet} />
-        <KpiCard title="Imóvel" value={`R$ ${totalImovel.toLocaleString("pt-BR")}`} icon={Home} />
-        <KpiCard title="Equipe/Pessoal" value={`R$ ${totalEquipe.toLocaleString("pt-BR")}`} icon={Users} />
-        <KpiCard title="Transporte" value={`R$ ${totalTransporte.toLocaleString("pt-BR")}`} icon={Car} />
+        {categoriasOrdenadas.slice(0, isAdmin ? 2 : 3).map(([cat, total]) => {
+          const Icon = CATEGORIA_ICON[cat] || MoreHorizontal;
+          return <KpiCard key={cat} title={cat} value={`R$ ${total.toLocaleString("pt-BR")}`} icon={Icon} />;
+        })}
+        {isAdmin && (
+          <KpiCard title="Minha Margem (Admin)" value={`R$ ${totalMargemAdmin.toLocaleString("pt-BR")}`} icon={Sparkles} />
+        )}
       </div>
 
       {/* Filters */}
