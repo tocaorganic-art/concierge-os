@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage, translateCategoria } from "@/lib/i18n";
 
 const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "" };
 
@@ -28,6 +29,7 @@ function normalize(str) {
 }
 
 export default function BillingFormDialog({ open, onOpenChange, billing }) {
+  const { t, lang } = useLanguage();
   const [form, setForm] = useState(defaultForm);
   const [creatingCategoria, setCreatingCategoria] = useState(false);
   const [novaCategoria, setNovaCategoria] = useState("");
@@ -153,17 +155,17 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
                 <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
                 <SelectContent>
                   {categoriasExistentes.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                    <SelectItem key={c} value={c}>{translateCategoria(c, lang)}</SelectItem>
                   ))}
                   <SelectItem value={NEW_CATEGORY_VALUE}>+ Criar nova categoria</SelectItem>
                 </SelectContent>
               </Select>
             )}
             {form.categoria === "Reserva Financeira" && (
-              <p className="text-[11px] text-muted-foreground mt-1">Use apenas para CRÉDITO real: depósito que o cliente faz para reforçar a reserva, ou saldo que sobra e vira crédito dele. Uma cobrança adicional a receber (som, passagem, carro etc.) é "Contas a Pagar", não isso.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{t("billing_hint_reserva_financeira")}</p>
             )}
             {form.categoria === "Contas a Pagar" && (
-              <p className="text-[11px] text-muted-foreground mt-1">Cobrança adicional normal que o cliente deve pagar (fora do pacote principal).</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{t("billing_hint_contas_a_pagar")}</p>
             )}
           </div>
           <div className="grid grid-cols-2 gap-4">
