@@ -16,13 +16,7 @@
     },
     "categoria": {
       "type": "string",
-      "enum": [
-        "imovel",
-        "equipe",
-        "transporte",
-        "outros"
-      ],
-      "description": "Categoria do custo: Im\u00f3vel, Equipe/Pessoal, Transporte ou Outros"
+      "description": "Categoria da despesa \u2014 livre, n\u00e3o fixa. Ex: Im\u00f3vel, Equipe/Pessoal, Transporte, Compras, Festas, Aluguel de Som, DJ, Churrasqueiro, Massagista, Outros. Se a categoria certa n\u00e3o existir ainda, cria-se uma nova (manual ou via IA)."
     },
     "descricao": {
       "type": "string",
@@ -34,7 +28,15 @@
     },
     "valor": {
       "type": "number",
-      "description": "Valor da despesa"
+      "description": "Valor real pago/gasto, conforme comprovante (o que efetivamente saiu do seu bolso)"
+    },
+    "valor_cobrado_cliente": {
+      "type": "number",
+      "description": "Valor cheio (pre\u00e7o cheio) cobrado do cliente por este item, quando h\u00e1 repasse com markup \u2014 este \u00e9 o valor que aparece para equipe/cliente. Deixe em branco quando n\u00e3o houver repasse com margem."
+    },
+    "margem_admin": {
+      "type": "number",
+      "description": "Quanto voc\u00ea (admin master) realmente ganhou nessa negocia\u00e7\u00e3o \u2014 sua margem/comiss\u00e3o real. Campo de uso exclusivo do admin master; nunca \u00e9 exposto para equipe ou cliente."
     },
     "data_despesa": {
       "type": "string",
@@ -43,7 +45,7 @@
     },
     "comprovante_url": {
       "type": "string",
-      "description": "URL da foto/comprovante (nota fiscal, recibo)"
+      "description": "URL da foto/comprovante (nota fiscal, recibo, pix)"
     },
     "origem": {
       "type": "string",
