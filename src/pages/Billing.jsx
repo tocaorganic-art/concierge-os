@@ -13,6 +13,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
 import BillingFormDialog from "@/components/billing/BillingFormDialog";
+import PixPaymentCard from "@/components/billing/PixPaymentCard";
 
 export default function Billing() {
   const { t, lang } = useLanguage();
@@ -83,6 +84,9 @@ export default function Billing() {
           </Button>
         }
       />
+
+      {/* Dados da empresa e forma de pagamento (Contas a Pagar) — referência rápida para copiar/enviar ao cliente */}
+      <PixPaymentCard />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
