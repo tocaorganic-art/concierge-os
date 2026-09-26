@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, KanbanSquare, Users, CalendarDays, FileText,
-  BarChart3, Receipt, LogOut, X, Star, Settings, Lock,
+  BarChart3, Receipt, Wallet, LogOut, X, Star, Settings, Lock,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
@@ -17,6 +17,7 @@ const navKeys = [
   { key: "nav_proposals", icon: FileText, path: "/propostas" },
   { key: "nav_reports", icon: BarChart3, path: "/relatorios", requiresPro: true },
   { key: "nav_billing", icon: Receipt, path: "/faturamento" },
+  { key: "nav_expenses", icon: Wallet, path: "/despesas" },
   { key: "nav_plans", icon: Star, path: "/planos" },
   { key: "nav_settings", icon: Settings, path: "/configuracoes" },
 ];
