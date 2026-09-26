@@ -1,0 +1,97 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente/evento vinculado"
+    },
+    "client_nome": {
+      "type": "string",
+      "description": "Nome do cliente (cache)"
+    },
+    "proposal_id": {
+      "type": "string",
+      "description": "ID da proposta/evento vinculado (opcional)"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "imovel",
+        "equipe",
+        "transporte",
+        "outros"
+      ],
+      "description": "Categoria do custo: Im\u00f3vel, Equipe/Pessoal, Transporte ou Outros"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da despesa"
+    },
+    "fornecedor": {
+      "type": "string",
+      "description": "Fornecedor, prestador ou pessoa paga"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor da despesa"
+    },
+    "data_despesa": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da despesa/pagamento"
+    },
+    "comprovante_url": {
+      "type": "string",
+      "description": "URL da foto/comprovante (nota fiscal, recibo)"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "ia_nota_fiscal"
+      ],
+      "default": "manual",
+      "description": "Se o lan\u00e7amento foi manual ou extra\u00eddo por IA a partir do comprovante"
+    }
+  },
+  "required": [
+    "client_nome",
+    "categoria",
+    "valor"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

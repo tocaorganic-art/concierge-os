@@ -21,6 +21,10 @@ const statusConfig = {
   chamada: { label: "Chamada", className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
   visita: { label: "Visita", className: "bg-green-500/15 text-green-400 border-green-500/20" },
   operacao: { label: "Operação", className: "bg-purple-500/15 text-purple-400 border-purple-500/20" },
+  imovel: { label: "Imóvel", className: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
+  equipe: { label: "Equipe/Pessoal", className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+  transporte: { label: "Transporte", className: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20" },
+  outros: { label: "Outros", className: "bg-slate-500/15 text-slate-400 border-slate-500/20" },
 };
 
 export default function StatusBadge({ status }) {
