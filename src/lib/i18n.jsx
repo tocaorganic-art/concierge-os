@@ -13,6 +13,7 @@ const translations = {
     nav_proposals: "Propostas",
     nav_reports: "Relatórios",
     nav_billing: "Faturamento",
+    nav_expenses: "Despesas",
     nav_plans: "Planos",
     nav_signout: "Sair",
 
@@ -249,6 +250,7 @@ const translations = {
     nav_proposals: "Proposals",
     nav_reports: "Reports",
     nav_billing: "Billing",
+    nav_expenses: "Expenses",
     nav_plans: "Plans",
     nav_signout: "Sign Out",
 
@@ -473,6 +475,7 @@ const translations = {
     nav_proposals: "Propuestas",
     nav_reports: "Informes",
     nav_billing: "Facturación",
+    nav_expenses: "Gastos",
     nav_plans: "Planes",
     nav_signout: "Salir",
 
