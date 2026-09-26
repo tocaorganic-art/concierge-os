@@ -18,23 +18,23 @@ export default function ClientLayout() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/portal" className="flex items-center gap-2">
+          <Link to="/portal" className="flex items-center gap-2 min-w-0 shrink">
             <img
               src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
               alt="Toca OS"
-              className="w-7 h-7 rounded-md object-cover"
+              className="w-7 h-7 rounded-md object-cover shrink-0"
             />
-            <span className="font-display text-sm font-bold text-foreground">Toca <span className="text-primary">Concierge</span></span>
+            <span className="font-display text-sm font-bold text-foreground truncate">Toca <span className="text-primary">Concierge</span></span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 min-w-0">
             {firstName && (
-              <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+              <span className="text-sm text-muted-foreground truncate max-w-[80px]">
                 {firstName}
               </span>
             )}
             <Link
               to="/meu-perfil"
-              className="text-xs font-mono uppercase tracking-wider text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+              className="text-xs font-mono uppercase text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
             >
               Meu Perfil
             </Link>
