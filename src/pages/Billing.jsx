@@ -55,9 +55,10 @@ export default function Billing() {
   const pendingTotal = billings.filter((b) => b.status === "pendente").reduce((sum, b) => sum + (b.valor || 0), 0);
   const overdueTotal = billings.filter((b) => b.status === "atrasado").reduce((sum, b) => sum + (b.valor || 0), 0);
 
+  // Reserva Financeira = apenas crédito real (depósitos do cliente / saldo que sobrou), nunca cobrança a receber.
   const reservaFinanceira = billings
-    .filter((b) => (b.categoria || "").trim().toLowerCase() === "reserva financeira")
-    .reduce((sum, b) => sum + (b.status === "recebido" ? (b.valor || 0) : -(b.valor || 0)), 0);
+    .filter((b) => (b.categoria || "").trim().toLowerCase() === "reserva financeira" && b.status === "recebido")
+    .reduce((sum, b) => sum + (b.valor || 0), 0);
 
   const categoriasDisponiveis = Array.from(
     new Set(billings.map((b) => b.categoria).filter(Boolean))
