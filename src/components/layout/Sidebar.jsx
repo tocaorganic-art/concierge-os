@@ -8,6 +8,7 @@ import {
   FileText,
   BarChart3,
   Receipt,
+  Wallet,
   Crown,
   LogOut,
   Star,
@@ -30,6 +31,7 @@ const navKeys = [
   { key: "nav_proposals", icon: FileText, path: "/propostas" },
   { key: "nav_reports", icon: BarChart3, path: "/relatorios", requiresPro: true },
   { key: "nav_billing", icon: Receipt, path: "/faturamento" },
+  { key: "nav_expenses", icon: Wallet, path: "/despesas" },
   { key: "nav_plans", icon: Star, path: "/planos" },
   { key: "nav_settings", icon: Settings, path: "/configuracoes" },
 ];
