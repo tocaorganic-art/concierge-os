@@ -9,6 +9,7 @@ import MobileBottomNav from "./MobileBottomNav";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import TutorialModal from "@/components/tutorial/TutorialModal";
 import PwaInstallPopup from "@/components/PwaInstallPopup";
+import GlobalSearch from "./GlobalSearch";
 
 export default function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -55,6 +56,7 @@ export default function AppLayout() {
       {/* Main content */}
       <main className="md:ml-64 h-full overflow-y-auto overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0">
         <div className="p-4 md:p-8">
+          <GlobalSearch />
           <Outlet />
         </div>
       </main>
