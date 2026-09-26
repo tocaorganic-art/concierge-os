@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Wallet, Home, Users, Car, MoreHorizontal, ExternalLink, Sparkles } from "lucide-react";
-
-const CATEGORIA_ICON_ALIASES = {};
+import { Plus, Search, Wallet, Home, Users, Car, ShoppingBag, MoreHorizontal, ExternalLink, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +14,34 @@ import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
 import ExpenseFormDialog from "@/components/expenses/ExpenseFormDialog";
 
-const CATEGORIA_ICON = { imovel: Home, equipe: Users, transporte: Car, outros: MoreHorizontal };
+function normalizeCat(str) {
+  return (str || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z]/g, "");
+}
+
+const CATEGORY_META = {
+  imovel: { icon: Home, className: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
+  equipepessoal: { icon: Users, className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+  equipe: { icon: Users, className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+  transporte: { icon: Car, className: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20" },
+  compras: { icon: ShoppingBag, className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
+  outros: { icon: MoreHorizontal, className: "bg-slate-500/15 text-slate-400 border-slate-500/20" },
+};
+const DEFAULT_CATEGORY_META = { icon: MoreHorizontal, className: "bg-purple-500/15 text-purple-400 border-purple-500/20" };
+
+function getCategoryMeta(cat) {
+  return CATEGORY_META[normalizeCat(cat)] || DEFAULT_CATEGORY_META;
+}
+
+function CategoryBadge({ categoria }) {
+  const meta = getCategoryMeta(categoria);
+  return (
+    <Badge variant="outline" className={`${meta.className} font-mono text-[10px] uppercase tracking-wider border`}>
+      {categoria || "Outros"}
+    </Badge>
+  );
+}
 
 export default function Despesas() {
   const [showForm, setShowForm] = useState(false);
@@ -33,6 +59,10 @@ export default function Despesas() {
     queryKey: ["expenses"],
     queryFn: () => base44.entities.Expense.list("-data_despesa", 500),
   });
+
+  const categoriasDisponiveis = Array.from(
+    new Set(expenses.map((e) => e.categoria).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
@@ -83,7 +113,7 @@ export default function Despesas() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard title="Total de Custos" value={`R$ ${totalGeral.toLocaleString("pt-BR")}`} icon={Wallet} />
         {categoriasOrdenadas.slice(0, isAdmin ? 2 : 3).map(([cat, total]) => {
-          const Icon = CATEGORIA_ICON[cat] || MoreHorizontal;
+          const Icon = getCategoryMeta(cat).icon;
           return <KpiCard key={cat} title={cat} value={`R$ ${total.toLocaleString("pt-BR")}`} icon={Icon} />;
         })}
         {isAdmin && (
@@ -110,10 +140,9 @@ export default function Despesas() {
           <SelectTrigger className="w-full sm:w-40 bg-secondary border-border"><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="imovel">Imóvel</SelectItem>
-            <SelectItem value="equipe">Equipe/Pessoal</SelectItem>
-            <SelectItem value="transporte">Transporte</SelectItem>
-            <SelectItem value="outros">Outros</SelectItem>
+            {categoriasDisponiveis.map((cat) => (
+              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -150,11 +179,11 @@ export default function Despesas() {
               </thead>
               <tbody>
                 {filtered.map((e) => {
-                  const Icon = CATEGORIA_ICON[e.categoria] || MoreHorizontal;
+                  const Icon = getCategoryMeta(e.categoria).icon;
                   return (
                     <tr key={e.id} onClick={() => { setEditExpense(e); setShowForm(true); }} className="border-b border-border/50 hover:bg-secondary/50 transition-colors cursor-pointer">
                       <td className="px-5 py-3.5 text-sm font-medium text-foreground">{e.client_nome}</td>
-                      <td className="px-5 py-3.5"><StatusBadge status={e.categoria} /></td>
+                      <td className="px-5 py-3.5"><CategoryBadge categoria={e.categoria} /></td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                           <Icon className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground/70" />
@@ -185,7 +214,7 @@ export default function Despesas() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
             {filtered.map((e) => {
-              const Icon = CATEGORIA_ICON[e.categoria] || MoreHorizontal;
+              const Icon = getCategoryMeta(e.categoria).icon;
               return (
                 <div key={e.id} onClick={() => { setEditExpense(e); setShowForm(true); }} className="bg-card border border-border rounded-xl p-4 gold-border-hover cursor-pointer">
                   <div className="flex items-start justify-between mb-2">
@@ -196,7 +225,7 @@ export default function Despesas() {
                         <span className="truncate max-w-[180px]">{e.descricao || e.fornecedor || "—"}</span>
                       </div>
                     </div>
-                    <StatusBadge status={e.categoria} />
+                    <CategoryBadge categoria={e.categoria} />
                   </div>
                   <div className="flex items-center justify-between mt-3">
                     <p className="text-xs text-muted-foreground font-mono">
