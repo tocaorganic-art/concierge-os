@@ -1,4 +1,6 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
@@ -7,11 +9,22 @@
         "admin",
         "user"
       ]
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "equipe",
+        "cliente"
+      ],
+      "default": "equipe",
+      "description": "Tipo de acesso: equipe (colaborador interno) ou cliente (acesso restrito ao Portal do Cliente)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Quando account_type = cliente: ID do registro Client ao qual este login est\u00e1 vinculado"
     }
   },
   "required": [
     "role"
-  ],
-  "name": "User",
-  "type": "object"
+  ]
 }
