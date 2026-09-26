@@ -36,8 +36,16 @@ export default function Settings() {
   const [businessName, setBusinessName] = useState("");
   const [specialty, setSpecialty] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteType, setInviteType] = useState("equipe");
+  const [inviteClientId, setInviteClientId] = useState("");
+  const [inviteStatus, setInviteStatus] = useState("");
   const [saved, setSaved] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+
+  const { data: clientsForInvite = [] } = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => base44.entities.Client.list("nome", 200),
+  });
 
   useEffect(() => {
     base44.auth.me().then((u) => {
@@ -170,28 +178,63 @@ export default function Settings() {
           description="Convide até 3 membros da equipe para colaborar na mesma conta."
         >
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Convide membros da equipe por email:</p>
-            <div className="flex gap-2">
+            <p className="text-sm text-muted-foreground">Convide um colaborador (equipe interna) ou um cliente (acesso só ao Portal do Cliente):</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Select value={inviteType} onValueChange={(v) => { setInviteType(v); setInviteClientId(""); }}>
+                <SelectTrigger className="w-full sm:w-40 bg-secondary border-border"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="equipe">Equipe</SelectItem>
+                  <SelectItem value="cliente">Cliente</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
                 type="email"
                 placeholder="email@exemplo.com"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
-                className="bg-secondary border-border"
+                className="bg-secondary border-border flex-1"
               />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (inviteEmail) {
-                    base44.users.inviteUser(inviteEmail, "user").catch(() => {});
-                    setInviteEmail("");
-                  }
-                }}
-              >
-                Convidar
-              </Button>
             </div>
+            {inviteType === "cliente" && (
+              <Select value={inviteClientId} onValueChange={setInviteClientId}>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Vincular a qual cliente?" /></SelectTrigger>
+                <SelectContent>
+                  {clientsForInvite.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!inviteEmail || (inviteType === "cliente" && !inviteClientId)}
+              onClick={async () => {
+                if (!inviteEmail) return;
+                setInviteStatus("");
+                try {
+                  await base44.users.inviteUser(inviteEmail, "user");
+                  const client = clientsForInvite.find((c) => c.id === inviteClientId);
+                  await base44.entities.UserProfile.create({
+                    user_id: "",
+                    plan_id: "trial",
+                    invite_email: inviteEmail,
+                    account_type: inviteType,
+                    client_id: inviteType === "cliente" ? inviteClientId : "",
+                  });
+                  setInviteStatus(inviteType === "cliente"
+                    ? `Convite enviado — ${client?.nome || inviteEmail} vai cair direto no Portal do Cliente ao aceitar.`
+                    : "Convite de equipe enviado.");
+                  setInviteEmail("");
+                  setInviteClientId("");
+                } catch (e) {
+                  setInviteStatus("Não consegui enviar o convite. Tente novamente.");
+                }
+              }}
+            >
+              Convidar
+            </Button>
+            {inviteStatus && <p className="text-xs text-muted-foreground">{inviteStatus}</p>}
           </div>
         </PlanGate>
       </Section>
