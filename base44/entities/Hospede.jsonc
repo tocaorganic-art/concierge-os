@@ -1,0 +1,64 @@
+{
+  "name": "Hospede",
+  "type": "object",
+  "properties": {
+    "proposal_id": {
+      "type": "string",
+      "description": "ID da proposta/evento a que este hospede pertence."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente contratante — usado para o cliente contratante ver nome/voo deste hospede (RLS abaixo), mesmo que o hospede nao seja ele proprio."
+    },
+    "nome": {
+      "type": "string",
+      "description": "Primeiro nome do hospede."
+    },
+    "sobrenome": {
+      "type": "string",
+      "description": "Sobrenome do hospede."
+    },
+    "documento": {
+      "type": "string",
+      "description": "Numero de documento (DNI/CPF/passaporte). Uso exclusivo do admin/equipe — nunca visivel ao cliente, nem ao proprio contratante.",
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
+    },
+    "data_chegada": { "type": "string", "format": "date" },
+    "voo_chegada": { "type": "string" },
+    "horario_chegada": { "type": "string" },
+    "aerolinea_chegada": { "type": "string" },
+    "data_saida": { "type": "string", "format": "date" },
+    "voo_saida": { "type": "string" },
+    "horario_saida": { "type": "string" },
+    "aerolinea_saida": { "type": "string" }
+  },
+  "required": ["nome"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "account_type": "equipe" } },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } },
+        { "data.client_id": "{{user.data.client_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}
