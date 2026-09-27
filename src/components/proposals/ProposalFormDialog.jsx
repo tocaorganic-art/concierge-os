@@ -31,6 +31,8 @@ const defaultForm = {
   data_validade: "",
   servicos: "",
   observacoes: "",
+  forma_pagamento_preferida: "pix_pj_cora",
+  chave_pix_recebimento: "",
 };
 
 export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
@@ -56,6 +58,8 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
         data_validade: proposal.data_validade || "",
         servicos: proposal.servicos || "",
         observacoes: proposal.observacoes || "",
+        forma_pagamento_preferida: proposal.forma_pagamento_preferida || "pix_pj_cora",
+        chave_pix_recebimento: proposal.chave_pix_recebimento || "",
       });
     } else {
       setForm(defaultForm);
@@ -206,6 +210,29 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                 rows={2}
               />
             </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Como pagar (cliente)</Label>
+              <Select value={form.forma_pagamento_preferida} onValueChange={(v) => setForm((f) => ({ ...f, forma_pagamento_preferida: v }))}>
+                <SelectTrigger className="mt-1.5 bg-secondary border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pix_pj_cora">Pix da empresa (padrão)</SelectItem>
+                  <SelectItem value="pix_cpf_tony">Pix pessoal deste contrato</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {form.forma_pagamento_preferida === "pix_cpf_tony" && (
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Chave Pix de recebimento</Label>
+                <Input
+                  value={form.chave_pix_recebimento}
+                  onChange={(e) => setForm((f) => ({ ...f, chave_pix_recebimento: e.target.value }))}
+                  className="mt-1.5 bg-secondary border-border"
+                  placeholder="CPF, email, telefone ou chave aleatória"
+                />
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

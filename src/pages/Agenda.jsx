@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays, MessageCircle, ExternalLink } from "lucide-react";
+import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays, MessageCircle, ExternalLink, ClipboardCopy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from "@/components/shared/PageHeader";
@@ -66,6 +66,17 @@ export default function Agenda() {
 
   const TaskCard = ({ task }) => {
     const gcalUrl = buildGCalUrl(task);
+    const [copied, setCopied] = useState(false);
+    const handleCopyMensagem = async (e) => {
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(task.mensagem_rascunho);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // clipboard indisponível — ignora silenciosamente
+      }
+    };
     return (
       <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
         task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
@@ -111,6 +122,19 @@ export default function Agenda() {
             )}
             {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
           </div>
+          {task.mensagem_rascunho && (
+            <div className="mt-2 p-2.5 rounded-lg bg-secondary/50 border border-border/60">
+              <p className="text-[11px] text-muted-foreground whitespace-pre-line line-clamp-3">{task.mensagem_rascunho}</p>
+              <button
+                type="button"
+                onClick={handleCopyMensagem}
+                className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                {copied ? <Check className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
+                {copied ? "Copiado!" : "Copiar mensagem"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

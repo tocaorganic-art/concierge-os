@@ -158,6 +158,7 @@ export default function ClientFinanceiro() {
     enabled: Boolean(clientId),
   });
   const formaPagamento = minhasPropostas?.[0]?.forma_pagamento_preferida;
+  const chavePixContrato = minhasPropostas?.[0]?.chave_pix_recebimento || "";
 
   // Bloco 1 — Honorário de concierge: só cobranças classificadas como
   // natureza="honorario". Registros ainda "a_classificar" não entram aqui
@@ -277,7 +278,7 @@ export default function ClientFinanceiro() {
       )}
 
       {/* Como pagar */}
-      {temContasAPagarPendente && <PixPaymentCard formaPagamento={formaPagamento} />}
+      {temContasAPagarPendente && <PixPaymentCard formaPagamento={formaPagamento} chavePixContrato={chavePixContrato} />}
 
       {honorarios.length === 0 && outrasCobrancasAbertas.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
