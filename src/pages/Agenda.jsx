@@ -12,7 +12,7 @@ import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
 import { useLanguage } from "@/lib/i18n";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 
 function buildGCalUrl(task) {
   if (!task.data) return null;
@@ -27,7 +27,7 @@ function buildGCalUrl(task) {
 
 export default function Agenda() {
   const { t, lang } = useLanguage();
-  const { isClient } = useUserProfile();
+  const { isClientMode: isClient } = useEffectiveRole();
   const dateLocale = lang === "en" ? enUS : lang === "es" ? es : ptBR;
   const [view, setView] = useState("dia");
   const [currentDate, setCurrentDate] = useState(new Date());

@@ -7,7 +7,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
 import LanguageSelector from "./LanguageSelector";
 
@@ -28,8 +28,8 @@ export default function MobileDrawer({ open, onClose }) {
   const location = useLocation();
   const { t } = useLanguage();
   const { hasProAccess } = usePlan();
-  const { isClient } = useUserProfile();
-  const items = isClient ? CLIENT_NAV_ITEMS : navKeys;
+  const { isClientMode } = useEffectiveRole();
+  const items = isClientMode ? CLIENT_NAV_ITEMS : navKeys;
 
   useEffect(() => { onClose(); }, [location.pathname]);
   useEffect(() => {

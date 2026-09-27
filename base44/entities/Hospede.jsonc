@@ -121,6 +121,20 @@
           ]
         }
       }
+    },
+    "documento_preenchido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se documento ja foi preenchido - so um sinalizador (nunca o valor), atualizado junto com documento no mesmo update. Permite mostrar 'faltam X documentos' pro cliente sem expor nenhum documento real (leitura normal, nao e o campo documento em si).",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
     }
   },
   "required": ["nome"],

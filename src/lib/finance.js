@@ -187,18 +187,25 @@ export function receitaCaixaDoMes(billings, recebimentos, month, year) {
 }
 
 // KPI 2 — Faturado do mês (competência): Σ receita própria contida em
-// cobranças emitidas (created_date) no mês, cheia (não proporcional ao que
-// já foi recebido — competência é sobre emissão, não sobre caixa).
+// cobranças emitidas no mês, cheia (não proporcional ao que já foi
+// recebido — competência é sobre emissão, não sobre caixa). Usa
+// data_emissao (data de assinatura/emissão do contrato/cobrança) quando
+// preenchida; cai para created_date só quando não há data_emissao —
+// criar o registro no sistema dias/semanas depois de o contrato ter sido
+// assinado não pode empurrar a competência para o mês errado (achado
+// real: Adendo assinado 20/07, lançado no sistema em 26/09 — sem esse
+// fallback, aparecia como faturado de setembro).
 export function faturadoCompetenciaDoMes(billings, month, year) {
   return roundCents(
     billings
-      .filter((b) => inPeriod(b.created_date, month, year))
+      .filter((b) => inPeriod(b.data_emissao || b.created_date, month, year))
       .reduce((sum, b) => sum + valorPorNatureza(b, NATUREZAS_RECEITA_PROPRIA), 0)
   );
 }
 
-// KPI 3 — A receber: Σ saldo de receita própria das cobranças não
-// canceladas.
+// KPI 3 — A receber (receita própria): Σ saldo de receita própria das
+// cobranças não canceladas — "sua receita a receber", nunca o valor cheio
+// cobrado do cliente (isso é totalAReceberClientes, mais abaixo).
 export function totalAReceber(billings, recebimentos) {
   return roundCents(
     billings
@@ -207,8 +214,23 @@ export function totalAReceber(billings, recebimentos) {
   );
 }
 
-// KPI 4 — Em atraso: Σ saldo de receita própria + quantidade de cobranças
-// com status derivado "atrasado" que contêm alguma parte de receita própria.
+// A receber dos clientes: Σ saldo CHEIO (repasse + intermediação + honorário
+// + caução) das cobranças não canceladas — o que o cliente ainda deve no
+// total, não só a parte que é receita própria do Tony.
+export function totalAReceberClientes(billings, recebimentos) {
+  return roundCents(
+    billings
+      .filter((b) => b.status !== "cancelado")
+      .reduce((sum, b) => sum + Math.max(0, saldoDevedor(b, recebimentos)), 0)
+  );
+}
+
+// KPI 4 — Em atraso (receita própria): Σ saldo de receita própria +
+// quantidade de cobranças "atrasado" que contêm alguma parte de receita
+// própria. Use emAtrasoTotal() para o valor cheio (o que o Dashboard do
+// admin mostra agora, para bater com o que o cliente vê em Faturamento —
+// achado real: uma cobrança 100% repasse podia estar "Atrasado" pro
+// cliente e não contar aqui, porque não tinha receita própria nenhuma).
 export function emAtraso(billings, recebimentos) {
   const atrasadas = billings.filter(
     (b) => valorPorNatureza(b, NATUREZAS_RECEITA_PROPRIA) > 0 && statusDerivado(b, recebimentos) === "atrasado"
@@ -217,6 +239,29 @@ export function emAtraso(billings, recebimentos) {
     total: roundCents(atrasadas.reduce((sum, b) => sum + valorPorNaturezaSaldo(b, recebimentos, NATUREZAS_RECEITA_PROPRIA), 0)),
     quantidade: atrasadas.length,
   };
+}
+
+// Em atraso (valor cheio, qualquer natureza) — mesma regra usada no
+// statusDerivado() de cada linha de Faturamento, nunca filtrando por
+// natureza. É este que o admin e o cliente devem ver igual.
+export function emAtrasoTotal(billings, recebimentos) {
+  const atrasadas = billings.filter((b) => statusDerivado(b, recebimentos) === "atrasado");
+  return {
+    total: roundCents(atrasadas.reduce((sum, b) => sum + saldoDevedor(b, recebimentos), 0)),
+    quantidade: atrasadas.length,
+  };
+}
+
+// Agrupamento por bloco — mesma convenção usada em Faturamento (Billing.jsx)
+// e na Visão Geral do cliente: "Seu Contrato" (o resto), "Adicionais"
+// (categoria "Contas a Pagar") e "Caução" (natureza "caucao"). Uma função só
+// para não duplicar essa regra de agrupamento em cada tela.
+export function agruparBillingsCliente(billings) {
+  const ativos = billings.filter((b) => b.status !== "cancelado");
+  const caucao = ativos.filter((b) => b.natureza === "caucao");
+  const adicionais = ativos.filter((b) => (b.categoria || "").trim().toLowerCase() === "contas a pagar");
+  const contrato = ativos.filter((b) => !adicionais.includes(b) && !caucao.includes(b));
+  return { contrato, adicionais, caucao };
 }
 
 // KPI 5 — Repasses em custódia: Σ recebido da parte "repasse" de cada

@@ -53,6 +53,18 @@
       "type": "string",
       "description": "Servi\u00e7os inclu\u00eddos na proposta"
     },
+    "itens_contrato": {
+      "type": "array",
+      "description": "Itens do contrato assinado, com o preco cheio de cada um (ex.: Hospedagem exclusiva R$68.000 + Toca Concierge R$15.000 + Roteiro incluido = R$83.000) - dados publicos do proprio contrato do cliente, visiveis a ele (mesma visibilidade da proposta). Diferente de Billing.alocacao (custo/margem internos, admin-only) - isto e so a composicao do preco que ele ja assinou.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": { "type": "string" },
+          "valor": { "type": "number" },
+          "incluido": { "type": "boolean", "description": "Se true, mostra 'incluido' em vez de um valor (ex.: Roteiro incluido no pacote)." }
+        }
+      }
+    },
     "observacoes": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es da proposta"

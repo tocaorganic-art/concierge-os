@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,7 +39,11 @@ function HospedeRow({ hospede, onSaved }) {
 
   const handleSave = () => {
     const payload = { ...form };
-    if (!payload.documento) delete payload.documento; // não sobrescreve com vazio sem querer
+    if (!payload.documento) {
+      delete payload.documento; // não sobrescreve com vazio sem querer
+    } else {
+      payload.documento_preenchido = true; // sinalizador legível, nunca o valor
+    }
     mutation.mutate(payload);
   };
 
@@ -73,14 +77,13 @@ function HospedeRow({ hospede, onSaved }) {
 }
 
 export default function MeuGrupo() {
-  const { user } = useUserProfile();
-  const clientId = user?.client_id;
+  const { effectiveClientId } = useEffectiveRole();
   const queryClient = useQueryClient();
 
   const { data: proposals = [] } = useQuery({
-    queryKey: ["my_proposals", clientId],
-    queryFn: () => base44.entities.Proposal.filter({ client_id: clientId }, "-created_date", 5),
-    enabled: Boolean(clientId),
+    queryKey: ["my_proposals", effectiveClientId],
+    queryFn: () => base44.entities.Proposal.filter({ client_id: effectiveClientId }, "-created_date", 5),
+    enabled: Boolean(effectiveClientId),
   });
   const proposalId = proposals?.[0]?.id;
 
@@ -91,6 +94,8 @@ export default function MeuGrupo() {
   });
 
   const excedente = Math.max(0, hospedes.length - CAPACIDADE_PERNOITE);
+  const semVoo = hospedes.filter((h) => !h.voo_chegada && !h.voo_saida).length;
+  const semDocumento = hospedes.filter((h) => !h.documento_preenchido).length;
 
   if (isLoading) {
     return (
@@ -108,6 +113,9 @@ export default function MeuGrupo() {
       </div>
       <p className="text-sm text-muted-foreground mb-4">
         {hospedes.length} cadastrados · máx. {CAPACIDADE_PERNOITE} pernoitando
+        {(semVoo > 0 || semDocumento > 0) && (
+          <span className="text-amber-400"> · {semVoo > 0 ? `${semVoo} sem voo` : ""}{semVoo > 0 && semDocumento > 0 ? ", " : ""}{semDocumento > 0 ? `${semDocumento} sem documento` : ""}</span>
+        )}
       </p>
 
       {excedente > 0 && (

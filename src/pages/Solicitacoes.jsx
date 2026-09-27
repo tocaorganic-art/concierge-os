@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { useUserProfile } from "@/lib/useUserProfile";
 import RequestModal from "@/components/concierge/RequestModal";
 import { Button } from "@/components/ui/button";
@@ -159,7 +160,8 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
 }
 
 export default function Solicitacoes() {
-  const { isClient, user } = useUserProfile();
+  const { isClientMode: isClient } = useEffectiveRole();
+  const { user } = useUserProfile();
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [novoTipo, setNovoTipo] = useState(null);

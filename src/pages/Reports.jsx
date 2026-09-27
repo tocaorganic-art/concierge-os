@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/shared/PageHeader";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import PlanGate from "@/components/monetization/PlanGate";
 import FunnelChart from "@/components/reports/FunnelChart";
 import AIRecommendations from "@/components/reports/AIRecommendations";
@@ -74,7 +74,7 @@ const ChartCard = ({ title, children, badge }) => (
 export default function Reports() {
   const { t } = useLanguage();
   const { hasProAccess, isLoading: planLoading } = usePlan();
-  const { isClient } = useUserProfile();
+  const { isClientMode, effectiveClientId } = useEffectiveRole();
 
   // Receita/despesa calculadas direto de Billing (recebido) e Expense (pago) —
   // não mais da entidade Revenue (lançamento manual desconectado do
@@ -166,11 +166,13 @@ export default function Reports() {
     );
   }
 
-  if (isClient) {
+  if (isClientMode) {
+    const recebimentosCliente = recebimentos.filter((r) => r.client_id === effectiveClientId);
+    const billingsCliente = billings.filter((b) => b.client_id === effectiveClientId);
     return (
       <div>
         <PageHeader title={t("reports_title")} subtitle={t("reports_subtitle")} />
-        <ReportsCliente recebimentos={recebimentos} billings={billings} t={t} />
+        <ReportsCliente recebimentos={recebimentosCliente} billings={billingsCliente} t={t} />
       </div>
     );
   }

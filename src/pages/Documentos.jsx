@@ -1,20 +1,19 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { FolderOpen, FileText, Loader2, ExternalLink } from "lucide-react";
 
 // Documentos do cliente — só o que a proposta expõe em documentos_cliente
 // (Proposal.documentos_admin fica com RLS de campo admin-only, nunca chega
 // aqui mesmo que o componente tentasse ler). Nunca contrato de fornecedor.
 export default function Documentos() {
-  const { user } = useUserProfile();
-  const clientId = user?.client_id;
+  const { effectiveClientId } = useEffectiveRole();
 
   const { data: proposals = [], isLoading } = useQuery({
-    queryKey: ["my_proposals", clientId],
-    queryFn: () => base44.entities.Proposal.filter({ client_id: clientId }, "-created_date", 5),
-    enabled: Boolean(clientId),
+    queryKey: ["my_proposals", effectiveClientId],
+    queryFn: () => base44.entities.Proposal.filter({ client_id: effectiveClientId }, "-created_date", 5),
+    enabled: Boolean(effectiveClientId),
   });
 
   const documentos = proposals.flatMap((p) => p.documentos_cliente || []);
