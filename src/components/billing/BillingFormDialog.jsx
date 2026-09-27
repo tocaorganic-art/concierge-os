@@ -18,9 +18,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
-import { Camera, Loader2, ImageIcon, X, Sparkles } from "lucide-react";
+import { Camera, Loader2, ImageIcon, X, Sparkles, Layers } from "lucide-react";
 
-const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "" };
+const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "" };
+
+function addMonths(dateStr, months) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T00:00:00");
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
 
 const CATEGORIAS_BASE = ["Pacote Principal", "Contas a Pagar", "Reserva Financeira"];
 const NEW_CATEGORY_VALUE = "__nova__";
@@ -37,12 +44,19 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [aiFilled, setAiFilled] = useState(false);
+  const [parcelar, setParcelar] = useState(false);
+  const [numeroParcelas, setNumeroParcelas] = useState(2);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("nome", 200),
+  });
+
+  const { data: proposals = [] } = useQuery({
+    queryKey: ["proposals"],
+    queryFn: () => base44.entities.Proposal.list("-created_date", 200),
   });
 
   const { data: billings = [] } = useQuery({
@@ -64,6 +78,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
       setForm({
         client_id: billing.client_id || "",
         client_nome: billing.client_nome || "",
+        proposal_id: billing.proposal_id || "",
         descricao: billing.descricao || "",
         categoria: billing.categoria || "",
         valor: billing.valor || "",
@@ -78,13 +93,38 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     setNovaCategoria("");
     setUploadError("");
     setAiFilled(false);
+    setParcelar(false);
+    setNumeroParcelas(2);
   }, [billing, open]);
 
   const mutation = useMutation({
-    mutationFn: (data) =>
-      billing
-        ? base44.entities.Billing.update(billing.id, data)
-        : base44.entities.Billing.create(data),
+    mutationFn: async (data) => {
+      if (billing) {
+        return base44.entities.Billing.update(billing.id, data);
+      }
+      if (!parcelar) {
+        return base44.entities.Billing.create(data);
+      }
+      // Parcelamento estruturado: gera N cobrancas vinculadas (mesma
+      // proposal_id, numero_parcela/total_parcelas preenchidos), em vez de
+      // uma unica cobranca com "Parcela X/Y" escrito a mao na descricao.
+      const n = Math.max(2, Math.round(numeroParcelas) || 2);
+      const total = data.valor;
+      const base = Math.floor((total / n) * 100) / 100;
+      const ultima = Math.round((total - base * (n - 1)) * 100) / 100;
+      const criacoes = Array.from({ length: n }, (_, i) => {
+        const valorParcela = i === n - 1 ? ultima : base;
+        return base44.entities.Billing.create({
+          ...data,
+          valor: valorParcela,
+          numero_parcela: i + 1,
+          total_parcelas: n,
+          data_vencimento: addMonths(data.data_vencimento, i),
+          descricao: data.descricao ? `${data.descricao} — Parcela ${i + 1}/${n}` : `Parcela ${i + 1}/${n}`,
+        });
+      });
+      return Promise.all(criacoes);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billings"] });
       onOpenChange(false);
@@ -231,6 +271,17 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
             </Select>
           </div>
           <div>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Proposta vinculada (opcional)</Label>
+            <Select value={form.proposal_id || undefined} onValueChange={(v) => setForm((f) => ({ ...f, proposal_id: v }))}>
+              <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+              <SelectContent>
+                {proposals.filter((p) => !form.client_id || p.client_id === form.client_id).map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.destino || p.client_nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Descrição</Label>
             <Input value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} className="mt-1.5 bg-secondary border-border" placeholder="Pacote Maldivas, Transfer..." />
           </div>
@@ -277,14 +328,44 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Valor (R$)</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                {parcelar ? "Valor total (R$)" : "Valor (R$)"}
+              </Label>
               <Input type="number" value={form.valor} onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))} className="mt-1.5 bg-secondary border-border" required />
             </div>
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Vencimento</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                {parcelar ? "1º vencimento" : "Vencimento"}
+              </Label>
               <Input type="date" value={form.data_vencimento} onChange={(e) => setForm((f) => ({ ...f, data_vencimento: e.target.value }))} className="mt-1.5 bg-secondary border-border" />
             </div>
           </div>
+
+          {!billing && (
+            <div className="rounded-xl border border-border bg-secondary/40 p-3 space-y-3">
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={parcelar} onChange={(e) => setParcelar(e.target.checked)} className="rounded border-border" />
+                <Layers className="w-3.5 h-3.5 text-primary" /> Dividir em parcelas
+              </label>
+              {parcelar && (
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Número de parcelas</Label>
+                  <Input
+                    type="number"
+                    min={2}
+                    max={24}
+                    value={numeroParcelas}
+                    onChange={(e) => setNumeroParcelas(e.target.value)}
+                    className="mt-1.5 bg-secondary border-border w-24"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    Cria {Math.max(2, Math.round(numeroParcelas) || 2)} cobranças vinculadas, com vencimento mensal a partir da data acima — cada uma marcada como "Parcela X de {Math.max(2, Math.round(numeroParcelas) || 2)}".
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Status</Label>
             <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
@@ -299,7 +380,8 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={mutation.isPending}>
-              {billing ? "Salvar" : "Criar Cobrança"}
+              {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {billing ? "Salvar" : parcelar ? `Criar ${Math.max(2, Math.round(numeroParcelas) || 2)} Parcelas` : "Criar Cobrança"}
             </Button>
           </div>
         </form>

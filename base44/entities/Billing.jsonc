@@ -10,6 +10,18 @@
       "type": "string",
       "description": "Nome do cliente"
     },
+    "proposal_id": {
+      "type": "string",
+      "description": "ID da proposta/evento vinculado (opcional) — usado para agrupar as parcelas de um mesmo pacote e calcular \"Parcela X de Y\" de forma estruturada, em vez de depender de texto livre na descricao."
+    },
+    "numero_parcela": {
+      "type": "number",
+      "description": "Numero desta parcela dentro do parcelamento (1, 2, 3...). Deixe em branco para uma cobranca avulsa (nao parcelada)."
+    },
+    "total_parcelas": {
+      "type": "number",
+      "description": "Total de parcelas deste parcelamento. Junto com numero_parcela, permite mostrar \"Parcela 2 de 3\" e validar que a soma das parcelas bate com o valor total da proposta."
+    },
     "descricao": {
       "type": "string",
       "description": "Descri\u00e7\u00e3o da cobran\u00e7a"

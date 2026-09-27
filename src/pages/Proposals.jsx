@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle } from "lucide-react";
+import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle } from "lucide-react";
 import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
 import { useLanguage } from "@/lib/i18n";
+import { isProposalExpired } from "@/lib/proposalUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -129,6 +130,11 @@ export default function Proposals() {
                   >
                     <p className="font-medium text-foreground">{p.client_nome}</p>
                     <StatusBadge status={p.status} />
+                    {isProposalExpired(p) && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20">
+                        <AlertTriangle className="w-2.5 h-2.5" /> Expirada
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {p.valor > 0 && (

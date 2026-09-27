@@ -44,6 +44,11 @@
       "default": "lead",
       "description": "Status da proposta no pipeline"
     },
+    "data_validade": {
+      "type": "string",
+      "format": "date",
+      "description": "Ate quando esta proposta (status lead ou proposta) fica valida antes de ser considerada expirada. Sem efeito quando o status ja e confirmado, concluido ou cancelado."
+    },
     "servicos": {
       "type": "string",
       "description": "Servi\u00e7os inclu\u00eddos na proposta"
