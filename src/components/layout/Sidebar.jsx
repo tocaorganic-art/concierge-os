@@ -20,6 +20,8 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
+import { useUserProfile } from "@/lib/useUserProfile";
+import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
 import LanguageSelector from "./LanguageSelector";
 
 const navKeys = [
@@ -39,6 +41,58 @@ export default function Sidebar({ onOpenTutorial }) {
   const location = useLocation();
   const { t } = useLanguage();
   const { hasProAccess } = usePlan();
+  const { isClient } = useUserProfile();
+
+  if (isClient) {
+    return (
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col z-50">
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <img
+              src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
+              alt="Toca OS"
+              className="w-9 h-9 rounded-lg object-cover"
+            />
+            <div>
+              <h1 className="font-heading text-lg font-bold text-foreground tracking-tight">
+                Toca <span className="text-primary">Concierge</span>
+              </h1>
+            </div>
+          </div>
+        </div>
+        <div className="border-b border-sidebar-border">
+          <LanguageSelector />
+        </div>
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {CLIENT_NAV_ITEMS.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                  isActive ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+                }`}
+              >
+                <item.icon className={`w-[18px] h-[18px] transition-colors ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                <span className="flex-1">{t(item.key) === item.key ? item.labelFallback : t(item.key)}</span>
+                {isActive && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-3 border-t border-sidebar-border">
+          <button
+            onClick={() => base44.auth.logout()}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all w-full"
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+            <span>{t("nav_signout")}</span>
+          </button>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col z-50">

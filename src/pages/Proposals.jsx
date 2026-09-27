@@ -6,6 +6,7 @@ import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
 import ImportarDocumentosDialog from "@/components/proposals/ImportarDocumentosDialog";
 import AlertasContratuais from "@/components/proposals/AlertasContratuais";
 import { useLanguage } from "@/lib/i18n";
+import { useUserProfile } from "@/lib/useUserProfile";
 import { isProposalExpired } from "@/lib/proposalUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ const AiBadge = () => (
 
 export default function Proposals() {
   const { t } = useLanguage();
+  const { isClient } = useUserProfile();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editProposal, setEditProposal] = useState(null);
@@ -102,14 +104,16 @@ export default function Proposals() {
         title={t("nav_proposals")}
         subtitle={`${proposals.length} ${t("proposals_registered")}`}
         action={
-          <div className="hidden md:flex items-center gap-2">
-            <Button onClick={() => setShowAI(true)} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
-              <Sparkles className="w-4 h-4" /> Gerar com IA <AiBadge />
-            </Button>
-            <Button onClick={() => { setEditProposal(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-              <Plus className="w-4 h-4" /> {t("btn_new_proposal")}
-            </Button>
-          </div>
+          !isClient && (
+            <div className="hidden md:flex items-center gap-2">
+              <Button onClick={() => setShowAI(true)} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
+                <Sparkles className="w-4 h-4" /> Gerar com IA <AiBadge />
+              </Button>
+              <Button onClick={() => { setEditProposal(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                <Plus className="w-4 h-4" /> {t("btn_new_proposal")}
+              </Button>
+            </div>
+          )
         }
       />
 
@@ -140,8 +144,8 @@ export default function Proposals() {
               <div key={p.id} className="bg-card border border-border rounded-xl p-4 md:p-5 gold-border-hover">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div
-                    className="flex items-center gap-2 flex-wrap cursor-pointer flex-1"
-                    onClick={() => { setEditProposal(p); setShowForm(true); }}
+                    className={`flex items-center gap-2 flex-wrap flex-1 ${isClient ? "" : "cursor-pointer"}`}
+                    onClick={() => { if (!isClient) { setEditProposal(p); setShowForm(true); } }}
                   >
                     <p className="font-medium text-foreground">{p.client_nome}</p>
                     <StatusBadge status={p.status} />
@@ -157,26 +161,30 @@ export default function Proposals() {
                         {t("currency_symbol")} {p.valor.toLocaleString(t("locale_date"))}
                       </p>
                     )}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setWhatsappProposal(p); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg text-green-400 hover:bg-green-500/10 transition-colors"
-                      title="Enviar via WhatsApp"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </button>
-                    <ProposalPdfButton proposal={p} />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setImportProposal(p); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
-                      title="Importar documentos"
-                    >
-                      <FolderOpen className="w-4 h-4" />
-                    </button>
+                    {!isClient && (
+                      <>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setWhatsappProposal(p); }}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-green-400 hover:bg-green-500/10 transition-colors"
+                          title="Enviar via WhatsApp"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </button>
+                        <ProposalPdfButton proposal={p} />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setImportProposal(p); }}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
+                          title="Importar documentos"
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div
-                  className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground cursor-pointer"
-                  onClick={() => { setEditProposal(p); setShowForm(true); }}
+                  className={`flex flex-wrap items-center gap-3 text-sm text-muted-foreground ${isClient ? "" : "cursor-pointer"}`}
+                  onClick={() => { if (!isClient) { setEditProposal(p); setShowForm(true); } }}
                 >
                   <span className="flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5" /> {p.destino}
@@ -195,13 +203,15 @@ export default function Proposals() {
             ))}
           </div>
 
-          <button
-            onClick={() => { setEditProposal(null); setShowForm(true); }}
-            className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-            aria-label="Nova Proposta"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+          {!isClient && (
+            <button
+              onClick={() => { setEditProposal(null); setShowForm(true); }}
+              className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+              aria-label="Nova Proposta"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
         </>
       )}
 

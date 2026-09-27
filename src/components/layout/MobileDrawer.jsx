@@ -7,6 +7,8 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
+import { useUserProfile } from "@/lib/useUserProfile";
+import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
 import LanguageSelector from "./LanguageSelector";
 
 const navKeys = [
@@ -26,6 +28,8 @@ export default function MobileDrawer({ open, onClose }) {
   const location = useLocation();
   const { t } = useLanguage();
   const { hasProAccess } = usePlan();
+  const { isClient } = useUserProfile();
+  const items = isClient ? CLIENT_NAV_ITEMS : navKeys;
 
   useEffect(() => { onClose(); }, [location.pathname]);
   useEffect(() => {
@@ -63,9 +67,10 @@ export default function MobileDrawer({ open, onClose }) {
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navKeys.map((item) => {
+          {items.map((item) => {
             const isActive = location.pathname === item.path;
             const isLocked = item.requiresPro && !hasProAccess;
+            const label = t(item.key) === item.key ? (item.labelFallback || item.key) : t(item.key);
             return (
               <Link
                 key={item.path}
@@ -75,7 +80,7 @@ export default function MobileDrawer({ open, onClose }) {
                 }`}
               >
                 <item.icon className={`w-[18px] h-[18px] ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                <span className="flex-1">{t(item.key)}</span>
+                <span className="flex-1">{label}</span>
                 {isLocked && <Lock className="w-3 h-3 text-muted-foreground/50" />}
                 {isActive && !isLocked && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
               </Link>

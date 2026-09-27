@@ -12,6 +12,7 @@ import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
 import { useLanguage } from "@/lib/i18n";
+import { useUserProfile } from "@/lib/useUserProfile";
 
 function buildGCalUrl(task) {
   if (!task.data) return null;
@@ -26,6 +27,7 @@ function buildGCalUrl(task) {
 
 export default function Agenda() {
   const { t, lang } = useLanguage();
+  const { isClient } = useUserProfile();
   const dateLocale = lang === "en" ? enUS : lang === "es" ? es : ptBR;
   const [view, setView] = useState("dia");
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -81,7 +83,7 @@ export default function Agenda() {
       <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
         task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
       }`}>
-        <button onClick={() => toggleTask.mutate(task)} className="mt-0.5 flex-shrink-0">
+        <button onClick={() => !isClient && toggleTask.mutate(task)} disabled={isClient} className={`mt-0.5 flex-shrink-0 ${isClient ? "cursor-default" : ""}`}>
           {task.status === "concluido" ? (
             <CheckCircle2 className="w-5 h-5 text-green-400" />
           ) : (
@@ -165,9 +167,11 @@ export default function Agenda() {
         title={t("nav_schedule")}
         subtitle={format(currentDate, "MMMM yyyy", { locale: dateLocale })}
         action={
-          <Button onClick={handleNewTask} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> {t("btn_new_task")}
-          </Button>
+          !isClient && (
+            <Button onClick={handleNewTask} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              <Plus className="w-4 h-4" /> {t("btn_new_task")}
+            </Button>
+          )
         }
       />
 
@@ -268,13 +272,15 @@ export default function Agenda() {
         )}
       </div>
 
-      <button
-        onClick={handleNewTask}
-        className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-        aria-label={t("btn_new_task")}
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      {!isClient && (
+        <button
+          onClick={handleNewTask}
+          className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+          aria-label={t("btn_new_task")}
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
 
       <TaskFormDialog open={showForm} onOpenChange={setShowForm} defaultDate={selectedDate} />
 

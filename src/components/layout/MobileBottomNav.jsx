@@ -2,6 +2,8 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, KanbanSquare, Users, CalendarDays } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { useUserProfile } from "@/lib/useUserProfile";
+import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
 
 const PRIMARY_TABS = [
   { key: "nav_overview",  icon: LayoutDashboard, path: "/" },
@@ -10,17 +12,25 @@ const PRIMARY_TABS = [
   { key: "nav_schedule",  icon: CalendarDays,    path: "/agenda" },
 ];
 
+// No mobile, o cliente só cabe 4 abas — as mais usadas do menu completo.
+const CLIENT_PRIMARY_TABS = CLIENT_NAV_ITEMS.filter((item) =>
+  ["/", "/faturamento", "/meu-grupo", "/meu-perfil"].includes(item.path)
+);
+
 export default function MobileBottomNav() {
   const location = useLocation();
   const { t } = useLanguage();
+  const { isClient } = useUserProfile();
+  const tabs = isClient ? CLIENT_PRIMARY_TABS : PRIMARY_TABS;
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-sidebar border-t border-sidebar-border flex"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      {PRIMARY_TABS.map(({ key, icon: Icon, path }) => {
+      {tabs.map(({ key, icon: Icon, path, labelFallback }) => {
         const isActive = location.pathname === path;
+        const label = t(key) === key ? (labelFallback || key) : t(key);
         return (
           <Link
             key={path}
@@ -30,7 +40,7 @@ export default function MobileBottomNav() {
             }`}
           >
             <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-            <span className="text-[10px] font-medium leading-none">{t(key)}</span>
+            <span className="text-[10px] font-medium leading-none">{label}</span>
             {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" style={{ position: "relative", width: "24px", borderRadius: "2px" }} />}
           </Link>
         );
