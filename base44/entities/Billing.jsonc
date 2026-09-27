@@ -44,7 +44,24 @@
     },
     "comprovante_url": {
       "type": "string",
-      "description": "URL da foto/comprovante desta cobran\u00e7a (nota fiscal, or\u00e7amento, print de passagem, recibo de pagamento etc.) \u2014 vis\u00edvel para admin, equipe e para o cliente vinculado a esta cobran\u00e7a"
+      "description": "URL da foto/comprovante desta cobran\u00e7a (nota fiscal, or\u00e7amento, print de passagem, recibo de pagamento etc.) \u2014 vis\u00edvel para admin, equipe e para o cliente vinculado a esta cobran\u00e7a. O cliente pode anexar seu pr\u00f3prio comprovante de pagamento no Portal do Cliente (RLS de campo abaixo), sem poder alterar valor, status ou qualquer outro campo da cobran\u00e7a.",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.client_id": "{{user.data.client_id}}"
+            }
+          ]
+        }
+      }
     }
   },
   "required": [
