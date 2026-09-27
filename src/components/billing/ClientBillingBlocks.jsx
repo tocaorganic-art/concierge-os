@@ -89,6 +89,7 @@ function ComentariosThread({ billingId, clientId }) {
   const [texto, setTexto] = useState("");
   const [editandoId, setEditandoId] = useState(null);
   const [textoEdicao, setTextoEdicao] = useState("");
+  const listRef = useRef(null);
 
   const { data: comentarios = [] } = useQuery({
     queryKey: ["comentarios", billingId],
@@ -103,6 +104,13 @@ function ComentariosThread({ billingId, clientId }) {
     const naoLidos = comentarios.filter((c) => !c.lido && c.autor_tipo === (isClient ? "equipe" : "cliente"));
     naoLidos.forEach((c) => base44.entities.Comentario.update(c.id, { lido: true }).catch(() => {}));
   }, [comentarios, isClient]);
+
+  // Rola para a mensagem mais recente sempre que o fio muda — sem isso o
+  // fio ficava "escondido" (sem indicação visual de que havia mais
+  // mensagens acima do que cabia na área visível).
+  React.useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [comentarios.length]);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Comentario.create(data),
@@ -140,7 +148,7 @@ function ComentariosThread({ billingId, clientId }) {
   return (
     <div className="mt-3 pt-3 border-t border-border/60">
       <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">Comentários</p>
-      <div className="space-y-2 mb-2">
+      <div ref={listRef} className="space-y-2 mb-2 max-h-56 overflow-y-auto pr-1 chat-scroll">
         {comentarios.map((c) => (
           <div key={c.id} className={`text-[11px] rounded-lg px-2.5 py-2 ${c.autor_tipo === "cliente" ? "bg-secondary/60" : "bg-primary/5"}`}>
             <div className="flex items-center justify-between gap-2">
