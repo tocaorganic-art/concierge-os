@@ -35,19 +35,8 @@ export default function AppLayout() {
     }).catch(() => {});
   }, []);
 
-  // Enquanto o perfil ainda está carregando, NÃO renderiza o <Outlet/> — evita que
-  // a subpágina interna (Faturamento, Despesas, Clientes...) monte e dispare suas
-  // queries antes de sabermos se este login é do tipo "cliente".
-  if (isLoadingProfile) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
   // Login do tipo "cliente": nunca mostra o dashboard interno, só o Portal do Cliente.
-  if (isClient) {
+  if (!isLoadingProfile && isClient) {
     return <Navigate to="/portal" replace />;
   }
 
