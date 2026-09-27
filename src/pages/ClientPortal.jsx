@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
@@ -6,7 +6,7 @@ import RequestModal from "@/components/concierge/RequestModal";
 import RequestHistory from "@/components/concierge/RequestHistory";
 import PixPaymentCard from "@/components/billing/PixPaymentCard";
 import { COMPANY_INFO } from "@/lib/paymentInfo";
-import { Loader2, Crown, MapPin, CalendarDays, Receipt, CheckCircle2, Clock, AlertTriangle, Paperclip } from "lucide-react";
+import { Loader2, Crown, MapPin, CalendarDays, Receipt, CheckCircle2, Clock, AlertTriangle, Paperclip, Camera } from "lucide-react";
 
 const STATUS_PROPOSTA = {
   lead: { label: "Em análise", className: "bg-secondary text-muted-foreground border-border" },
@@ -25,6 +25,56 @@ const STATUS_PAGAMENTO = {
 function formatDate(d) {
   if (!d) return "—";
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
+}
+
+// Permite ao cliente anexar seu próprio comprovante de pagamento a uma cobrança
+// pendente/atrasada — só grava o campo comprovante_url (RLS de campo em
+// base44/entities/Billing.jsonc), nunca altera valor, status ou qualquer outro
+// dado da cobrança.
+function AnexarComprovante({ billing, onUploaded }) {
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Billing.update(billing.id, { comprovante_url: file_url });
+      onUploaded();
+    } catch {
+      setError("Não consegui enviar. Tente novamente.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="mt-0.5">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-60"
+      >
+        {uploading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Camera className="w-2.5 h-2.5" />}
+        {uploading ? "Enviando..." : "Anexar comprovante de pagamento"}
+      </button>
+      {error && <p className="text-[10px] text-red-400 mt-0.5">{error}</p>}
+    </div>
+  );
 }
 
 const TIPOS = [
@@ -88,6 +138,8 @@ export default function ClientPortal() {
   const proposta = minhasPropostas?.[0] || null;
   const totalCobrado = meusPagamentos.reduce((sum, b) => sum + (b.valor || 0), 0);
   const totalPago = meusPagamentos.filter((b) => b.status === "recebido").reduce((sum, b) => sum + (b.valor || 0), 0);
+  const saldoPendente = totalCobrado - totalPago;
+  const pctPago = totalCobrado > 0 ? Math.round((totalPago / totalCobrado) * 100) : 0;
 
   // Mostra a forma de pagamento apenas quando há cobrança de "Contas a Pagar" pendente/atrasada
   const temContasAPagarPendente = meusPagamentos.some(
@@ -148,7 +200,7 @@ export default function ClientPortal() {
 
             {meusPagamentos.length > 0 && (
               <div>
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground">
                     <Receipt className="w-3.5 h-3.5" /> Pagamentos
                   </div>
@@ -156,10 +208,28 @@ export default function ClientPortal() {
                     R$ {totalPago.toLocaleString("pt-BR")} de R$ {totalCobrado.toLocaleString("pt-BR")} pago
                   </span>
                 </div>
+
+                {/* Barra de progresso do total pago */}
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${Math.min(pctPago, 100)}%` }}
+                  />
+                </div>
+
+                {/* Saldo pendente em destaque */}
+                {saldoPendente > 0 && (
+                  <div className="flex items-center justify-between mb-4 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <span className="text-xs text-amber-400 font-medium">Saldo pendente</span>
+                    <span className="font-display font-bold text-amber-400">R$ {saldoPendente.toLocaleString("pt-BR")}</span>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   {meusPagamentos.map((b) => {
                     const meta = STATUS_PAGAMENTO[b.status] || STATUS_PAGAMENTO.pendente;
                     const StatusIcon = meta.icon;
+                    const podeAnexar = b.status !== "recebido" && !b.comprovante_url;
                     return (
                       <div key={b.id} className="flex items-center justify-between text-sm">
                         <div className="min-w-0">
@@ -169,6 +239,12 @@ export default function ClientPortal() {
                             <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-0.5">
                               <Paperclip className="w-2.5 h-2.5" /> Comprovante
                             </a>
+                          )}
+                          {podeAnexar && (
+                            <AnexarComprovante
+                              billing={b}
+                              onUploaded={() => queryClient.invalidateQueries({ queryKey: ["my_billing", clientId] })}
+                            />
                           )}
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
