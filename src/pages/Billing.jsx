@@ -63,7 +63,7 @@ export default function Billing() {
   // Reserva Financeira = apenas crédito real (depósitos do cliente / saldo que sobrou), nunca cobrança a receber.
   const reservaFinanceira = billings
     .filter((b) => (b.categoria || "").trim().toLowerCase() === "reserva financeira")
-    .reduce((sum, b) => sum + valorRecebido(b.id, recebimentos), 0);
+    .reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0);
 
   const categoriasDisponiveis = Array.from(
     new Set(billings.map((b) => b.categoria).filter(Boolean))
