@@ -1,0 +1,47 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * *",
+      "one_time_date": null,
+      "timezone": "America/Bahia",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Alerta de Prazos",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "alerta_de_prazos",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "verificar_prazos": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkDeadlineAlerts",
+            "args": {
+              "notify": true
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Verificar prazos e avisar por e-mail",
+            "description": "Tarefas pendentes e propostas perto do prazo"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Verifica diariamente tarefas pendentes e propostas perto do prazo (chegada da viagem) e avisa os administradores por e-mail"
+}

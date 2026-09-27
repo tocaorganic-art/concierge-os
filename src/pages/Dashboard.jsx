@@ -10,6 +10,7 @@ import DashboardClients from "@/components/dashboard/DashboardClients";
 import DashboardRevenueChart from "@/components/dashboard/DashboardRevenueChart";
 import { useLanguage } from "@/lib/i18n";
 import TaskNotifications from "@/components/dashboard/TaskNotifications";
+import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 
 export default function Dashboard() {
   const { t, lang } = useLanguage();
@@ -70,6 +71,7 @@ export default function Dashboard() {
   return (
     <div>
       <TaskNotifications tasks={tasks} />
+      <DeadlineAlerts />
       <PageHeader
         title={t("nav_overview")}
         subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
