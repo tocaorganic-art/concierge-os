@@ -26,6 +26,8 @@ import Settings from "@/pages/Settings";
 import TocaTrIA from "@/pages/TocaTrIA";
 import Solicitacoes from "@/pages/Solicitacoes";
 import ClientPortal from "@/pages/ClientPortal";
+import ClientFinanceiro from "@/pages/ClientFinanceiro";
+import ClientPedidos from "@/pages/ClientPedidos";
 import Parceiros from "@/pages/Parceiros";
 import ConciergeKPIs from "@/pages/ConciergeKPIs";
 import ClientProfile from "@/pages/ClientProfile";
@@ -78,6 +80,8 @@ const AuthenticatedApp = () => {
         </Route>
         <Route element={<ClientLayout />}>
           <Route path="/portal" element={<ClientPortal />} />
+          <Route path="/portal/financeiro" element={<ClientFinanceiro />} />
+          <Route path="/portal/pedidos" element={<ClientPedidos />} />
           <Route path="/meu-perfil" element={<ClientProfile />} />
         </Route>
       </Route>

@@ -28,7 +28,7 @@
     },
     "valor": {
       "type": "number",
-      "description": "Valor real pago/gasto, conforme comprovante (o que efetivamente saiu do seu bolso)"
+      "description": "Valor real pago/gasto, conforme comprovante (o que efetivamente saiu do seu bolso). Vis\u00edvel para o cliente vinculado \u2014 transpar\u00eancia total de cada conta paga, s\u00f3 a margem/comiss\u00e3o (margem_admin) fica restrita."
     },
     "valor_cobrado_cliente": {
       "type": "number",
@@ -36,7 +36,14 @@
     },
     "margem_admin": {
       "type": "number",
-      "description": "Quanto voc\u00ea (admin master) realmente ganhou nessa negocia\u00e7\u00e3o \u2014 sua margem/comiss\u00e3o real. Campo de uso exclusivo do admin master; nunca \u00e9 exposto para equipe ou cliente."
+      "description": "Quanto voc\u00ea (admin master) realmente ganhou nessa negocia\u00e7\u00e3o \u2014 sua margem/comiss\u00e3o real. Campo de uso exclusivo do admin master; nunca \u00e9 exposto para equipe ou cliente. RLS de campo abaixo restringe leitura a admin.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "data_despesa": {
       "type": "string",
@@ -75,6 +82,9 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "data.client_id": "{{user.data.client_id}}"
         }
       ]
     },
