@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useUserProfile } from "@/lib/useUserProfile";
+import RequestModal from "@/components/concierge/RequestModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,10 +15,18 @@ import {
   MessageSquare,
   Calendar,
   User,
+  Plus,
 } from "lucide-react";
 import { generateWithAI } from "@/functions/generateWithAI";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+const TIPOS_NOVO_PEDIDO = [
+  { id: "experiencia", emoji: "🏝️", label: "Experiência", sub: "Roteiros, passeios e aventuras" },
+  { id: "reserva", emoji: "🍽️", label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
+  { id: "exclusivo", emoji: "🚁", label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
+  { id: "ajuda", emoji: "🆘", label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
+];
 
 const TIPOS = {
   experiencia: { label: "Experiência", emoji: "🏝️", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
@@ -32,7 +42,7 @@ const STATUS = {
   cancelado:    { label: "Cancelado",    icon: XCircle,      color: "bg-muted text-muted-foreground border-border" },
 };
 
-function RequestCard({ req, onReply, onStatusChange }) {
+function RequestCard({ req, onReply, onStatusChange, isClient }) {
   const [showReply, setShowReply] = useState(false);
   const [reply, setReply] = useState(req.resposta_concierge || "");
   const [loadingAI, setLoadingAI] = useState(false);
@@ -107,23 +117,25 @@ function RequestCard({ req, onReply, onStatusChange }) {
         </div>
       )}
 
-      <div className="mt-4 ml-9 flex items-center gap-2">
-        {req.status === "novo" && (
-          <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => onStatusChange(req, "em_andamento")}>
-            <Sparkles className="w-3 h-3" /> Assumir
+      {!isClient && (
+        <div className="mt-4 ml-9 flex items-center gap-2">
+          {req.status === "novo" && (
+            <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => onStatusChange(req, "em_andamento")}>
+              <Sparkles className="w-3 h-3" /> Assumir
+            </Button>
+          )}
+          {req.status === "em_andamento" && (
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 text-green-400 border-green-500/20 hover:bg-green-500/10" onClick={() => onStatusChange(req, "resolvido")}>
+              <CheckCircle2 className="w-3 h-3" /> Resolver
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" className="text-xs gap-1.5" onClick={() => setShowReply(!showReply)}>
+            <MessageSquare className="w-3 h-3" /> Responder
           </Button>
-        )}
-        {req.status === "em_andamento" && (
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 text-green-400 border-green-500/20 hover:bg-green-500/10" onClick={() => onStatusChange(req, "resolvido")}>
-            <CheckCircle2 className="w-3 h-3" /> Resolver
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" className="text-xs gap-1.5" onClick={() => setShowReply(!showReply)}>
-          <MessageSquare className="w-3 h-3" /> Responder
-        </Button>
-      </div>
+        </div>
+      )}
 
-      {showReply && (
+      {!isClient && showReply && (
         <div className="mt-3 ml-9 space-y-2">
           <Textarea
             value={reply}
@@ -147,8 +159,10 @@ function RequestCard({ req, onReply, onStatusChange }) {
 }
 
 export default function Solicitacoes() {
+  const { isClient, user } = useUserProfile();
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
+  const [novoTipo, setNovoTipo] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: requests = [], isLoading } = useQuery({
@@ -159,6 +173,14 @@ export default function Solicitacoes() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.ServiceRequest.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["service_requests"] }),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.ServiceRequest.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["service_requests"] });
+      setNovoTipo(null);
+    },
   });
 
   const handleReply = (req, reply) => {
@@ -185,22 +207,45 @@ export default function Solicitacoes() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Solicitações</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Pedidos dos seus clientes concierge</p>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">{isClient ? "Meus Pedidos" : "Solicitações"}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{isClient ? "Peça algo ao seu concierge" : "Pedidos dos seus clientes concierge"}</p>
         </div>
         <div className="flex items-center gap-2">
-          {counts.novo > 0 && (
-            <span className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/20 text-xs font-mono px-2.5 py-1 rounded-full">
-              {counts.novo} novo{counts.novo > 1 ? "s" : ""}
-            </span>
-          )}
-          {counts.em_andamento > 0 && (
-            <span className="bg-blue-500/15 text-blue-400 border border-blue-500/20 text-xs font-mono px-2.5 py-1 rounded-full">
-              {counts.em_andamento} em andamento
-            </span>
+          {isClient ? (
+            <Button size="sm" onClick={() => setNovoTipo(TIPOS_NOVO_PEDIDO[0])} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-3.5 h-3.5" /> Novo Pedido
+            </Button>
+          ) : (
+            <>
+              {counts.novo > 0 && (
+                <span className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/20 text-xs font-mono px-2.5 py-1 rounded-full">
+                  {counts.novo} novo{counts.novo > 1 ? "s" : ""}
+                </span>
+              )}
+              {counts.em_andamento > 0 && (
+                <span className="bg-blue-500/15 text-blue-400 border border-blue-500/20 text-xs font-mono px-2.5 py-1 rounded-full">
+                  {counts.em_andamento} em andamento
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>
+
+      {isClient && (
+        <div className="flex gap-2 mb-5 overflow-x-auto">
+          {TIPOS_NOVO_PEDIDO.map((tipo) => (
+            <button
+              key={tipo.id}
+              onClick={() => setNovoTipo(tipo)}
+              className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors flex-shrink-0"
+            >
+              <span className="text-xl">{tipo.emoji}</span>
+              <span className="text-[11px] text-foreground whitespace-nowrap">{tipo.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-5">
@@ -247,9 +292,20 @@ export default function Solicitacoes() {
               req={req}
               onReply={handleReply}
               onStatusChange={handleStatusChange}
+              isClient={isClient}
             />
           ))}
         </div>
+      )}
+
+      {novoTipo && (
+        <RequestModal
+          tipo={novoTipo}
+          user={user}
+          onClose={() => setNovoTipo(null)}
+          onSubmit={(data) => createMutation.mutate(data)}
+          isSubmitting={createMutation.isPending}
+        />
       )}
     </div>
   );

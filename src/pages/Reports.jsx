@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/shared/PageHeader";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
+import { useUserProfile } from "@/lib/useUserProfile";
 import PlanGate from "@/components/monetization/PlanGate";
 import FunnelChart from "@/components/reports/FunnelChart";
 import AIRecommendations from "@/components/reports/AIRecommendations";
@@ -12,6 +13,42 @@ import {
   AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { taxaConversao, valorRecebido } from "@/lib/finance";
+
+// Relatórios de uma conta "cliente" — só os pagamentos dele, por data e por
+// item (nunca despesas internas, lucro, ranking de outros clientes — esses
+// conceitos não fazem sentido pra uma única conta e a maioria nem é mais
+// legível via API para esse papel).
+function ReportsCliente({ recebimentos, billings, t }) {
+  const localeDate = t("locale_date");
+  const currSymbol = t("currency_symbol");
+  const billingById = new Map(billings.map((b) => [b.id, b]));
+
+  return (
+    <div>
+      {recebimentos.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-12">Nenhum pagamento registrado ainda.</p>
+      ) : (
+        <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          {recebimentos.map((r) => (
+            <div key={r.id} className="flex items-center justify-between px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-sm text-foreground truncate">
+                  {billingById.get(r.billing_id)?.descricao || "Pagamento"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {new Date(r.data_recebimento).toLocaleDateString(localeDate)}{r.metodo ? ` · ${r.metodo}` : ""}
+                </p>
+              </div>
+              <span className={`font-display font-semibold flex-shrink-0 ${r.valor < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {currSymbol} {r.valor.toLocaleString(localeDate)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const tooltipStyle = {
@@ -37,6 +74,7 @@ const ChartCard = ({ title, children, badge }) => (
 export default function Reports() {
   const { t } = useLanguage();
   const { hasProAccess, isLoading: planLoading } = usePlan();
+  const { isClient } = useUserProfile();
 
   // Receita/despesa calculadas direto de Billing (recebido) e Expense (pago) —
   // não mais da entidade Revenue (lançamento manual desconectado do
@@ -124,6 +162,15 @@ export default function Reports() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isClient) {
+    return (
+      <div>
+        <PageHeader title={t("reports_title")} subtitle={t("reports_subtitle")} />
+        <ReportsCliente recebimentos={recebimentos} billings={billings} t={t} />
       </div>
     );
   }

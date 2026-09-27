@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip, TrendingUp } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { useUserProfile } from "@/lib/useUserProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,14 +16,70 @@ import KpiCard from "@/components/shared/KpiCard";
 import BillingFormDialog from "@/components/billing/BillingFormDialog";
 import PixPaymentCard from "@/components/billing/PixPaymentCard";
 import RegistrarRecebimentoDialog, { EstornarRecebimentoDialog } from "@/components/billing/RegistrarRecebimentoDialog";
+import { LinhaParcela } from "@/components/billing/ClientBillingBlocks";
 import { getClientColor } from "@/lib/clientColor";
 import {
   statusDerivado, saldoDevedor, valorRecebido,
   receitaCaixaDoMes, totalAReceber, emAtraso, indiceRecebimento,
 } from "@/lib/finance";
 
+// Faturamento de uma conta "cliente" — mesmas queries do admin (billings,
+// recebimentos já vêm escopados pelo backend via RLS), mas agrupadas nos 3
+// blocos que fazem sentido pro cliente: Seu Contrato, Serviços Adicionais e
+// Caução (nunca contratos/custos de fornecedor — RLS já bloqueia isso na
+// origem, não é só UI escondendo).
+function FaturamentoCliente({ billings, recebimentos }) {
+  const queryClient = useQueryClient();
+  const { user } = useUserProfile();
+  const clientId = user?.client_id;
+
+  const { data: proposals = [] } = useQuery({
+    queryKey: ["my_proposals", clientId],
+    queryFn: () => base44.entities.Proposal.filter({ client_id: clientId }, "-created_date", 5),
+    enabled: Boolean(clientId),
+  });
+  const formaPagamento = proposals?.[0]?.forma_pagamento_preferida;
+  const chavePixContrato = proposals?.[0]?.chave_pix_recebimento || "";
+
+  const ativos = billings.filter((b) => b.status !== "cancelado");
+  const caucao = ativos.filter((b) => b.natureza === "caucao");
+  const adicionais = ativos.filter((b) => (b.categoria || "").trim().toLowerCase() === "contas a pagar");
+  const contrato = ativos.filter((b) => !adicionais.includes(b) && !caucao.includes(b));
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["billings"] });
+
+  const Bloco = ({ titulo, itens }) =>
+    itens.length > 0 && (
+      <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+        <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+          <Receipt className="w-3.5 h-3.5" /> {titulo}
+        </div>
+        <div>
+          {itens.map((b) => (
+            <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} />
+          ))}
+        </div>
+      </div>
+    );
+
+  const temAdicionaisAberto = adicionais.some((b) => statusDerivado(b, recebimentos) !== "recebido");
+
+  return (
+    <div className="max-w-2xl">
+      <Bloco titulo="Seu Contrato" itens={contrato} />
+      <Bloco titulo="Serviços Adicionais" itens={adicionais} />
+      <Bloco titulo="Caução (devolvível)" itens={caucao} />
+      {temAdicionaisAberto && <PixPaymentCard formaPagamento={formaPagamento} chavePixContrato={chavePixContrato} />}
+      {contrato.length === 0 && adicionais.length === 0 && caucao.length === 0 && (
+        <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
+      )}
+    </div>
+  );
+}
+
 export default function Billing() {
   const { t, lang } = useLanguage();
+  const { isClient } = useUserProfile();
   const [showForm, setShowForm] = useState(false);
   const [editBilling, setEditBilling] = useState(null);
   const [search, setSearch] = useState("");
@@ -73,6 +130,15 @@ export default function Billing() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isClient) {
+    return (
+      <div>
+        <PageHeader title={t("billing_title")} subtitle={t("billing_subtitle")} />
+        <FaturamentoCliente billings={billings} recebimentos={recebimentos} />
       </div>
     );
   }

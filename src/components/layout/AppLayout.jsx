@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import { ShieldOff } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import Sidebar from "./Sidebar";
@@ -11,12 +12,40 @@ import TutorialModal from "@/components/tutorial/TutorialModal";
 import PwaInstallPopup from "@/components/PwaInstallPopup";
 import GlobalSearch from "./GlobalSearch";
 
+// Rotas que uma conta "cliente" pode acessar dentro do MESMO dashboard do
+// admin — o cliente vê só os próprios dados (regra de acesso no backend,
+// ver base44/entities/*.jsonc), nunca os dados de outro cliente nem as
+// áreas internas do Tony. Qualquer rota fora desta lista mostra "Sem
+// Acesso" em vez de piscar o conteúdo interno antes de redirecionar.
+const CLIENT_ALLOWED_PATHS = [
+  "/",
+  "/faturamento",
+  "/propostas",
+  "/agenda",
+  "/relatorios",
+  "/solicitacoes",
+  "/meu-grupo",
+  "/documentos",
+  "/meu-perfil",
+];
+
+function SemAcesso() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <ShieldOff className="w-10 h-10 text-muted-foreground mb-4" />
+      <p className="font-heading text-lg font-bold text-foreground mb-1">Sem acesso</p>
+      <p className="text-sm text-muted-foreground">Esta área não está disponível para a sua conta.</p>
+    </div>
+  );
+}
+
 export default function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const { isClient, isLoading: isLoadingProfile } = useUserProfile();
+  const location = useLocation();
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -46,10 +75,11 @@ export default function AppLayout() {
     );
   }
 
-  // Login do tipo "cliente": nunca mostra o dashboard interno, só o Portal do Cliente.
-  if (isClient) {
-    return <Navigate to="/portal" replace />;
-  }
+  // Login do tipo "cliente": mesmo dashboard do admin (mesmo design, mesmas
+  // páginas), mas só as rotas da whitelist — os dados dentro delas já vêm
+  // filtrados pelo backend (RLS), isto aqui só evita que uma URL interna
+  // pisque conteúdo de área que não é dele antes de bloquear.
+  const clientBlocked = isClient && !CLIENT_ALLOWED_PATHS.includes(location.pathname);
 
   return (
     <div className="h-screen bg-background overflow-hidden">
@@ -67,8 +97,8 @@ export default function AppLayout() {
       {/* Main content */}
       <main className="md:ml-64 h-full overflow-y-auto overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0">
         <div className="p-4 md:p-8">
-          <GlobalSearch />
-          <Outlet />
+          {!isClient && <GlobalSearch />}
+          {clientBlocked ? <SemAcesso /> : <Outlet />}
         </div>
       </main>
 

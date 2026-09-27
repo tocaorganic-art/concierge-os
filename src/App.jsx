@@ -31,6 +31,8 @@ import ClientPedidos from "@/pages/ClientPedidos";
 import Parceiros from "@/pages/Parceiros";
 import ConciergeKPIs from "@/pages/ConciergeKPIs";
 import ClientProfile from "@/pages/ClientProfile";
+import MeuGrupo from "@/pages/MeuGrupo";
+import Documentos from "@/pages/Documentos";
 import Obrigado from "@/pages/Obrigado";
 
 
@@ -77,12 +79,14 @@ const AuthenticatedApp = () => {
           <Route path="/solicitacoes" element={<Solicitacoes />} />
           <Route path="/parceiros" element={<Parceiros />} />
           <Route path="/kpis" element={<ConciergeKPIs />} />
+          <Route path="/meu-grupo" element={<MeuGrupo />} />
+          <Route path="/documentos" element={<Documentos />} />
+          <Route path="/meu-perfil" element={<ClientProfile />} />
         </Route>
         <Route element={<ClientLayout />}>
           <Route path="/portal" element={<ClientPortal />} />
           <Route path="/portal/financeiro" element={<ClientFinanceiro />} />
           <Route path="/portal/pedidos" element={<ClientPedidos />} />
-          <Route path="/meu-perfil" element={<ClientProfile />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
