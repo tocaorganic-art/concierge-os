@@ -47,7 +47,7 @@ export default function OnboardingWizard({ user, onComplete }) {
     <div className="fixed inset-0 z-[100] bg-background flex items-center justify-center p-4">
       {/* Background subtle pattern */}
       <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: "radial-gradient(circle at 50% 50%, hsl(43 50% 54%) 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(circle at 50% 50%, hsl(24 87% 56%) 1px, transparent 1px)",
         backgroundSize: "40px 40px",
       }} />
 
@@ -80,7 +80,7 @@ export default function OnboardingWizard({ user, onComplete }) {
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                 Passo {step + 1} de {STEPS.length}
               </p>
-              <h2 className="font-display text-xl font-bold text-foreground">{STEPS[step]}</h2>
+              <h2 className="font-heading text-xl font-bold text-foreground">{STEPS[step]}</h2>
             </div>
           </div>
 

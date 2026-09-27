@@ -47,7 +47,7 @@ export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitti
 
         <div className="mb-5">
           <span className="text-3xl">{tipo.emoji}</span>
-          <h2 className="font-display text-xl font-bold text-foreground mt-2">{tipo.label}</h2>
+          <h2 className="font-heading text-xl font-bold text-foreground mt-2">{tipo.label}</h2>
           <p className="text-xs text-muted-foreground">{tipo.sub}</p>
         </div>
 

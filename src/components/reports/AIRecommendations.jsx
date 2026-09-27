@@ -31,7 +31,7 @@ export default function AIRecommendations({ proposals, clients, tasks }) {
   return (
     <div className="bg-card border border-border rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-semibold text-foreground flex items-center">
+        <h3 className="font-heading text-lg font-semibold text-foreground flex items-center">
           Recomendações <AiBadge />
         </h3>
         <Button

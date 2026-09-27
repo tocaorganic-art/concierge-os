@@ -29,7 +29,7 @@ export default function Obrigado() {
         </div>
 
         {/* Heading */}
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+        <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3">
           Bem-vindo à Toca! 🎉
         </h1>
         <p className="text-muted-foreground text-base mb-2">

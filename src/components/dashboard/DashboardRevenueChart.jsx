@@ -14,7 +14,7 @@ export default function DashboardRevenueChart({ revenues }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-5 gold-border-hover">
-      <h3 className="font-display text-lg font-semibold text-foreground mb-4">{t("dash_revenue_chart")}</h3>
+      <h3 className="font-heading text-lg font-semibold text-foreground mb-4">{t("dash_revenue_chart")}</h3>
       {chartData.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-12">{t("chart_no_revenue")}</p>
       ) : (
@@ -27,7 +27,7 @@ export default function DashboardRevenueChart({ revenues }) {
               contentStyle={{ background: "hsl(220 14% 11%)", border: "1px solid hsl(220 12% 18%)", borderRadius: "8px", fontSize: "12px", fontFamily: "JetBrains Mono" }}
               formatter={(value) => [`${t("currency_symbol")} ${value.toLocaleString(t("locale_date"))}`, t("dash_monthly_revenue")]}
             />
-            <Bar dataKey="receita" fill="hsl(43 50% 54%)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="receita" fill="hsl(24 87% 56%)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}

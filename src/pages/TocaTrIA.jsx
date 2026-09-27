@@ -94,7 +94,7 @@ export default function TocaTrIA() {
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">Toca TrIA</h1>
+            <h1 className="font-heading text-xl font-bold text-foreground">Toca TrIA</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
               Assistente IA · Concierge OS

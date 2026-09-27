@@ -15,7 +15,7 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-      const gold = [201, 168, 76];
+      const gold = [240, 122, 46];
       const white = [232, 225, 210];
       const dimmed = [140, 130, 110];
       const dark = [10, 10, 8];

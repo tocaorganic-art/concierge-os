@@ -16,7 +16,7 @@ function Slide1() {
         </div>
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground leading-tight">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight">
           Você não se tornou concierge para passar horas em planilhas.
         </h2>
         <p className="text-lg text-muted-foreground font-body">
@@ -37,7 +37,7 @@ function Slide1En() {
         </div>
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground leading-tight">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight">
           You didn't become a concierge to spend hours on spreadsheets.
         </h2>
         <p className="text-lg text-muted-foreground font-body">
@@ -58,7 +58,7 @@ function Slide1Es() {
         </div>
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground leading-tight">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight">
           No te convertiste en concierge para pasar horas en hojas de cálculo.
         </h2>
         <p className="text-lg text-muted-foreground font-body">
@@ -98,7 +98,7 @@ function Slide2({ t }) {
         `}</style>
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
           {t("tut_s2_title")}
         </h2>
         <p className="text-lg text-muted-foreground">
@@ -145,7 +145,7 @@ function Slide3({ t }) {
         ))}
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
           {t("tut_s3_title")}
         </h2>
         <p className="text-lg text-muted-foreground">
@@ -169,13 +169,13 @@ function Slide4({ t }) {
         </div>
         <style>{`
           @keyframes aiPulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); transform: scale(1); }
-            50% { box-shadow: 0 0 30px 8px rgba(201,168,76,0.2); transform: scale(1.05); }
+            0%,100% { box-shadow: 0 0 0 0 rgba(240,122,46,0); transform: scale(1); }
+            50% { box-shadow: 0 0 30px 8px rgba(240,122,46,0.2); transform: scale(1.05); }
           }
         `}</style>
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
           {t("tut_s4_title")}
         </h2>
         <p className="text-lg text-muted-foreground">
@@ -212,7 +212,7 @@ function Slide5({ t }) {
         ))}
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
           {t("tut_s5_title")}
         </h2>
         <p className="text-lg text-muted-foreground">
@@ -241,14 +241,14 @@ function Slide6({ t, onClose }) {
         `}</style>
       </div>
       <div className="space-y-3 max-w-lg">
-        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
           {t("tut_s6_title")}
         </h2>
       </div>
       <button
         onClick={() => { navigate("/"); onClose(); }}
         className="px-8 py-4 rounded-xl font-semibold text-base text-primary-foreground transition-all duration-300 hover:scale-105 active:scale-95"
-        style={{ background: "linear-gradient(135deg, hsl(43 55% 54%), hsl(43 65% 44%))", boxShadow: "0 0 32px rgba(201,168,76,0.35)" }}
+        style={{ background: "linear-gradient(135deg, hsl(24 87% 56%), hsl(18 86% 41%))", boxShadow: "0 0 32px rgba(240,122,46,0.35)" }}
       >
         {t("tut_s6_cta")}
       </button>
@@ -345,8 +345,8 @@ export default function TutorialModal({ open, onClose }) {
         className="relative w-full max-w-2xl rounded-2xl overflow-hidden"
         style={{
           background: "hsl(220 15% 9%)",
-          border: "1px solid hsl(43 50% 54% / 0.2)",
-          boxShadow: "0 0 80px rgba(201,168,76,0.08)",
+          border: "1px solid hsl(24 87% 56% / 0.2)",
+          boxShadow: "0 0 80px rgba(240,122,46,0.08)",
           height: "min(90vh, 560px)",
         }}
       >
@@ -356,7 +356,7 @@ export default function TutorialModal({ open, onClose }) {
             className="h-full transition-none"
             style={{
               width: `${progress}%`,
-              background: "linear-gradient(90deg, hsl(43 50% 54%), hsl(43 65% 65%))",
+              background: "linear-gradient(90deg, hsl(20 79% 48%), hsl(24 87% 56%))",
             }}
           />
         </div>
@@ -370,7 +370,7 @@ export default function TutorialModal({ open, onClose }) {
               className="h-1 rounded-full transition-all duration-300"
               style={{
                 width: i === slide ? "24px" : "8px",
-                background: i === slide ? "hsl(43 50% 54%)" : "hsl(220 12% 25%)",
+                background: i === slide ? "hsl(24 87% 56%)" : "hsl(220 12% 25%)",
               }}
             />
           ))}

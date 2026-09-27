@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,7 +12,7 @@
     --card-foreground: 40 20% 92%;
     --popover: 220 14% 11%;
     --popover-foreground: 40 20% 92%;
-    --primary: 43 50% 54%;
+    --primary: 24 87% 56%;
     --primary-foreground: 220 15% 8%;
     --secondary: 220 12% 16%;
     --secondary-foreground: 40 15% 80%;
@@ -24,28 +24,28 @@
     --destructive-foreground: 0 0% 98%;
     --border: 220 12% 18%;
     --input: 220 12% 18%;
-    --ring: 43 50% 54%;
-    --chart-1: 43 50% 54%;
+    --ring: 24 87% 56%;
+    --chart-1: 24 87% 56%;
     --chart-2: 200 60% 50%;
     --chart-3: 160 50% 45%;
     --chart-4: 280 50% 55%;
     --chart-5: 20 70% 55%;
     --radius: 0.625rem;
-    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-heading: 'Nunito', 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Playfair Display', Georgia, serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 40 15% 75%;
-    --sidebar-primary: 43 50% 54%;
+    --sidebar-primary: 24 87% 56%;
     --sidebar-primary-foreground: 220 15% 8%;
     --sidebar-accent: 220 12% 12%;
     --sidebar-accent-foreground: 40 20% 92%;
     --sidebar-border: 220 12% 14%;
-    --sidebar-ring: 43 50% 54%;
-    --gold: 43 50% 54%;
-    --gold-light: 43 45% 70%;
-    --gold-dark: 43 55% 38%;
+    --sidebar-ring: 24 87% 56%;
+    --gold: 20 79% 48%;
+    --gold-light: 24 87% 56%;
+    --gold-dark: 18 86% 41%;
     --success: 152 60% 42%;
     --warning: 38 92% 50%;
     --info: 210 80% 55%;
@@ -58,7 +58,7 @@
     --card-foreground: 40 20% 92%;
     --popover: 220 14% 11%;
     --popover-foreground: 40 20% 92%;
-    --primary: 43 50% 54%;
+    --primary: 24 87% 56%;
     --primary-foreground: 220 15% 8%;
     --secondary: 220 12% 16%;
     --secondary-foreground: 40 15% 80%;
@@ -70,20 +70,20 @@
     --destructive-foreground: 0 0% 98%;
     --border: 220 12% 18%;
     --input: 220 12% 18%;
-    --ring: 43 50% 54%;
-    --chart-1: 43 50% 54%;
+    --ring: 24 87% 56%;
+    --chart-1: 24 87% 56%;
     --chart-2: 200 60% 50%;
     --chart-3: 160 50% 45%;
     --chart-4: 280 50% 55%;
     --chart-5: 20 70% 55%;
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 40 15% 75%;
-    --sidebar-primary: 43 50% 54%;
+    --sidebar-primary: 24 87% 56%;
     --sidebar-primary-foreground: 220 15% 8%;
     --sidebar-accent: 220 12% 12%;
     --sidebar-accent-foreground: 40 20% 92%;
     --sidebar-border: 220 12% 14%;
-    --sidebar-ring: 43 50% 54%;
+    --sidebar-ring: 24 87% 56%;
   }
 }
 
@@ -97,9 +97,9 @@
   }
 }
 
-/* Gold accent utilities */
+/* Brand accent utilities (Trancoso Resolve laranja) */
 .gold-glow {
-  box-shadow: 0 0 20px rgba(201, 168, 76, 0.08);
+  box-shadow: 0 0 20px rgba(217, 89, 26, 0.08);
 }
 
 .gold-border-hover {
@@ -107,8 +107,8 @@
 }
 
 .gold-border-hover:hover {
-  border-color: rgba(201, 168, 76, 0.3);
-  box-shadow: 0 0 16px rgba(201, 168, 76, 0.06);
+  border-color: rgba(217, 89, 26, 0.3);
+  box-shadow: 0 0 16px rgba(217, 89, 26, 0.06);
 }
 
 /* Mobile WebView: disable overscroll bounce and unwanted text selection */
@@ -144,5 +144,5 @@ button, a, [role="button"] {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(43 50% 54%);
+  background: hsl(24 87% 56%);
 }

@@ -18,7 +18,7 @@ function Section({ icon: Icon, title, children }) {
     <div className="bg-card border border-border rounded-2xl overflow-hidden mb-4">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
         <Icon className="w-4 h-4 text-primary" />
-        <h2 className="font-display text-base font-semibold text-foreground">{title}</h2>
+        <h2 className="font-heading text-base font-semibold text-foreground">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -255,8 +255,8 @@ export default function Settings() {
             <div>
               <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Cor Primária</Label>
               <div className="flex items-center gap-3 mt-1.5">
-                <input type="color" defaultValue="#c9a84c" className="h-9 w-16 rounded-md border border-border bg-secondary cursor-pointer" />
-                <Input placeholder="#c9a84c" className="bg-secondary border-border font-mono" />
+                <input type="color" defaultValue="#F07A2E" className="h-9 w-16 rounded-md border border-border bg-secondary cursor-pointer" />
+                <Input placeholder="#F07A2E" className="bg-secondary border-border font-mono" />
               </div>
             </div>
             <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">Salvar White-label</Button>

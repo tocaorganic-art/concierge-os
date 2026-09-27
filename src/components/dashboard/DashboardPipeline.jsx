@@ -14,7 +14,7 @@ export default function DashboardPipeline({ proposals }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-5 gold-border-hover">
-      <h3 className="font-display text-lg font-semibold text-foreground mb-4">{t("dash_pipeline")}</h3>
+      <h3 className="font-heading text-lg font-semibold text-foreground mb-4">{t("dash_pipeline")}</h3>
       <div className="grid grid-cols-4 gap-3">
         {stageKeys.map((stage) => {
           const items = proposals.filter((p) => p.status === stage.key);

@@ -10,7 +10,7 @@ export default function DashboardClients({ clients }) {
   return (
     <div className="bg-card border border-border rounded-xl p-5 gold-border-hover">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-semibold text-foreground">{t("dash_recent_clients")}</h3>
+        <h3 className="font-heading text-lg font-semibold text-foreground">{t("dash_recent_clients")}</h3>
         <Link to="/clientes" className="text-xs text-primary hover:text-primary/80 font-mono uppercase tracking-wider">
           {t("dash_view_all")}
         </Link>
