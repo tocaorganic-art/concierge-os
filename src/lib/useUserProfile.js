@@ -39,7 +39,13 @@ export function useUserProfile() {
       } catch {
         // silencioso
       } finally {
-        if (!cancelled) setIsLoading(false);
+        // Sempre resolve isLoading, mesmo se o efeito foi cancelado por uma
+        // remontagem do componente pai (ex.: durante a navegação inicial do
+        // React Router) — do contrário isLoading pode ficar preso em `true`
+        // para sempre, e o gate de isClient em AppLayout.jsx nunca reavalia,
+        // deixando telas internas (Faturamento, Despesas, Clientes) acessíveis
+        // por navegação direta de URL para contas do tipo "cliente".
+        setIsLoading(false);
       }
     }
 
