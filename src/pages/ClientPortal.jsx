@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import RequestModal from "@/components/concierge/RequestModal";
 import { COMPANY_INFO } from "@/lib/paymentInfo";
+import { saldoDevedor } from "@/lib/finance";
 import { Crown, MapPin, CalendarDays, ArrowRight } from "lucide-react";
 
 const STATUS_PROPOSTA = {
@@ -77,10 +78,19 @@ export default function ClientPortal() {
     enabled: Boolean(clientId),
   });
 
+  const { data: meusRecebimentos = [] } = useQuery({
+    queryKey: ["my_recebimentos", clientId],
+    queryFn: () => base44.entities.Recebimento.filter({ client_id: clientId }, "-data_recebimento", 200),
+    enabled: Boolean(clientId),
+  });
+
   const proposta = minhasPropostas?.[0] || null;
-  const totalCobrado = meusPagamentos.reduce((sum, b) => sum + (b.valor || 0), 0);
-  const totalPago = meusPagamentos.filter((b) => b.status === "recebido").reduce((sum, b) => sum + (b.valor || 0), 0);
-  const saldoPendente = totalCobrado - totalPago;
+  // Mesma fonte que /portal/financeiro (regra R8: nenhum saldo calculado
+  // duas vezes) — saldo por cobranca via saldoDevedor(), nunca somando
+  // Billing.valor bruto (isso contava ate cobrancas canceladas).
+  const saldoPendente = meusPagamentos
+    .filter((b) => b.status !== "cancelado")
+    .reduce((sum, b) => sum + Math.max(0, saldoDevedor(b, meusRecebimentos)), 0);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ServiceRequest.create(data),

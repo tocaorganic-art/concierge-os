@@ -3,31 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import PixPaymentCard from "@/components/billing/PixPaymentCard";
-import { useLanguage, translateCategoria } from "@/lib/i18n";
 import {
-  Loader2, Receipt, Paperclip, Camera, ChevronDown,
-  Wallet, Home, Users, Car, ShoppingBag, MoreHorizontal, Crown,
+  Loader2, Receipt, Paperclip, Camera, ChevronDown, Crown,
 } from "lucide-react";
 import { saldoDevedor, valorRecebido, statusDerivado } from "@/lib/finance";
-
-// Mesmo mapeamento de ícone por categoria usado no painel interno
-// (src/pages/Despesas.jsx) — mantém consistência visual entre o que a
-// equipe vê e o que o cliente vê no extrato de custos.
-function normalizeCat(str) {
-  return (str || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]/g, "");
-}
-const CATEGORY_META = {
-  imovel: { icon: Home, className: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
-  equipepessoal: { icon: Users, className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
-  equipe: { icon: Users, className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
-  transporte: { icon: Car, className: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20" },
-  compras: { icon: ShoppingBag, className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
-  outros: { icon: MoreHorizontal, className: "bg-slate-500/15 text-slate-400 border-slate-500/20" },
-};
-const DEFAULT_CATEGORY_META = { icon: MoreHorizontal, className: "bg-purple-500/15 text-purple-400 border-purple-500/20" };
-function getCategoryMeta(cat) {
-  return CATEGORY_META[normalizeCat(cat)] || DEFAULT_CATEGORY_META;
-}
 
 function formatDate(d) {
   if (!d) return "—";
@@ -150,12 +129,13 @@ function LinhaParcela({ billing, recebimentos, onUploaded }) {
 
 // Aba Financeiro do Portal do Cliente — modelo "Open Book" (regras
 // universais de contabilidade gerencial, ver docs/OPEN_BOOK_PORTAL_FINANCEIRO.md
-// e o PR que introduziu Recebimento/natureza). Dois blocos, somente
-// leitura, só os dados do próprio cliente (RLS no backend, não só no front):
-// 1. Honorário de concierge (Billing com natureza="honorario")
-// 2. Custos da operação / repasses (Expense — fornecedor, categoria, comprovante)
+// e o PR que introduziu Recebimento/natureza). Somente leitura, só os dados
+// do próprio cliente (RLS no backend, não só no front). Nunca mostra custo
+// real, margem, alocação nem identidade de fornecedor — regra explícita do
+// Tony (ver PR que removeu o bloco "Custos da Operação": expunha o nome do
+// fornecedor real por trás de cada cobrança, mesmo mostrando só o valor
+// cobrado do cliente).
 export default function ClientFinanceiro() {
-  const { lang } = useLanguage();
   const queryClient = useQueryClient();
   const { user, isLoading: isLoadingProfile } = useUserProfile();
   const clientId = user?.client_id;
@@ -171,16 +151,6 @@ export default function ClientFinanceiro() {
     queryFn: () => base44.entities.Recebimento.filter({ client_id: clientId }, "-data_recebimento", 200),
     enabled: Boolean(clientId),
   });
-
-  const { data: minhasDespesasRaw = [], isLoading: isLoadingExpenses } = useQuery({
-    queryKey: ["my_expenses", clientId],
-    queryFn: () => base44.entities.Expense.filter({ client_id: clientId }, "-data_despesa", 100),
-    enabled: Boolean(clientId),
-  });
-
-  // Itens com valor zerado são notas internas de reconciliação contábil —
-  // não representam gasto real e não devem aparecer no extrato do cliente.
-  const minhasDespesas = minhasDespesasRaw.filter((e) => (e.valor || 0) > 0 || (e.valor_cobrado_cliente || 0) > 0);
 
   // Bloco 1 — Honorário de concierge: só cobranças classificadas como
   // natureza="honorario". Registros ainda "a_classificar" não entram aqui
@@ -203,14 +173,11 @@ export default function ClientFinanceiro() {
     .filter(Boolean)
     .sort()[0];
 
-  const valorExibivel = (e) => (e.valor_cobrado_cliente ?? e.valor) || 0;
-  const totalCustos = minhasDespesas.reduce((sum, e) => sum + valorExibivel(e), 0);
-
   const temContasAPagarPendente = meusBillings.some(
     (b) => (b.categoria || "").trim().toLowerCase() === "contas a pagar" && statusDerivado(b, meusRecebimentos) !== "recebido"
   );
 
-  const isLoading = isLoadingProfile || isLoadingBilling || isLoadingRecebimentos || isLoadingExpenses;
+  const isLoading = isLoadingProfile || isLoadingBilling || isLoadingRecebimentos;
 
   if (isLoading) {
     return (
@@ -280,46 +247,6 @@ export default function ClientFinanceiro() {
         </div>
       )}
 
-      {/* Bloco 2 — Custos da operação (repasses) */}
-      {minhasDespesas.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              <Wallet className="w-3.5 h-3.5" /> Custos da Operação
-            </div>
-            <span className="text-[11px] text-muted-foreground">R$ {totalCustos.toLocaleString("pt-BR")}</span>
-          </div>
-          <p className="text-[11px] text-muted-foreground mb-3">
-            Cada conta que pagamos por você — fornecedor, categoria, valor e comprovante.
-          </p>
-          <div className="space-y-3">
-            {minhasDespesas.map((e) => {
-              const catMeta = getCategoryMeta(e.categoria);
-              const CatIcon = catMeta.icon;
-              return (
-                <div key={e.id} className="flex items-start justify-between gap-2 text-sm">
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border ${catMeta.className}`}>
-                      <CatIcon className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-foreground">{e.fornecedor || e.descricao || "Item"}</p>
-                      <p className="text-[11px] text-muted-foreground">{translateCategoria(e.categoria, lang)} · {formatDate(e.data_despesa)}</p>
-                      {e.comprovante_url && (
-                        <a href={e.comprovante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-0.5">
-                          <Paperclip className="w-2.5 h-2.5" /> Comprovante / contrato
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <span className="font-display font-semibold text-foreground flex-shrink-0">R$ {valorExibivel(e).toLocaleString("pt-BR")}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Rodapé consolidado */}
       {honorarios.length > 0 && (
         <div className="bg-secondary/40 border border-border rounded-2xl p-4 mb-6 grid grid-cols-2 gap-3 text-center">
@@ -345,7 +272,7 @@ export default function ClientFinanceiro() {
       {/* Como pagar */}
       {temContasAPagarPendente && <PixPaymentCard />}
 
-      {honorarios.length === 0 && minhasDespesas.length === 0 && (
+      {honorarios.length === 0 && outrasCobrancasAbertas.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
       )}
     </div>
