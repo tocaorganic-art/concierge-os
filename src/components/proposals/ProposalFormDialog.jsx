@@ -28,6 +28,7 @@ const defaultForm = {
   num_pax: "",
   valor: "",
   status: "lead",
+  data_validade: "",
   servicos: "",
   observacoes: "",
 };
@@ -52,6 +53,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
         num_pax: proposal.num_pax || "",
         valor: proposal.valor || "",
         status: proposal.status || "lead",
+        data_validade: proposal.data_validade || "",
         servicos: proposal.servicos || "",
         observacoes: proposal.observacoes || "",
       });
@@ -174,6 +176,16 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                   <SelectItem value="cancelado">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Válida até</Label>
+              <Input
+                type="date"
+                value={form.data_validade}
+                onChange={(e) => setForm((f) => ({ ...f, data_validade: e.target.value }))}
+                className="mt-1.5 bg-secondary border-border"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Sem efeito depois de confirmada — só marca como expirada enquanto está em Lead/Proposta.</p>
             </div>
             <div className="col-span-2">
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Serviços Incluídos</Label>

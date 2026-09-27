@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Plus, MapPin, Calendar, Users as UsersIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, MapPin, Calendar, Users as UsersIcon, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/shared/PageHeader";
 import ProposalFormDialog from "@/components/proposals/ProposalFormDialog";
+import { isProposalExpired } from "@/lib/proposalUtils";
 
 const stages = [
   { key: "lead", label: "Lead", dotColor: "bg-blue-400" },
@@ -26,7 +27,14 @@ function ProposalCard({ p, provided, snapshot, onMoveLeft, onMoveRight, stageIdx
           : "border-border gold-border-hover"
       }`}
     >
-      <p className="font-medium text-sm text-foreground mb-2">{p.client_nome}</p>
+      <div className="flex items-center gap-1.5 mb-2">
+        <p className="font-medium text-sm text-foreground">{p.client_nome}</p>
+        {isProposalExpired(p) && (
+          <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase text-red-400 bg-red-500/10 px-1 py-0.5 rounded-full border border-red-500/20">
+            <AlertTriangle className="w-2 h-2" /> Expirada
+          </span>
+        )}
+      </div>
       <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1.5">
         <MapPin className="w-3 h-3 flex-shrink-0" />
         <span className="truncate">{p.destino}</span>
