@@ -47,15 +47,38 @@ function AnexarComprovante({ billing, onUploaded }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [divergencia, setDivergencia] = useState(null);
 
   const handleFileSelected = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     setError("");
+    setDivergencia(null);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       await base44.entities.Billing.update(billing.id, { comprovante_url: file_url });
+
+      // Confere o valor do comprovante contra o esperado — só um aviso pro
+      // cliente, nunca bloqueia o envio nem altera a cobrança.
+      try {
+        const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
+          file_url,
+          json_schema: {
+            type: "object",
+            properties: {
+              valor: { type: "number", description: "Valor total pago, conforme o comprovante" },
+            },
+          },
+        });
+        const data = extracted?.output || extracted || {};
+        if (data.valor && billing.valor && Math.abs(data.valor - billing.valor) > 0.5) {
+          setDivergencia({ lido: data.valor, esperado: billing.valor });
+        }
+      } catch {
+        // não foi possível ler o valor automaticamente — sem problema, segue normal
+      }
+
       onUploaded();
     } catch {
       setError("Não consegui enviar. Tente novamente.");
@@ -82,9 +105,14 @@ function AnexarComprovante({ billing, onUploaded }) {
         className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-60"
       >
         {uploading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Camera className="w-2.5 h-2.5" />}
-        {uploading ? "Enviando..." : "Anexar comprovante de pagamento"}
+        {uploading ? "Lendo com IA..." : "Anexar comprovante de pagamento"}
       </button>
       {error && <p className="text-[10px] text-red-400 mt-0.5">{error}</p>}
+      {divergencia && (
+        <p className="text-[10px] text-amber-400 mt-0.5">
+          O comprovante mostra R$ {divergencia.lido.toLocaleString("pt-BR")}, mas essa cobrança é de R$ {divergencia.esperado.toLocaleString("pt-BR")} — enviado mesmo assim, a equipe vai conferir.
+        </p>
+      )}
     </div>
   );
 }
