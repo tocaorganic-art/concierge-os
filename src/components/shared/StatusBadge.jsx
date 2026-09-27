@@ -8,6 +8,7 @@ const statusConfig = {
   concluido: { label: "Concluído", className: "bg-primary/15 text-primary border-primary/20" },
   cancelado: { label: "Cancelado", className: "bg-red-500/15 text-red-400 border-red-500/20" },
   pendente: { label: "Pendente", className: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
+  parcialmente_recebido: { label: "Parcial", className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
   recebido: { label: "Recebido", className: "bg-green-500/15 text-green-400 border-green-500/20" },
   atrasado: { label: "Atrasado", className: "bg-red-500/15 text-red-400 border-red-500/20" },
   familia: { label: "Família", className: "bg-purple-500/15 text-purple-400 border-purple-500/20" },
