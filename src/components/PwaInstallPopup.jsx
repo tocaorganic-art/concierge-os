@@ -82,7 +82,7 @@ export default function PwaInstallPopup() {
           </div>
 
           <div className="flex-1 min-w-0 pr-4">
-            <h2 className="font-display text-sm font-bold text-foreground mb-0.5">
+            <h2 className="font-heading text-sm font-bold text-foreground mb-0.5">
               Baixe o App
             </h2>
             <p className="text-xs text-muted-foreground mb-3 leading-snug">

@@ -12,7 +12,7 @@ export default function DashboardAgenda({ tasks }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-5 gold-border-hover">
-      <h3 className="font-display text-lg font-semibold text-foreground mb-4">{t("dash_todays_schedule")}</h3>
+      <h3 className="font-heading text-lg font-semibold text-foreground mb-4">{t("dash_todays_schedule")}</h3>
       <div className="space-y-3">
         {todayTasks.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-8">{t("dash_no_tasks")}</p>

@@ -45,7 +45,7 @@ export default function MobileTopbar({ onMenuOpen }) {
           <ArrowLeft className="w-5 h-5" />
         </button>
       )}
-      <h1 className="font-display text-base font-semibold text-foreground">{title}</h1>
+      <h1 className="font-heading text-base font-semibold text-foreground">{title}</h1>
       <img
         src="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/64f555f0a_Toca_Icon_3D_Luxury_v2.png"
         alt="Toca OS"

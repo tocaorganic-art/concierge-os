@@ -20,7 +20,7 @@ export default function PlanGate({ children, locked, planName = "Pro", title, de
           <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <Lock className="w-6 h-6 text-primary" />
           </div>
-          <h3 className="font-display text-lg font-bold text-foreground mb-2">
+          <h3 className="font-heading text-lg font-bold text-foreground mb-2">
             {title || `Disponível no Plano ${planName}`}
           </h3>
           <p className="text-sm text-muted-foreground mb-5">

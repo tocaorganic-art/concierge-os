@@ -19,7 +19,7 @@ function KPI({ label, value, sub, icon: Icon, color }) {
   );
 }
 
-const COLORS = ["#c9a84c", "#60a5fa", "#34d399", "#f87171"];
+const COLORS = ["#F07A2E", "#60a5fa", "#34d399", "#f87171"];
 
 export default function ConciergeKPIs() {
   const { data: requests = [] } = useQuery({
@@ -65,7 +65,7 @@ export default function ConciergeKPIs() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Dashboard Concierge</h1>
+        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Dashboard Concierge</h1>
         <p className="text-xs text-muted-foreground mt-0.5">KPIs da operação em tempo real</p>
       </div>
 
@@ -83,14 +83,14 @@ export default function ConciergeKPIs() {
             <AreaChart data={last7}>
               <defs>
                 <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#c9a84c" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#c9a84c" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#F07A2E" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#F07A2E" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip contentStyle={{ background: "hsl(220 14% 11%)", border: "1px solid hsl(220 12% 18%)", borderRadius: 8, fontSize: 12 }} />
-              <Area type="monotone" dataKey="count" stroke="#c9a84c" strokeWidth={2} fill="url(#goldGrad)" />
+              <Area type="monotone" dataKey="count" stroke="#F07A2E" strokeWidth={2} fill="url(#goldGrad)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

@@ -73,7 +73,7 @@ export default function ClientProfile() {
         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary text-xs font-mono px-3 py-1 rounded-full mb-3">
           <Crown className="w-3 h-3" /> Perfil Concierge
         </div>
-        <h1 className="font-display text-2xl font-bold text-foreground">
+        <h1 className="font-heading text-2xl font-bold text-foreground">
           {user?.full_name?.split(" ")[0] || "Meu perfil"}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

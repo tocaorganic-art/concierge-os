@@ -43,7 +43,7 @@ export default function Parceiros() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Parceiros</h1>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Parceiros</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Rede de fornecedores e parceiros</p>
         </div>
         <Button size="sm" className="gap-2" onClick={() => { setEditing(null); setDialogOpen(true); }}>

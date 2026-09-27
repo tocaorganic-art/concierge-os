@@ -52,7 +52,7 @@ export default function Sidebar({ onOpenTutorial }) {
             className="w-9 h-9 rounded-lg object-cover"
           />
           <div>
-            <h1 className="font-display text-lg font-bold text-foreground tracking-tight">
+            <h1 className="font-heading text-lg font-bold text-foreground tracking-tight">
               Toca <span className="text-primary">OS</span>
             </h1>
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Dashboard</p>

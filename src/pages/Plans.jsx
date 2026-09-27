@@ -168,7 +168,7 @@ export default function Plans() {
         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary text-xs font-mono px-3 py-1 rounded-full mb-4">
           <Sparkles className="w-3 h-3" /> Toca Concierge · Planos
         </div>
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+        <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3">
           Seu concierge pessoal para viver o destino
         </h1>
         <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
@@ -230,7 +230,7 @@ export default function Plans() {
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-xl ${isBlack ? "bg-foreground/10" : plan.highlight ? "bg-primary/20" : "bg-secondary"}`}>
                   {plan.emoji}
                 </div>
-                <h2 className="font-display text-xl font-bold text-foreground">{plan.name}</h2>
+                <h2 className="font-heading text-xl font-bold text-foreground">{plan.name}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{plan.tagline}</p>
               </div>
 
@@ -269,7 +269,7 @@ export default function Plans() {
 
       {/* Feature comparison table */}
       <div className="mb-14">
-        <h2 className="font-display text-xl font-bold text-foreground text-center mb-6">Comparativo completo</h2>
+        <h2 className="font-heading text-xl font-bold text-foreground text-center mb-6">Comparativo completo</h2>
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <table className="w-full">
             <thead>
@@ -296,7 +296,7 @@ export default function Plans() {
 
       {/* FAQ */}
       <div>
-        <h2 className="font-display text-xl font-bold text-foreground text-center mb-6">Perguntas frequentes</h2>
+        <h2 className="font-heading text-xl font-bold text-foreground text-center mb-6">Perguntas frequentes</h2>
         <div className="space-y-3 max-w-2xl mx-auto">
           {FAQS.map((f) => <FaqItem key={f.q} {...f} />)}
         </div>

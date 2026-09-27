@@ -21,12 +21,12 @@ const tooltipStyle = {
   fontFamily: "JetBrains Mono",
 };
 
-const PIE_COLORS = ["hsl(43 50% 54%)", "hsl(200 60% 50%)", "hsl(160 50% 45%)", "hsl(280 50% 55%)", "hsl(20 70% 55%)"];
+const PIE_COLORS = ["hsl(24 87% 56%)", "hsl(200 60% 50%)", "hsl(160 50% 45%)", "hsl(280 50% 55%)", "hsl(20 70% 55%)"];
 
 const ChartCard = ({ title, children, badge }) => (
   <div className="bg-card border border-border rounded-xl p-5">
     <div className="flex items-center gap-2 mb-4">
-      <h3 className="font-display text-lg font-semibold text-foreground">{title}</h3>
+      <h3 className="font-heading text-lg font-semibold text-foreground">{title}</h3>
       {badge && <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">{badge}</span>}
     </div>
     {children}
@@ -130,15 +130,15 @@ export default function Reports() {
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(43 50% 54%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(43 50% 54%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(24 87% 56%)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(24 87% 56%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="acumulado" stroke="hsl(43 50% 54%)" fill="url(#gradReceita)" strokeWidth={2} name="Acumulado" />
+                <Area type="monotone" dataKey="acumulado" stroke="hsl(24 87% 56%)" fill="url(#gradReceita)" strokeWidth={2} name="Acumulado" />
                 <Area type="monotone" dataKey="receita" stroke="hsl(200 60% 50%)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" name="Mensal" />
               </AreaChart>
             </ResponsiveContainer>
@@ -156,7 +156,7 @@ export default function Reports() {
                 <XAxis type="number" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="name" width={70} tick={{ fill: "hsl(220 10% 70%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`R$ ${v.toLocaleString("pt-BR")}`, "Valor"]} />
-                <Bar dataKey="valor" fill="hsl(43 50% 54%)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="valor" fill="hsl(24 87% 56%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

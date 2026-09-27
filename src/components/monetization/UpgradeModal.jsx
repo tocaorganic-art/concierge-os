@@ -13,7 +13,7 @@ export default function UpgradeModal({ open, onOpenChange, title, description, r
         <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Crown className="w-7 h-7 text-primary" />
         </div>
-        <h2 className="font-display text-xl font-bold text-foreground mb-2">{title}</h2>
+        <h2 className="font-heading text-xl font-bold text-foreground mb-2">{title}</h2>
         <p className="text-sm text-muted-foreground mb-6">{description}</p>
         <Button
           onClick={() => { onOpenChange(false); navigate("/planos"); }}

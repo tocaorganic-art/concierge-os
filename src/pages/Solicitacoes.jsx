@@ -185,7 +185,7 @@ export default function Solicitacoes() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Solicitações</h1>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Solicitações</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Pedidos dos seus clientes concierge</p>
         </div>
         <div className="flex items-center gap-2">
