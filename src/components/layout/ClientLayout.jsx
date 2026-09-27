@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { LogOut } from "lucide-react";
+import { LogOut, Home, Wallet, MessageSquare, UserRound } from "lucide-react";
 
 // Layout enxuto para quem acessa como "cliente" — sem o menu interno
 // (pipeline, propostas, despesas, faturamento etc.), só o Portal do Cliente.
+//
+// Estrutura de 4 abas (padrão de client portal de mercado: HoneyBook, Dubsado,
+// concierges de luxo como Velocity Black/Quintessentially) — cada área do
+// portal vive na sua própria tela, em vez de tudo empilhado numa página só:
+// Início (ação rápida), Financeiro (pagamentos/saldo/comprovantes),
+// Pedidos (histórico de solicitações ao concierge), Perfil (preferências).
+const TABS = [
+  { key: "inicio", icon: Home, path: "/portal", label: "Início" },
+  { key: "financeiro", icon: Wallet, path: "/portal/financeiro", label: "Financeiro" },
+  { key: "pedidos", icon: MessageSquare, path: "/portal/pedidos", label: "Pedidos" },
+  { key: "perfil", icon: UserRound, path: "/meu-perfil", label: "Perfil" },
+];
+
 export default function ClientLayout() {
   const [firstName, setFirstName] = useState("");
+  const location = useLocation();
 
   useEffect(() => {
     base44.auth.me()
@@ -32,12 +46,6 @@ export default function ClientLayout() {
                 {firstName}
               </span>
             )}
-            <Link
-              to="/meu-perfil"
-              className="text-xs font-mono uppercase text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
-            >
-              Meu Perfil
-            </Link>
             <button
               onClick={() => base44.auth.logout()}
               className="text-muted-foreground hover:text-foreground transition-colors"
@@ -49,7 +57,31 @@ export default function ClientLayout() {
           </div>
         </div>
       </header>
-      <Outlet />
+
+      <div className="pb-20">
+        <Outlet />
+      </div>
+
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 bg-sidebar border-t border-sidebar-border flex max-w-lg mx-auto"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        {TABS.map(({ key, icon: Icon, path, label }) => {
+          const isActive = location.pathname === path;
+          return (
+            <Link
+              key={key}
+              to={path}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors min-h-[56px] ${
+                isActive ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-medium leading-none">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
