@@ -31,7 +31,15 @@
     },
     "notas": {
       "type": "string",
-      "description": "Notas e prefer\u00eancias do cliente"
+      "description": "Notas e prefer\u00eancias do cliente \u2014 pode conter documento pessoal, referencias internas. Uso exclusivo admin/equipe.",
+      "rls": {
+        "read": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } }
+          ]
+        }
+      }
     },
     "valor_total": {
       "type": "number",
@@ -50,7 +58,15 @@
         "rosa",
         "cinza"
       ],
-      "description": "Cor escolhida manualmente pela equipe para classificar este cliente (uso livre — ex.: prioridade, tipo de relacionamento). Sem relacao com a cor automatica por hash usada em outras telas."
+      "description": "Cor escolhida manualmente pela equipe para classificar este cliente (uso livre — ex.: prioridade, tipo de relacionamento). Sem relacao com a cor automatica por hash usada em outras telas.",
+      "rls": {
+        "read": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } }
+          ]
+        }
+      }
     },
     "idioma_padrao": {
       "type": "string",
@@ -85,6 +101,9 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "id": "{{user.data.client_id}}"
         }
       ]
     },

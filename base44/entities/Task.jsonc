@@ -74,6 +74,20 @@
     "calendar_event_id": {
       "type": "string",
       "description": "ID do evento vinculado no Google Agenda"
+    },
+    "visivel_cliente": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se esta tarefa aparece na Agenda do cliente vinculado (roteiro da viagem: check-in/out, transfers, vistoria). Default false — alertas e acoes internas (negociar com fornecedor, autorizacao, etc.) nunca ficam visiveis ao cliente."
+    },
+    "mensagem_rascunho": {
+      "type": "string",
+      "description": "Rascunho de mensagem para o Tony copiar e enviar manualmente por fora do sistema. Nunca enviado automaticamente, nunca visivel ao cliente.",
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
     }
   },
   "required": [
@@ -103,6 +117,12 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "$and": [
+            { "data.client_id": "{{user.data.client_id}}" },
+            { "data.visivel_cliente": true }
+          ]
         }
       ]
     },

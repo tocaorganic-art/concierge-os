@@ -20,21 +20,108 @@
     },
     "documento": {
       "type": "string",
-      "description": "Numero de documento (DNI/CPF/passaporte). Uso exclusivo do admin/equipe — nunca visivel ao cliente, nem ao proprio contratante.",
+      "description": "Numero de documento (DNI/CPF/passaporte). O cliente contratante pode preencher (RLS de update abaixo), mas nunca le de volta — nem o proprio nem o de outro hospede.",
       "rls": {
         "read": {
           "user_condition": { "role": "admin" }
+        },
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
         }
       }
     },
     "data_chegada": { "type": "string", "format": "date" },
-    "voo_chegada": { "type": "string" },
-    "horario_chegada": { "type": "string" },
-    "aerolinea_chegada": { "type": "string" },
+    "voo_chegada": {
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    },
+    "horario_chegada": {
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    },
+    "aerolinea_chegada": {
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    },
     "data_saida": { "type": "string", "format": "date" },
-    "voo_saida": { "type": "string" },
-    "horario_saida": { "type": "string" },
-    "aerolinea_saida": { "type": "string" }
+    "voo_saida": {
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    },
+    "horario_saida": {
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    },
+    "aerolinea_saida": {
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    },
+    "pernoita_em": {
+      "type": "string",
+      "enum": ["casa", "apartamento"],
+      "description": "Onde este hospede dorme, quando o grupo excede o limite de 15 pernoitando na casa. Preenchivel pelo cliente contratante.",
+      "rls": {
+        "update": {
+          "$or": [
+            { "created_by_id": "{{user.id}}" },
+            { "user_condition": { "role": "admin" } },
+            { "data.client_id": "{{user.data.client_id}}" }
+          ]
+        }
+      }
+    }
   },
   "required": ["nome"],
   "rls": {

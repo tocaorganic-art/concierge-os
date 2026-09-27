@@ -90,7 +90,11 @@
       "type": "string",
       "enum": ["pix_pj_cora", "pix_cpf_tony"],
       "default": "pix_pj_cora",
-      "description": "Qual conta de recebimento mostrar ao cliente em \"Como pagar\". pix_pj_cora = QR/chave da empresa (padrao atual). pix_cpf_tony = contrato combinou Pix pessoal - a chave real nao fica no codigo nem em nenhum campo visivel por aqui, o Tony envia direto ao cliente."
+      "description": "Qual conta de recebimento mostrar ao cliente em \"Como pagar\". pix_pj_cora = QR/chave da empresa (padrao atual). pix_cpf_tony = usa o campo chave_pix_recebimento abaixo."
+    },
+    "chave_pix_recebimento": {
+      "type": "string",
+      "description": "Chave Pix de recebimento deste contrato (nao e credencial - ja consta no contrato assinado com o cliente). Editavel so pelo admin (update da entidade ja restringe); visivel ao cliente vinculado em \"Como pagar\" quando forma_pagamento_preferida = pix_cpf_tony."
     },
     "alertas_contratuais": {
       "type": "array",

@@ -34,11 +34,12 @@ function CopyButton({ value, label = "Copiar" }) {
 // formaPagamento vem de Proposal.forma_pagamento_preferida. Default
 // "pix_pj_cora" preserva o comportamento atual (QR/chave da empresa) para
 // todo contrato que não especifica nada. Quando o contrato pede Pix pessoal
-// (ex.: Adendo com cláusula própria de pagamento em CPF), não existe uma
-// chave pessoal segura para exibir aqui — a chave real nunca deve ficar
-// hardcoded no código nem em campo legível por mim (regra de privacidade).
-// Mostra um aviso claro em vez de inventar ou expor qualquer dado.
-export default function PixPaymentCard({ formaPagamento = "pix_pj_cora" }) {
+// (ex.: Adendo com cláusula própria de pagamento em CPF), mostra a chave
+// gravada em Proposal.chave_pix_recebimento (editável só pelo admin) — não
+// é credencial, já consta no contrato assinado. Sem a chave preenchida
+// ainda, mostra um aviso em vez de inventar ou deixar em branco sem
+// explicação.
+export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePixContrato = "" }) {
   const [tab, setTab] = useState("qrcode");
 
   if (formaPagamento === "pix_cpf_tony") {
@@ -47,9 +48,19 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora" }) {
         <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3">
           <KeyRound className="w-3.5 h-3.5" /> Como pagar
         </div>
-        <p className="text-sm text-foreground">
-          Este contrato recebe por Pix pessoal, conforme combinado. O Tony vai te enviar a chave diretamente.
-        </p>
+        {chavePixContrato ? (
+          <div className="flex items-center justify-between bg-secondary/60 border border-border rounded-lg px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Chave Pix</p>
+              <p className="text-sm text-foreground font-mono truncate">{chavePixContrato}</p>
+            </div>
+            <CopyButton value={chavePixContrato} />
+          </div>
+        ) : (
+          <p className="text-sm text-foreground">
+            Este contrato recebe por Pix pessoal, conforme combinado. O Tony vai te enviar a chave diretamente.
+          </p>
+        )}
       </div>
     );
   }

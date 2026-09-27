@@ -68,7 +68,12 @@
     "conta_destino": {
       "type": "string",
       "enum": ["pix_cpf_tony", "pix_pj_cora"],
-      "description": "Em qual conta este valor caiu de fato - Pix pessoal (CPF) do Tony ou Pix da empresa (Cora, PJ). So rastreio/reconciliacao; nao afeta o calculo de receita."
+      "description": "Em qual conta este valor caiu de fato - Pix pessoal (CPF) do Tony ou Pix da empresa (Cora, PJ). So rastreio/reconciliacao interna; nao afeta o calculo de receita; nunca exposto ao cliente.",
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
     }
   },
   "required": [
