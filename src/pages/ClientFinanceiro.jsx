@@ -134,11 +134,16 @@ export default function ClientFinanceiro() {
     enabled: Boolean(clientId),
   });
 
-  const { data: minhasDespesas = [], isLoading: isLoadingExpenses } = useQuery({
+  const { data: minhasDespesasRaw = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["my_expenses", clientId],
     queryFn: () => base44.entities.Expense.filter({ client_id: clientId }, "-data_despesa", 100),
     enabled: Boolean(clientId),
   });
+
+  // Itens com valor zerado são notas internas de reconciliação contábil
+  // (ex.: um pagamento reclassificado para não duplicar custo) — não
+  // representam gasto real e não devem aparecer no extrato do cliente.
+  const minhasDespesas = minhasDespesasRaw.filter((e) => (e.valor || 0) > 0 || (e.valor_cobrado_cliente || 0) > 0);
 
   const totalCobrado = meusPagamentos.reduce((sum, b) => sum + (b.valor || 0), 0);
   const totalPago = meusPagamentos.filter((b) => b.status === "recebido").reduce((sum, b) => sum + (b.valor || 0), 0);
