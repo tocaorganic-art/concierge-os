@@ -16,6 +16,7 @@ import UpgradeModal from "@/components/monetization/UpgradeModal";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
+import { CLASSIFICATION_COLORS } from "@/lib/clientColor";
 
 const STARTER_LIMIT = 5;
 
@@ -115,6 +116,13 @@ export default function Clients() {
                   <tr key={client.id} onClick={() => setSelectedClient(client)} className="border-b border-border/50 hover:bg-secondary/50 cursor-pointer transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
+                        {client.cor_classificacao && (
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: CLASSIFICATION_COLORS[client.cor_classificacao] }}
+                            title={client.cor_classificacao}
+                          />
+                        )}
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">{client.nome?.[0]?.toUpperCase()}</span>
                         </div>
@@ -147,6 +155,13 @@ export default function Clients() {
             {filtered.map((client) => (
               <div key={client.id} onClick={() => setSelectedClient(client)} className="bg-card border border-border rounded-xl p-4 gold-border-hover cursor-pointer">
                 <div className="flex items-center gap-3 mb-3">
+                  {client.cor_classificacao && (
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: CLASSIFICATION_COLORS[client.cor_classificacao] }}
+                      title={client.cor_classificacao}
+                    />
+                  )}
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-semibold text-primary">{client.nome?.[0]?.toUpperCase()}</span>
                   </div>

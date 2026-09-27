@@ -54,11 +54,37 @@
       "type": "string",
       "enum": [
         "honorario",
+        "intermediacao",
+        "comissao",
         "repasse",
+        "caucao",
         "a_classificar"
       ],
       "default": "a_classificar",
-      "description": "honorario = receita propria do Tony (concierge, intermediacao). repasse = dinheiro do cliente destinado a fornecedor (hospedagem, transporte, som etc.), nao e receita. a_classificar = registros antigos ainda nao classificados, ou natureza ambigua a confirmar."
+      "description": "honorario = taxa de concierge cobrada do cliente. intermediacao = diferenca entre preco cobrado do cliente e custo do fornecedor, por item (tambem receita propria). comissao = valor que o proprio fornecedor paga ao Tony (receita propria, distinta de intermediacao). repasse = parte do valor cobrado do cliente que corresponde ao custo do fornecedor, nao e receita. caucao = deposito devolvivel do cliente, nao e receita nem repasse definitivo. a_classificar = registros antigos ainda nao classificados, ou natureza ambigua a confirmar."
+    },
+    "alocacao": {
+      "type": "array",
+      "description": "Divisao opcional de um Billing misto (preco cheio) em partes por natureza — ex.: uma parcela de aluguel que contem repasse ao proprietario + intermediacao + honorario embutidos. Soma das partes deve bater com 'valor'. Uso exclusivo do admin; nunca exposto ao cliente (RLS de campo abaixo). Quando ausente, o campo 'natureza' acima classifica o Billing inteiro.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "natureza": {
+            "type": "string",
+            "enum": ["honorario", "intermediacao", "comissao", "repasse", "caucao"]
+          },
+          "valor": {
+            "type": "number"
+          }
+        }
+      },
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "moeda": {
       "type": "string",

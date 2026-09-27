@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function KpiCard({ title, value, icon: Icon, trend, trendLabel }) {
+export default function KpiCard({ title, value, icon: Icon, trend, trendLabel, valueClassName }) {
   const isPositive = trend > 0;
 
   return (
@@ -20,7 +20,7 @@ export default function KpiCard({ title, value, icon: Icon, trend, trendLabel })
       <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
         {title}
       </p>
-      <p className="font-display text-2xl font-bold text-foreground">
+      <p className={`font-display text-2xl font-bold ${valueClassName || "text-foreground"}`}>
         {value}
       </p>
       {trendLabel && (

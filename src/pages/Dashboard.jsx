@@ -12,8 +12,8 @@ import { useLanguage } from "@/lib/i18n";
 import TaskNotifications from "@/components/dashboard/TaskNotifications";
 import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 import {
-  receitaCaixaDoMes, faturadoCompetenciaDoMes, totalAReceber, emAtraso,
-  repassesEmCustodia, taxaConversao, indiceRecebimento,
+  receitaCaixaDoMesPorNatureza, faturadoCompetenciaDoMes, totalAReceber, emAtraso,
+  repassesEmCustodia, taxaConversao, indiceRecebimento, caucaoEmCustodia, totalAPagarFornecedores,
 } from "@/lib/finance";
 
 // KPIs oficiais do Dashboard Admin — todos calculados via src/lib/finance.js
@@ -51,14 +51,20 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Expense.list("-data_despesa", 500),
   });
 
+  const { data: contasPagar = [] } = useQuery({
+    queryKey: ["contas-pagar-dashboard"],
+    queryFn: () => base44.entities.ContaPagar.list("-data_vencimento", 500),
+  });
+
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
   const localeDate = t("locale_date");
   const currSymbol = t("currency_symbol");
 
-  // KPI 1 e 2 — Receita (caixa) x Faturado (competência), nunca a mesma coisa.
-  const receitaMes = receitaCaixaDoMes(billings, recebimentos, currentMonth, currentYear);
+  // KPI 1 e 2 — Receita própria (caixa, honorário + intermediação + comissão)
+  // x Faturado (competência), nunca a mesma coisa.
+  const receitaMes = receitaCaixaDoMesPorNatureza(billings, recebimentos, currentMonth, currentYear);
   const faturadoMes = faturadoCompetenciaDoMes(billings, currentMonth, currentYear);
 
   // KPI 3 e 4
@@ -67,6 +73,8 @@ export default function Dashboard() {
 
   // KPI 5
   const custodia = repassesEmCustodia(billings, recebimentos, expenses);
+  const caucao = caucaoEmCustodia(billings, recebimentos);
+  const aPagarFornecedores = totalAPagarFornecedores(contasPagar);
 
   // KPI 6 — corrige o "100% com zero propostas enviadas" (null vira "—")
   const conversao = taxaConversao(proposals);
@@ -87,9 +95,11 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-2">
         <KpiCard
-          title={`${t("dash_monthly_revenue")} (Caixa)`}
-          value={`${currSymbol} ${receitaMes.toLocaleString(localeDate)}`}
+          title="Receita Própria do Mês (Caixa)"
+          value={`${currSymbol} ${receitaMes.total.toLocaleString(localeDate)}`}
           icon={DollarSign}
+          valueClassName="text-emerald-400"
+          trendLabel={`Honorário ${currSymbol} ${receitaMes.honorario.toLocaleString(localeDate)} · Intermediação ${currSymbol} ${receitaMes.intermediacao.toLocaleString(localeDate)} · Comissão ${currSymbol} ${receitaMes.comissao.toLocaleString(localeDate)}`}
         />
         <KpiCard
           title="Faturado do Mês (Competência)"
@@ -105,6 +115,7 @@ export default function Dashboard() {
           title="Em Atraso"
           value={`${currSymbol} ${atrasoTotal.toLocaleString(localeDate)}`}
           icon={AlertCircle}
+          valueClassName="text-red-400"
           trendLabel={atrasoQtd > 0 ? `${atrasoQtd} cobrança${atrasoQtd > 1 ? "s" : ""}` : "nenhuma"}
         />
       </div>
@@ -115,14 +126,27 @@ export default function Dashboard() {
           icon={Wallet}
         />
         <KpiCard
-          title={t("dash_conversion_rate")}
-          value={conversao === null ? "—" : `${conversao}%`}
-          icon={TrendingUp}
+          title="Caução em Custódia"
+          value={`${currSymbol} ${caucao.toLocaleString(localeDate)}`}
+          icon={Wallet}
+        />
+        <KpiCard
+          title="A Pagar a Fornecedores"
+          value={`${currSymbol} ${aPagarFornecedores.toLocaleString(localeDate)}`}
+          icon={AlertCircle}
+          valueClassName="text-red-400"
         />
         <KpiCard
           title="Índice de Recebimento"
           value={indice === null ? "—" : `${indice}%`}
           icon={Percent}
+        />
+      </div>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
+        <KpiCard
+          title={t("dash_conversion_rate")}
+          value={conversao === null ? "—" : `${conversao}%`}
+          icon={TrendingUp}
         />
         <KpiCard
           title={t("dash_active_clients")}

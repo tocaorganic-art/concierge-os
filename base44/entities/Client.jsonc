@@ -37,6 +37,20 @@
       "type": "number",
       "default": 0,
       "description": "Valor total gasto"
+    },
+    "cor_classificacao": {
+      "type": "string",
+      "enum": [
+        "vermelho",
+        "laranja",
+        "amarelo",
+        "verde",
+        "azul",
+        "roxo",
+        "rosa",
+        "cinza"
+      ],
+      "description": "Cor escolhida manualmente pela equipe para classificar este cliente (uso livre — ex.: prioridade, tipo de relacionamento). Sem relacao com a cor automatica por hash usada em outras telas."
     }
   },
   "required": [

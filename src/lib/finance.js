@@ -106,66 +106,141 @@ function inPeriod(dateStr, month, year) {
   return d.getMonth() + 1 === month && d.getFullYear() === year;
 }
 
-const NATUREZA_RECEITA = "honorario";
+// Naturezas que representam receita própria (dinheiro que fica com o
+// Tony, não repassado a fornecedor nem devolvido como caução).
+const NATUREZAS_RECEITA_PROPRIA = ["honorario", "intermediacao", "comissao"];
 
-// KPI 1 — Receita do mês (caixa): Σ recebimentos de natureza honorario com
-// data_recebimento no mês, considerando os billings correspondentes.
-// Inclui o mesmo fallback legado de valorRecebido(): billing honorario com
-// status "recebido" e nenhum lançamento no ledger conta pela data_pagamento.
-export function receitaCaixaDoMes(billings, recebimentos, month, year) {
-  const honorarios = billings.filter((b) => b.natureza === NATUREZA_RECEITA);
-  const idsHonorario = new Set(honorarios.map((b) => b.id));
-  const idsComLedger = new Set(recebimentos.map((r) => r.billing_id));
-  const doLedger = recebimentos
-    .filter((r) => idsHonorario.has(r.billing_id) && inPeriod(r.data_recebimento, month, year))
-    .reduce((sum, r) => sum + (r.valor || 0), 0);
-  const doLegado = honorarios
-    .filter((b) => b.status === "recebido" && !idsComLedger.has(b.id) && inPeriod(b.data_pagamento, month, year))
-    .reduce((sum, b) => sum + (b.valor || 0), 0);
-  return roundCents(doLedger + doLegado);
+// Um Billing "misto" (preço cheio cobrado do cliente) pode conter partes de
+// naturezas diferentes — ex.: uma parcela de aluguel = repasse ao
+// proprietário + intermediação + honorário, todos embutidos no mesmo
+// valor. Quando `alocacao` está presente, essas funções somam só as partes
+// da natureza pedida; sem `alocacao`, tratam o billing.valor inteiro como
+// 100% de uma natureza só (comportamento anterior, preservado).
+function partesDaAlocacao(billing) {
+  if (Array.isArray(billing.alocacao) && billing.alocacao.length > 0) return billing.alocacao;
+  return billing.natureza ? [{ natureza: billing.natureza, valor: billing.valor || 0 }] : [];
 }
 
-// KPI 2 — Faturado do mês (competência): Σ cobranças honorario emitidas
-// (created_date) no mês.
+function valorPorNatureza(billing, naturezas) {
+  return roundCents(
+    partesDaAlocacao(billing)
+      .filter((a) => naturezas.includes(a.natureza))
+      .reduce((sum, a) => sum + (a.valor || 0), 0)
+  );
+}
+
+// Fração de um billing "misto" que já foi efetivamente recebida, aplicada a
+// uma natureza específica — cada real recebido carrega a mesma proporção
+// de cada componente (repasse, honorário, etc.) contido no valor cheio.
+function valorPorNaturezaRecebido(billing, recebimentos, naturezas) {
+  const total = valorPorNatureza(billing, naturezas);
+  if (total === 0 || !billing.valor) return 0;
+  const recebido = valorRecebido(billing, recebimentos);
+  return roundCents(total * (recebido / billing.valor));
+}
+
+function valorPorNaturezaSaldo(billing, recebimentos, naturezas) {
+  const total = valorPorNatureza(billing, naturezas);
+  if (total === 0 || !billing.valor) return 0;
+  const saldo = Math.max(0, saldoDevedor(billing, recebimentos));
+  return roundCents(total * (saldo / billing.valor));
+}
+
+// KPI 1 — Receita do mês (caixa): receita própria (honorário + intermediação
+// + comissão) efetivamente recebida no mês, olhando a data de cada
+// Recebimento individual (não a data do billing). Inclui o fallback legado
+// de valorRecebido(): billing com status "recebido" e nenhum lançamento no
+// ledger conta pela data_pagamento.
+export function receitaCaixaDoMesPorNatureza(billings, recebimentos, month, year) {
+  const idsComLedger = new Set(recebimentos.map((r) => r.billing_id));
+  const billingsById = new Map(billings.map((b) => [b.id, b]));
+  const totals = { honorario: 0, intermediacao: 0, comissao: 0 };
+
+  recebimentos.forEach((r) => {
+    const b = billingsById.get(r.billing_id);
+    if (!b || !b.valor || !inPeriod(r.data_recebimento, month, year)) return;
+    partesDaAlocacao(b).forEach((parte) => {
+      if (!NATUREZAS_RECEITA_PROPRIA.includes(parte.natureza)) return;
+      totals[parte.natureza] += (r.valor || 0) * ((parte.valor || 0) / b.valor);
+    });
+  });
+
+  billings
+    .filter((b) => b.status === "recebido" && !idsComLedger.has(b.id) && inPeriod(b.data_pagamento, month, year))
+    .forEach((b) => {
+      partesDaAlocacao(b).forEach((parte) => {
+        if (!NATUREZAS_RECEITA_PROPRIA.includes(parte.natureza)) return;
+        totals[parte.natureza] += parte.valor || 0;
+      });
+    });
+
+  return {
+    honorario: roundCents(totals.honorario),
+    intermediacao: roundCents(totals.intermediacao),
+    comissao: roundCents(totals.comissao),
+    total: roundCents(totals.honorario + totals.intermediacao + totals.comissao),
+  };
+}
+
+export function receitaCaixaDoMes(billings, recebimentos, month, year) {
+  return receitaCaixaDoMesPorNatureza(billings, recebimentos, month, year).total;
+}
+
+// KPI 2 — Faturado do mês (competência): Σ receita própria contida em
+// cobranças emitidas (created_date) no mês, cheia (não proporcional ao que
+// já foi recebido — competência é sobre emissão, não sobre caixa).
 export function faturadoCompetenciaDoMes(billings, month, year) {
   return roundCents(
     billings
-      .filter((b) => b.natureza === NATUREZA_RECEITA && inPeriod(b.created_date, month, year))
-      .reduce((sum, b) => sum + (b.valor || 0), 0)
+      .filter((b) => inPeriod(b.created_date, month, year))
+      .reduce((sum, b) => sum + valorPorNatureza(b, NATUREZAS_RECEITA_PROPRIA), 0)
   );
 }
 
-// KPI 3 — A receber: Σ saldo das cobranças honorario não canceladas.
+// KPI 3 — A receber: Σ saldo de receita própria das cobranças não
+// canceladas.
 export function totalAReceber(billings, recebimentos) {
   return roundCents(
     billings
-      .filter((b) => b.natureza === NATUREZA_RECEITA && b.status !== "cancelado")
-      .reduce((sum, b) => sum + Math.max(0, saldoDevedor(b, recebimentos)), 0)
+      .filter((b) => b.status !== "cancelado")
+      .reduce((sum, b) => sum + valorPorNaturezaSaldo(b, recebimentos, NATUREZAS_RECEITA_PROPRIA), 0)
   );
 }
 
-// KPI 4 — Em atraso: Σ saldo + quantidade de cobranças honorario com status
-// derivado "atrasado".
+// KPI 4 — Em atraso: Σ saldo de receita própria + quantidade de cobranças
+// com status derivado "atrasado" que contêm alguma parte de receita própria.
 export function emAtraso(billings, recebimentos) {
-  const atrasadas = billings.filter((b) => b.natureza === NATUREZA_RECEITA && statusDerivado(b, recebimentos) === "atrasado");
+  const atrasadas = billings.filter(
+    (b) => valorPorNatureza(b, NATUREZAS_RECEITA_PROPRIA) > 0 && statusDerivado(b, recebimentos) === "atrasado"
+  );
   return {
-    total: roundCents(atrasadas.reduce((sum, b) => sum + saldoDevedor(b, recebimentos), 0)),
+    total: roundCents(atrasadas.reduce((sum, b) => sum + valorPorNaturezaSaldo(b, recebimentos, NATUREZAS_RECEITA_PROPRIA), 0)),
     quantidade: atrasadas.length,
   };
 }
 
-// KPI 5 — Repasses em custódia: Σ recebido de cobranças "repasse" − Σ pago
-// a fornecedores (Expense.valor) para os mesmos clientes/categorias de
-// repasse. Aproximação por client_id, já que não há vínculo direto
-// Expense↔Billing em todos os registros legados.
+// KPI 5 — Repasses em custódia: Σ recebido da parte "repasse" de cada
+// cobrança − Σ pago a fornecedores (Expense.valor). Aproximação por
+// client_id, já que não há vínculo direto Expense↔Billing em todos os
+// registros legados.
 export function repassesEmCustodia(billings, recebimentos, expenses) {
   const recebidoRepasse = roundCents(
-    billings
-      .filter((b) => b.natureza === "repasse")
-      .reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0)
+    billings.reduce((sum, b) => sum + valorPorNaturezaRecebido(b, recebimentos, ["repasse"]), 0)
   );
   const pagoFornecedores = roundCents(expenses.reduce((sum, e) => sum + (e.valor || 0), 0));
   return roundCents(recebidoRepasse - pagoFornecedores);
+}
+
+// Caução em custódia: Σ recebido da parte "caucao" de cada cobrança. Ainda
+// não desconta devoluções (mecanismo de devolução de caução é uma fase
+// futura) — hoje reflete o total recebido do cliente a esse título.
+export function caucaoEmCustodia(billings, recebimentos) {
+  return roundCents(billings.reduce((sum, b) => sum + valorPorNaturezaRecebido(b, recebimentos, ["caucao"]), 0));
+}
+
+// A pagar a fornecedores: Σ ContaPagar ainda não paga.
+export function totalAPagarFornecedores(contasPagar) {
+  return roundCents((contasPagar || []).filter((c) => c.status !== "pago").reduce((sum, c) => sum + (c.valor || 0), 0));
 }
 
 // KPI 6 — Taxa de conversão: propostas aceitas ÷ propostas enviadas. Com
@@ -179,13 +254,13 @@ export function taxaConversao(proposals) {
   return Math.round((aceitas / enviadas) * 100);
 }
 
-// KPI 7 — Índice de recebimento: Σ recebido honorario ÷ Σ faturado
-// honorario (all-time, não só o mês).
+// KPI 7 — Índice de recebimento: Σ recebido de receita própria ÷ Σ faturado
+// de receita própria (all-time, não só o mês).
 export function indiceRecebimento(billings, recebimentos) {
-  const honorarios = billings.filter((b) => b.natureza === NATUREZA_RECEITA);
-  const faturado = roundCents(honorarios.reduce((sum, b) => sum + (b.valor || 0), 0));
+  const faturado = roundCents(billings.reduce((sum, b) => sum + valorPorNatureza(b, NATUREZAS_RECEITA_PROPRIA), 0));
   if (faturado === 0) return null;
-  const recebido = roundCents(honorarios.reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0));
+  const saldo = roundCents(billings.reduce((sum, b) => sum + valorPorNaturezaSaldo(b, recebimentos, NATUREZAS_RECEITA_PROPRIA), 0));
+  const recebido = roundCents(faturado - saldo);
   return Math.round((recebido / faturado) * 100);
 }
 
