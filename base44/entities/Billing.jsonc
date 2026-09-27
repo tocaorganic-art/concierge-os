@@ -38,11 +38,50 @@
       "type": "string",
       "enum": [
         "pendente",
+        "parcialmente_recebido",
         "recebido",
-        "atrasado"
+        "atrasado",
+        "cancelado"
       ],
       "default": "pendente",
-      "description": "Status do pagamento"
+      "description": "Status derivado do saldo (ver src/lib/finance.js) — nao editar manualmente exceto 'cancelado', que exige motivo_cancelamento. pendente: nada recebido. parcialmente_recebido: 0 < recebido < valor. recebido: saldo zerado. atrasado: saldo>0 e hoje>vencimento. cancelado: motivo obrigatorio."
+    },
+    "motivo_cancelamento": {
+      "type": "string",
+      "description": "Obrigatorio quando status=cancelado. Cobranca cancelada nunca e apagada, so marcada."
+    },
+    "natureza": {
+      "type": "string",
+      "enum": [
+        "honorario",
+        "repasse",
+        "a_classificar"
+      ],
+      "default": "a_classificar",
+      "description": "honorario = receita propria do Tony (concierge, intermediacao). repasse = dinheiro do cliente destinado a fornecedor (hospedagem, transporte, som etc.), nao e receita. a_classificar = registros antigos ainda nao classificados, ou natureza ambigua a confirmar."
+    },
+    "moeda": {
+      "type": "string",
+      "enum": [
+        "BRL",
+        "USD",
+        "ARS"
+      ],
+      "default": "BRL",
+      "description": "Moeda do contrato. BRL na esmagadora maioria dos casos."
+    },
+    "valor_original": {
+      "type": "number",
+      "description": "Valor na moeda original quando moeda != BRL (o campo 'valor' sempre fica em BRL, convertido pela taxa_cambio abaixo)."
+    },
+    "taxa_cambio": {
+      "type": "number",
+      "description": "Taxa de cambio usada para converter valor_original para BRL, quando aplicavel."
+    },
+    "data_cambio": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que a taxa_cambio foi obtida/aplicada."
     },
     "data_vencimento": {
       "type": "string",

@@ -11,6 +11,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
+import { taxaConversao, valorRecebido } from "@/lib/finance";
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const tooltipStyle = {
@@ -42,7 +43,11 @@ export default function Reports() {
   // faturamento real, achado de auditoria).
   const { data: billings = [], isLoading: loadingBillings } = useQuery({
     queryKey: ["billings-reports"],
-    queryFn: () => base44.entities.Billing.list("-data_pagamento", 1000),
+    queryFn: () => base44.entities.Billing.list("-data_vencimento", 1000),
+  });
+  const { data: recebimentos = [] } = useQuery({
+    queryKey: ["recebimentos"],
+    queryFn: () => base44.entities.Recebimento.list("-data_recebimento", 1000),
   });
   const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
     queryKey: ["expenses-reports"],
@@ -70,9 +75,9 @@ export default function Reports() {
   };
 
   const revenueByMonth = {};
-  billings.filter((b) => b.status === "recebido").forEach((b) => {
-    const k = monthKey(b.data_pagamento);
-    if (k) revenueByMonth[k] = (revenueByMonth[k] || 0) + (b.valor || 0);
+  recebimentos.forEach((r) => {
+    const k = monthKey(r.data_recebimento);
+    if (k) revenueByMonth[k] = (revenueByMonth[k] || 0) + (r.valor || 0);
   });
   const expenseByMonth = {};
   expenses.forEach((e) => {
@@ -110,9 +115,8 @@ export default function Reports() {
   const pieData = Object.entries(tipoCount).map(([name, value]) => ({ name, value }));
 
   const totalProposals = proposals.length;
-  const confirmed = proposals.filter((p) => p.status === "confirmado" || p.status === "concluido").length;
-  const conversionRate = totalProposals > 0 ? Math.round((confirmed / totalProposals) * 100) : null;
-  const totalRevenue = billings.filter((b) => b.status === "recebido").reduce((s, b) => s + (b.valor || 0), 0);
+  const conversionRate = taxaConversao(proposals);
+  const totalRevenue = billings.reduce((s, b) => s + valorRecebido(b.id, recebimentos), 0);
   const totalExpenses = expenses.reduce((s, e) => s + (e.valor || 0), 0);
   const totalProfit = totalRevenue - totalExpenses;
 

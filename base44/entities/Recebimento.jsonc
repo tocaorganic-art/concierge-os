@@ -1,0 +1,115 @@
+{
+  "name": "Recebimento",
+  "type": "object",
+  "properties": {
+    "billing_id": {
+      "type": "string",
+      "description": "ID da cobranca/parcela (Billing) a que este recebimento se refere."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente (denormalizado a partir do Billing, usado so para RLS de leitura pelo proprio cliente)."
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor desta transacao. Positivo = recebimento normal. Negativo = estorno de um recebimento anterior (ver estorno_de_id)."
+    },
+    "data_recebimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que o valor foi efetivamente recebido (nao pode ser futura). Para um estorno, data em que o estorno foi lancado."
+    },
+    "metodo": {
+      "type": "string",
+      "enum": [
+        "pix",
+        "transferencia",
+        "cartao",
+        "dinheiro",
+        "outro"
+      ],
+      "description": "Metodo de pagamento."
+    },
+    "moeda": {
+      "type": "string",
+      "enum": [
+        "BRL",
+        "USD",
+        "ARS"
+      ],
+      "default": "BRL"
+    },
+    "valor_original": {
+      "type": "number",
+      "description": "Valor na moeda original quando moeda != BRL."
+    },
+    "taxa_cambio": {
+      "type": "number"
+    },
+    "data_cambio": {
+      "type": "string",
+      "format": "date"
+    },
+    "comprovante_url": {
+      "type": "string",
+      "description": "Comprovante deste recebimento especifico."
+    },
+    "estorno_de_id": {
+      "type": "string",
+      "description": "Preenchido APENAS quando este registro e um estorno — aponta para o id do Recebimento original sendo corrigido. Um recebimento nunca e editado ou apagado; uma correcao sempre cria um novo registro com valor negativo referenciando o original (ledger imutavel, regra R3)."
+    },
+    "motivo_estorno": {
+      "type": "string",
+      "description": "Obrigatorio quando estorno_de_id esta preenchido."
+    },
+    "observacao": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "billing_id",
+    "valor",
+    "data_recebimento"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "account_type": "equipe"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.client_id": "{{user.data.client_id}}"
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
