@@ -17,10 +17,11 @@ import {
   Sparkles,
   PlayCircle,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
 import LanguageSelector from "./LanguageSelector";
 
@@ -41,9 +42,16 @@ export default function Sidebar({ onOpenTutorial }) {
   const location = useLocation();
   const { t } = useLanguage();
   const { hasProAccess } = usePlan();
-  const { isClient } = useUserProfile();
+  const { isClientMode } = useEffectiveRole();
 
-  if (isClient) {
+  const { data: naoLidos = [] } = useQuery({
+    queryKey: ["comentarios-nao-lidos"],
+    queryFn: () => base44.entities.Comentario.filter({ autor_tipo: "cliente", lido: false }, "-created_date", 100),
+    enabled: !isClientMode,
+    refetchInterval: 30000,
+  });
+
+  if (isClientMode) {
     return (
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col z-50">
         <div className="p-6 border-b border-sidebar-border">
@@ -137,6 +145,9 @@ export default function Sidebar({ onOpenTutorial }) {
                 isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
               }`} />
               <span className="flex-1">{t(item.key)}</span>
+              {item.path === "/faturamento" && naoLidos.length > 0 && (
+                <span className="text-[10px] font-mono font-bold bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">{naoLidos.length}</span>
+              )}
               {isLocked && <Lock className="w-3 h-3 text-muted-foreground/50" />}
               {isActive && !isLocked && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
             </Link>

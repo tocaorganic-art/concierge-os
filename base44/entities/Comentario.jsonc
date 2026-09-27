@@ -1,0 +1,62 @@
+{
+  "name": "Comentario",
+  "type": "object",
+  "properties": {
+    "billing_id": {
+      "type": "string",
+      "description": "ID da cobranca (Billing) a que este comentario se refere."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente (denormalizado a partir do Billing, usado so para RLS de leitura pelo proprio cliente)."
+    },
+    "autor_tipo": {
+      "type": "string",
+      "enum": ["cliente", "equipe"],
+      "description": "Se quem escreveu foi o cliente ou a equipe/admin (Tony) - usado so para estilo visual, nao para controle de acesso."
+    },
+    "autor_nome": {
+      "type": "string",
+      "description": "Nome de quem escreveu, para exibir no fio de conversa."
+    },
+    "texto": {
+      "type": "string",
+      "description": "Texto do comentario."
+    },
+    "anexo_url": {
+      "type": "string",
+      "description": "URL de um anexo opcional (foto, comprovante, documento)."
+    },
+    "lido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o destinatario (a outra parte da conversa) ja abriu/leu este comentario - usado para o contador de nao lidos no admin."
+    }
+  },
+  "required": ["billing_id", "texto"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "account_type": "equipe" } },
+        { "user_condition": { "role": "admin" } },
+        { "data.client_id": "{{user.data.client_id}}" }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } },
+        { "data.client_id": "{{user.data.client_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}

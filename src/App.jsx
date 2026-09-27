@@ -12,7 +12,6 @@ import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import AppLayout from "@/components/layout/AppLayout";
-import ClientLayout from "@/components/layout/ClientLayout";
 import Dashboard from "@/pages/Dashboard";
 import Pipeline from "@/pages/Pipeline";
 import Clients from "@/pages/Clients";
@@ -25,13 +24,11 @@ import Plans from "@/pages/Plans";
 import Settings from "@/pages/Settings";
 import TocaTrIA from "@/pages/TocaTrIA";
 import Solicitacoes from "@/pages/Solicitacoes";
-import ClientPortal from "@/pages/ClientPortal";
-import ClientFinanceiro from "@/pages/ClientFinanceiro";
-import ClientPedidos from "@/pages/ClientPedidos";
 import Parceiros from "@/pages/Parceiros";
 import ConciergeKPIs from "@/pages/ConciergeKPIs";
 import ClientProfile from "@/pages/ClientProfile";
 import MeuGrupo from "@/pages/MeuGrupo";
+import MeuContrato from "@/pages/MeuContrato";
 import Documentos from "@/pages/Documentos";
 import Obrigado from "@/pages/Obrigado";
 
@@ -80,14 +77,17 @@ const AuthenticatedApp = () => {
           <Route path="/parceiros" element={<Parceiros />} />
           <Route path="/kpis" element={<ConciergeKPIs />} />
           <Route path="/meu-grupo" element={<MeuGrupo />} />
+          <Route path="/meu-contrato" element={<MeuContrato />} />
           <Route path="/documentos" element={<Documentos />} />
           <Route path="/meu-perfil" element={<ClientProfile />} />
         </Route>
-        <Route element={<ClientLayout />}>
-          <Route path="/portal" element={<ClientPortal />} />
-          <Route path="/portal/financeiro" element={<ClientFinanceiro />} />
-          <Route path="/portal/pedidos" element={<ClientPedidos />} />
-        </Route>
+        {/* Portal antigo removido — rotas antigas caem na Visão Geral ("/"),
+            que já se adapta por papel (admin/cliente). */}
+        <Route path="/portal" element={<Navigate to="/" replace />} />
+        <Route path="/portal/financeiro" element={<Navigate to="/faturamento" replace />} />
+        <Route path="/portal/pedidos" element={<Navigate to="/solicitacoes" replace />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        <Route path="/inicio" element={<Navigate to="/" replace />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

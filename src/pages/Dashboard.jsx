@@ -1,106 +1,205 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileText, TrendingUp, Users, AlertCircle, Wallet, Percent, MapPin, CalendarDays, ArrowRight } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DollarSign, FileText, TrendingUp, Users, AlertCircle, Wallet, Percent, Eye } from "lucide-react";
 import KpiCard from "@/components/shared/KpiCard";
 import PageHeader from "@/components/shared/PageHeader";
 import DashboardPipeline from "@/components/dashboard/DashboardPipeline";
 import DashboardAgenda from "@/components/dashboard/DashboardAgenda";
 import DashboardClients from "@/components/dashboard/DashboardClients";
 import DashboardRevenueChart from "@/components/dashboard/DashboardRevenueChart";
+import DashboardStatusViagem from "@/components/dashboard/DashboardStatusViagem";
+import DashboardProximosEventos from "@/components/dashboard/DashboardProximosEventos";
+import DashboardMeuGrupoResumo from "@/components/dashboard/DashboardMeuGrupoResumo";
+import DashboardSeusPagamentos from "@/components/dashboard/DashboardSeusPagamentos";
+import RequestModal from "@/components/concierge/RequestModal";
 import { useLanguage } from "@/lib/i18n";
 import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import TaskNotifications from "@/components/dashboard/TaskNotifications";
 import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import {
-  receitaCaixaDoMesPorNatureza, faturadoCompetenciaDoMes, totalAReceber, emAtraso,
-  repassesEmCustodia, taxaConversao, indiceRecebimento, caucaoEmCustodia, totalAPagarFornecedores,
-  saldoDevedor, valorRecebido,
+  receitaCaixaDoMesPorNatureza, faturadoCompetenciaDoMes, totalAReceber, totalAReceberClientes,
+  emAtrasoTotal, repassesEmCustodia, taxaConversao, indiceRecebimento, caucaoEmCustodia,
+  totalAPagarFornecedores, saldoDevedor, valorRecebido, agruparBillingsCliente,
 } from "@/lib/finance";
 
-const STATUS_PROPOSTA_LABEL = {
-  lead: "Em análise", proposta: "Proposta enviada", confirmado: "Confirmado", concluido: "Concluído", cancelado: "Cancelado",
-};
+const TIPOS_PEDIDO = [
+  { id: "experiencia", emoji: "🏝️", label: "Experiência", sub: "Roteiros, passeios e aventuras" },
+  { id: "reserva", emoji: "🍽️", label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
+  { id: "exclusivo", emoji: "🚁", label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
+  { id: "ajuda", emoji: "🆘", label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
+];
 
-// Visão Geral de uma conta "cliente" — dados já vêm escopados pelo backend
-// (RLS), então as mesmas queries de billings/recebimentos/proposals do
-// admin já retornam só os dele. Mostra só o que faz sentido pro cliente:
-// nunca repasses/custódia/a pagar a fornecedores (ele nem tem acesso a
-// Expense/ContaPagar mais).
-function DashboardCliente({ proposals, billings, recebimentos, tasks, t }) {
-  const proposta = proposals?.[0];
+// Visão Geral de uma conta "cliente" (real ou "ver como cliente" do admin) —
+// MESMO layout/componentes da Visão Geral do admin (grade 2x2 de KpiCard,
+// cartões de seção no mesmo estilo), só trocando o conteúdo por que faz
+// sentido pro cliente. Todo número vem de src/lib/finance.js (regra R8).
+function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, t, user }) {
+  const [selectedTipo, setSelectedTipo] = useState(null);
+  const queryClient = useQueryClient();
+  const [proposalIdSelecionado, setProposalIdSelecionado] = useState(proposals?.[0]?.id || "");
+  const proposta = proposals.find((p) => p.id === proposalIdSelecionado) || proposals[0];
+
   const localeDate = t("locale_date");
   const currSymbol = t("currency_symbol");
-  const billingsAtivos = billings.filter((b) => b.status !== "cancelado");
-  const totalContrato = billingsAtivos.reduce((sum, b) => sum + (b.valor || 0), 0);
-  const totalPago = billingsAtivos.reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0);
-  const saldo = billingsAtivos.reduce((sum, b) => sum + Math.max(0, saldoDevedor(b, recebimentos)), 0);
-  const proximoVencimento = billingsAtivos
+
+  const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
+  const servicos = [...contrato, ...adicionais];
+
+  const totalContratado = servicos.reduce((sum, b) => sum + (b.valor || 0), 0);
+  const totalPago = servicos.reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0);
+  const totalAPagar = roundedSub(totalContratado, totalPago);
+  const totalCaucao = caucao.reduce((sum, b) => sum + (b.valor || 0), 0);
+
+  function roundedSub(a, b) { return Math.round((a - b) * 100) / 100; }
+
+  const { total: emAtrasoValor, quantidade: emAtrasoQtd } = emAtrasoTotal(billings, recebimentos);
+
+  const proximoVencimento = servicos
     .filter((b) => saldoDevedor(b, recebimentos) > 0)
     .map((b) => b.data_vencimento)
     .filter(Boolean)
     .sort()[0];
-  const pctPago = totalContrato > 0 ? Math.min(100, Math.round((totalPago / totalContrato) * 100)) : 0;
+  const proximoVencimentoValor = servicos.find((b) => b.data_vencimento === proximoVencimento)?.valor;
+
+  const pagosResumo = recebimentos.filter((r) => r.valor > 0);
+  const dataUltimoPagamento = pagosResumo.map((r) => r.data_recebimento).sort().slice(-1)[0];
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.ServiceRequest.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["service_requests"] });
+      setSelectedTipo(null);
+    },
+  });
 
   return (
     <div>
-      {proposta && (
-        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-              <MapPin className="w-3.5 h-3.5 text-primary" /> {proposta.destino}
-            </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
-              {STATUS_PROPOSTA_LABEL[proposta.status] || proposta.status}
-            </span>
-          </div>
-          {(proposta.data_chegada || proposta.data_saida) && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CalendarDays className="w-3 h-3" />
-              {proposta.data_chegada && new Date(proposta.data_chegada).toLocaleDateString(localeDate)}
-              {proposta.data_saida && ` — ${new Date(proposta.data_saida).toLocaleDateString(localeDate)}`}
-              {proposta.num_pax ? ` · ${proposta.num_pax} pessoas` : ""}
-            </div>
-          )}
+      {proposals.length > 0 && (
+        <div className="mb-4 md:mb-6">
+          <Select value={proposalIdSelecionado} onValueChange={setProposalIdSelecionado}>
+            <SelectTrigger className="w-full md:w-72 bg-secondary border-border">
+              <SelectValue placeholder="Minha viagem" />
+            </SelectTrigger>
+            <SelectContent>
+              {proposals.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.destino} · {p.data_chegada ? new Date(p.data_chegada).toLocaleDateString(localeDate) : ""}
+                  {p.data_saida ? `–${new Date(p.data_saida).toLocaleDateString(localeDate, { day: "2-digit", month: "2-digit" })}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-4">
-        <KpiCard title="Total do Contrato" value={`${currSymbol} ${totalContrato.toLocaleString(localeDate)}`} icon={FileText} />
-        <KpiCard title="Pago" value={`${currSymbol} ${totalPago.toLocaleString(localeDate)}`} icon={DollarSign} valueClassName="text-emerald-400" />
-        <KpiCard title="Saldo" value={`${currSymbol} ${saldo.toLocaleString(localeDate)}`} icon={Wallet} valueClassName={saldo > 0 ? "text-amber-400" : "text-emerald-400"} />
-        <KpiCard title="Próximo Vencimento" value={proximoVencimento ? new Date(proximoVencimento).toLocaleDateString(localeDate) : "—"} icon={CalendarDays} />
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
+        <KpiCard
+          title="Total Contratado"
+          value={`${currSymbol} ${totalContratado.toLocaleString(localeDate)}`}
+          icon={FileText}
+          trendLabel={`Contrato ${currSymbol} ${contrato.reduce((s, b) => s + (b.valor || 0), 0).toLocaleString(localeDate)} · Adicionais ${currSymbol} ${adicionais.reduce((s, b) => s + (b.valor || 0), 0).toLocaleString(localeDate)}`}
+        />
+        <KpiCard
+          title="Pago"
+          value={`${currSymbol} ${totalPago.toLocaleString(localeDate)}`}
+          icon={DollarSign}
+          valueClassName="text-emerald-400"
+          trendLabel={dataUltimoPagamento ? `${pagosResumo.length} Pix · ${new Date(dataUltimoPagamento + "T00:00:00").toLocaleDateString(localeDate)}` : undefined}
+        />
+        <KpiCard
+          title="A Pagar"
+          value={`${currSymbol} ${totalAPagar.toLocaleString(localeDate)}`}
+          icon={Wallet}
+          valueClassName={totalAPagar > 0 ? "text-amber-400" : "text-emerald-400"}
+          trendLabel={proximoVencimento ? `Próx. venc. ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${currSymbol} ${(proximoVencimentoValor || 0).toLocaleString(localeDate)}` : undefined}
+        />
+        <KpiCard
+          title="Caução"
+          value={`${currSymbol} ${totalCaucao.toLocaleString(localeDate)}`}
+          icon={Wallet}
+          trendLabel="Devolvível em 48h após vistoria"
+        />
+      </div>
+      {emAtrasoQtd > 0 && (
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
+          <KpiCard
+            title="Em Atraso"
+            value={`${currSymbol} ${emAtrasoValor.toLocaleString(localeDate)}`}
+            icon={AlertCircle}
+            valueClassName="text-red-400"
+            trendLabel={`${emAtrasoQtd} cobrança${emAtrasoQtd > 1 ? "s" : ""}`}
+          />
+        </div>
+      )}
+      <p className="text-[11px] text-muted-foreground mb-6 md:mb-8">
+        Atualizado às {new Date().toLocaleTimeString(localeDate, { hour: "2-digit", minute: "2-digit" })}
+      </p>
+
+      <div className="mb-4 md:mb-6">
+        <DashboardStatusViagem proposta={proposta} pctPago={totalContratado > 0 ? (totalPago / totalContratado) * 100 : 0} />
       </div>
 
-      <div className="w-full h-2 rounded-full bg-secondary overflow-hidden mb-6">
-        <div className="h-full bg-primary transition-all" style={{ width: `${pctPago}%` }} />
+      <div className="bg-card border border-border rounded-xl p-5 gold-border-hover mb-4 md:mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-heading text-lg font-semibold text-foreground">Pedir ao concierge</h3>
+          <a href="tel:" className="text-xs font-mono uppercase tracking-wider text-red-400 border border-red-500/30 rounded-full px-2.5 py-1">SOS</a>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {TIPOS_PEDIDO.map((tipo) => (
+            <button
+              key={tipo.id}
+              onClick={() => setSelectedTipo(tipo)}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-secondary/30 hover:border-primary/40 transition-colors"
+            >
+              <span className="text-2xl">{tipo.emoji}</span>
+              <span className="text-[11px] text-foreground text-center">{tipo.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Link to="/faturamento" className="flex items-center justify-between px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15 transition-colors mb-6">
-        <span className="text-sm text-amber-400 font-medium">Ver detalhes e comprovantes</span>
-        <ArrowRight className="w-4 h-4 text-amber-400" />
-      </Link>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
+        <div className="xl:col-span-2">
+          <DashboardProximosEventos tasks={tasks} />
+        </div>
+        <DashboardMeuGrupoResumo hospedes={hospedes} />
+      </div>
 
-      <DashboardAgenda tasks={tasks} />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+        <div className="xl:col-span-2">
+          <DashboardSeusPagamentos contrato={contrato} adicionais={adicionais} caucao={caucao} recebimentos={recebimentos} />
+        </div>
+      </div>
+
+      {selectedTipo && (
+        <RequestModal
+          tipo={selectedTipo}
+          user={user}
+          onClose={() => setSelectedTipo(null)}
+          onSubmit={(data) => createMutation.mutate(data)}
+          isSubmitting={createMutation.isPending}
+        />
+      )}
     </div>
   );
 }
 
 // KPIs oficiais do Dashboard Admin — todos calculados via src/lib/finance.js
 // (regra R8: fonte única, mesma usada em Faturamento, Relatórios e Portal).
-//
-// Todos os KPIs financeiros são calculados sobre TODOS os clientes juntos por
-// padrão — com mais de um cliente ativo isso mistura contratos diferentes em
-// um único número (ex.: repasses em custódia de um cliente cancelando o de
-// outro). O seletor abaixo filtra billings/recebimentos/expenses/contasPagar/
-// propostas/tarefas por client_id antes de calcular qualquer KPI.
+// Por padrão somam TODOS os clientes juntos — com mais de um cliente ativo
+// isso mistura contratos diferentes; o seletor abaixo filtra tudo por
+// client_id antes de calcular qualquer KPI, e "Ver como cliente" troca pra
+// visualização completa daquele cliente (mesmo layout que ele vê).
 export default function Dashboard() {
   const { t, lang } = useLanguage();
-  const { isClient } = useUserProfile();
+  const { user } = useUserProfile();
+  const { isClientMode, isRealClient, effectiveClientId, startViewAs } = useEffectiveRole();
   const [selectedClientId, setSelectedClientId] = useState("all");
 
   const { data: proposals = [] } = useQuery({
@@ -131,11 +230,19 @@ export default function Dashboard() {
   const { data: expenses = [] } = useQuery({
     queryKey: ["expenses-dashboard"],
     queryFn: () => base44.entities.Expense.list("-data_despesa", 500),
+    enabled: !isClientMode,
   });
 
   const { data: contasPagar = [] } = useQuery({
     queryKey: ["contas-pagar-dashboard"],
     queryFn: () => base44.entities.ContaPagar.list("-data_vencimento", 500),
+    enabled: !isClientMode,
+  });
+
+  const { data: hospedes = [] } = useQuery({
+    queryKey: ["my_hospedes_dashboard", effectiveClientId],
+    queryFn: () => base44.entities.Hospede.filter({ client_id: effectiveClientId }, "nome", 50),
+    enabled: isClientMode && Boolean(effectiveClientId),
   });
 
   const now = new Date();
@@ -143,6 +250,27 @@ export default function Dashboard() {
   const currentYear = now.getFullYear();
   const localeDate = t("locale_date");
   const currSymbol = t("currency_symbol");
+
+  if (isClientMode) {
+    const billingsCliente = billings.filter((b) => b.client_id === effectiveClientId);
+    const recebimentosCliente = recebimentos.filter((r) => r.client_id === effectiveClientId);
+    const proposalsCliente = proposals.filter((p) => p.client_id === effectiveClientId);
+    const tasksCliente = tasks.filter((tk) => tk.client_id === effectiveClientId);
+    return (
+      <div>
+        <PageHeader title={t("nav_overview")} subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })} />
+        <DashboardCliente
+          billings={billingsCliente}
+          recebimentos={recebimentosCliente}
+          proposals={proposalsCliente}
+          tasks={tasksCliente}
+          hospedes={hospedes}
+          t={t}
+          user={user}
+        />
+      </div>
+    );
+  }
 
   // Filtra tudo pelo cliente selecionado antes de calcular qualquer KPI.
   // ContaPagar não tem client_id direto — filtra pelas propostas do cliente.
@@ -156,13 +284,19 @@ export default function Dashboard() {
   const contasPagarF = isFiltered ? contasPagar.filter((c) => proposalIdsF.has(c.proposal_id)) : contasPagar;
 
   // KPI 1 e 2 — Receita própria (caixa, honorário + intermediação + comissão)
-  // x Faturado (competência), nunca a mesma coisa.
+  // x Faturado (competência, por data de emissão/assinatura do contrato).
   const receitaMes = receitaCaixaDoMesPorNatureza(billingsF, recebimentosF, currentMonth, currentYear);
   const faturadoMes = faturadoCompetenciaDoMes(billingsF, currentMonth, currentYear);
 
-  // KPI 3 e 4
-  const aReceber = totalAReceber(billingsF, recebimentosF);
-  const { total: atrasoTotal, quantidade: atrasoQtd } = emAtraso(billingsF, recebimentosF);
+  // KPI 3 — dois cartões: o que o cliente deve no total x só a receita
+  // própria do Tony dentro disso (ajuste 2 do pedido).
+  const aReceberClientes = totalAReceberClientes(billingsF, recebimentosF);
+  const aReceberPropria = totalAReceber(billingsF, recebimentosF);
+
+  // KPI 4 — valor cheio (qualquer natureza), pra bater com o que o cliente
+  // vê em Faturamento (ajuste 3 do pedido — antes só contava receita
+  // própria e mostrava R$0 com cobranças de repasse realmente atrasadas).
+  const { total: atrasoTotal, quantidade: atrasoQtd } = emAtrasoTotal(billingsF, recebimentosF);
 
   // KPI 5
   const custodia = repassesEmCustodia(billingsF, recebimentosF, expensesF);
@@ -177,14 +311,11 @@ export default function Dashboard() {
 
   const atualizadoEm = now.toLocaleTimeString(localeDate, { hour: "2-digit", minute: "2-digit" });
 
-  if (isClient) {
-    return (
-      <div>
-        <PageHeader title={t("nav_overview")} subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })} />
-        <DashboardCliente proposals={proposals} billings={billings} recebimentos={recebimentos} tasks={tasks} t={t} />
-      </div>
-    );
-  }
+  const handleVerComoCliente = () => {
+    if (selectedClientId === "all") return;
+    const client = clients.find((c) => c.id === selectedClientId);
+    startViewAs(selectedClientId, client?.nome);
+  };
 
   return (
     <div>
@@ -195,7 +326,7 @@ export default function Dashboard() {
         subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
       />
 
-      <div className="mb-4 md:mb-6">
+      <div className="flex items-center gap-2 mb-4 md:mb-6">
         <Select value={selectedClientId} onValueChange={setSelectedClientId}>
           <SelectTrigger className="w-full md:w-64 bg-secondary border-border">
             <SelectValue placeholder="Cliente" />
@@ -207,6 +338,11 @@ export default function Dashboard() {
             ))}
           </SelectContent>
         </Select>
+        {selectedClientId !== "all" && (
+          <Button variant="outline" size="sm" onClick={handleVerComoCliente} className="gap-1.5 flex-shrink-0">
+            <Eye className="w-3.5 h-3.5" /> Ver como cliente
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-2">
@@ -221,12 +357,22 @@ export default function Dashboard() {
           title="Faturado do Mês (Competência)"
           value={`${currSymbol} ${faturadoMes.toLocaleString(localeDate)}`}
           icon={FileText}
+          trendLabel="Por data de emissão/assinatura do contrato"
         />
         <KpiCard
-          title="A Receber"
-          value={`${currSymbol} ${aReceber.toLocaleString(localeDate)}`}
+          title="A Receber dos Clientes"
+          value={`${currSymbol} ${aReceberClientes.toLocaleString(localeDate)}`}
           icon={Wallet}
+          trendLabel="Valor cheio (repasse + receita própria + caução)"
         />
+        <KpiCard
+          title="Sua Receita a Receber"
+          value={`${currSymbol} ${aReceberPropria.toLocaleString(localeDate)}`}
+          icon={Wallet}
+          trendLabel="Só honorário + intermediação + comissão"
+        />
+      </div>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
         <KpiCard
           title="Em Atraso"
           value={`${currSymbol} ${atrasoTotal.toLocaleString(localeDate)}`}
@@ -234,8 +380,6 @@ export default function Dashboard() {
           valueClassName="text-red-400"
           trendLabel={atrasoQtd > 0 ? `${atrasoQtd} cobrança${atrasoQtd > 1 ? "s" : ""}` : "nenhuma"}
         />
-      </div>
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
         <KpiCard
           title="Repasses em Custódia"
           value={`${currSymbol} ${custodia.toLocaleString(localeDate)}`}
@@ -252,17 +396,17 @@ export default function Dashboard() {
           icon={AlertCircle}
           valueClassName="text-red-400"
         />
-        <KpiCard
-          title="Índice de Recebimento"
-          value={indice === null ? "—" : `${indice}%`}
-          icon={Percent}
-        />
       </div>
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
         <KpiCard
           title={t("dash_conversion_rate")}
           value={conversao === null ? "—" : `${conversao}%`}
           icon={TrendingUp}
+        />
+        <KpiCard
+          title="Índice de Recebimento"
+          value={indice === null ? "—" : `${indice}%`}
+          icon={Percent}
         />
         <KpiCard
           title={t("dash_active_clients")}

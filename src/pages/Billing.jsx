@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip, TrendingUp } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
-import { useUserProfile } from "@/lib/useUserProfile";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,32 +19,28 @@ import RegistrarRecebimentoDialog, { EstornarRecebimentoDialog } from "@/compone
 import { LinhaParcela } from "@/components/billing/ClientBillingBlocks";
 import { getClientColor } from "@/lib/clientColor";
 import {
-  statusDerivado, saldoDevedor, valorRecebido,
+  statusDerivado, saldoDevedor, valorRecebido, agruparBillingsCliente,
   receitaCaixaDoMes, totalAReceber, emAtraso, indiceRecebimento,
 } from "@/lib/finance";
 
-// Faturamento de uma conta "cliente" — mesmas queries do admin (billings,
-// recebimentos já vêm escopados pelo backend via RLS), mas agrupadas nos 3
-// blocos que fazem sentido pro cliente: Seu Contrato, Serviços Adicionais e
+// Faturamento de uma conta "cliente" — billings/recebimentos já filtrados
+// pelo componente pai (por RLS para um cliente real, ou explicitamente por
+// effectiveClientId no modo "ver como cliente") — agrupados nos 3 blocos
+// que fazem sentido pro cliente: Seu Contrato, Serviços Adicionais e
 // Caução (nunca contratos/custos de fornecedor — RLS já bloqueia isso na
 // origem, não é só UI escondendo).
-function FaturamentoCliente({ billings, recebimentos }) {
+function FaturamentoCliente({ billings, recebimentos, effectiveClientId }) {
   const queryClient = useQueryClient();
-  const { user } = useUserProfile();
-  const clientId = user?.client_id;
 
   const { data: proposals = [] } = useQuery({
-    queryKey: ["my_proposals", clientId],
-    queryFn: () => base44.entities.Proposal.filter({ client_id: clientId }, "-created_date", 5),
-    enabled: Boolean(clientId),
+    queryKey: ["my_proposals", effectiveClientId],
+    queryFn: () => base44.entities.Proposal.filter({ client_id: effectiveClientId }, "-created_date", 5),
+    enabled: Boolean(effectiveClientId),
   });
   const formaPagamento = proposals?.[0]?.forma_pagamento_preferida;
   const chavePixContrato = proposals?.[0]?.chave_pix_recebimento || "";
 
-  const ativos = billings.filter((b) => b.status !== "cancelado");
-  const caucao = ativos.filter((b) => b.natureza === "caucao");
-  const adicionais = ativos.filter((b) => (b.categoria || "").trim().toLowerCase() === "contas a pagar");
-  const contrato = ativos.filter((b) => !adicionais.includes(b) && !caucao.includes(b));
+  const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["billings"] });
 
@@ -79,7 +75,7 @@ function FaturamentoCliente({ billings, recebimentos }) {
 
 export default function Billing() {
   const { t, lang } = useLanguage();
-  const { isClient } = useUserProfile();
+  const { isClientMode, effectiveClientId } = useEffectiveRole();
   const [showForm, setShowForm] = useState(false);
   const [editBilling, setEditBilling] = useState(null);
   const [search, setSearch] = useState("");
@@ -134,11 +130,17 @@ export default function Billing() {
     );
   }
 
-  if (isClient) {
+  if (isClientMode) {
+    // Para um cliente real, .list() já vem filtrado por RLS. Para o admin
+    // "vendo como cliente", RLS não filtra nada (ele pode ler tudo) — o
+    // filtro explícito por effectiveClientId é o que faz a visualização
+    // ser só daquele cliente.
+    const billingsCliente = billings.filter((b) => b.client_id === effectiveClientId);
+    const recebimentosCliente = recebimentos.filter((r) => r.client_id === effectiveClientId);
     return (
       <div>
         <PageHeader title={t("billing_title")} subtitle={t("billing_subtitle")} />
-        <FaturamentoCliente billings={billings} recebimentos={recebimentos} />
+        <FaturamentoCliente billings={billingsCliente} recebimentos={recebimentosCliente} effectiveClientId={effectiveClientId} />
       </div>
     );
   }

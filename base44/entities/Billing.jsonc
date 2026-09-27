@@ -114,6 +114,11 @@
       "format": "date",
       "description": "Data de vencimento"
     },
+    "data_emissao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de emissao/assinatura do contrato ou da cobranca (ex.: data do Adendo assinado) - usada para o KPI de Faturado do Mes (competencia). Quando vazia, cai para created_date (data em que o registro foi lancado no sistema), que pode nao bater com quando o contrato foi de fato assinado."
+    },
     "data_pagamento": {
       "type": "string",
       "format": "date",

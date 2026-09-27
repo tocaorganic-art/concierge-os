@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { ShieldOff } from "lucide-react";
+import { ShieldOff, Eye, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
+import { ViewAsClientProvider, useEffectiveRole } from "@/lib/ViewAsClientContext";
 import Sidebar from "./Sidebar";
 import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
@@ -20,11 +21,11 @@ import GlobalSearch from "./GlobalSearch";
 const CLIENT_ALLOWED_PATHS = [
   "/",
   "/faturamento",
-  "/propostas",
   "/agenda",
   "/relatorios",
   "/solicitacoes",
   "/meu-grupo",
+  "/meu-contrato",
   "/documentos",
   "/meu-perfil",
 ];
@@ -40,11 +41,20 @@ function SemAcesso() {
 }
 
 export default function AppLayout() {
+  return (
+    <ViewAsClientProvider>
+      <AppLayoutInner />
+    </ViewAsClientProvider>
+  );
+}
+
+function AppLayoutInner() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const { isClient, isLoading: isLoadingProfile } = useUserProfile();
+  const { isLoading: isLoadingProfile } = useUserProfile();
+  const { isClientMode, isImpersonating, viewingClientNome, stopViewAs } = useEffectiveRole();
   const location = useLocation();
 
   useEffect(() => {
@@ -75,11 +85,12 @@ export default function AppLayout() {
     );
   }
 
-  // Login do tipo "cliente": mesmo dashboard do admin (mesmo design, mesmas
-  // páginas), mas só as rotas da whitelist — os dados dentro delas já vêm
-  // filtrados pelo backend (RLS), isto aqui só evita que uma URL interna
-  // pisque conteúdo de área que não é dele antes de bloquear.
-  const clientBlocked = isClient && !CLIENT_ALLOWED_PATHS.includes(location.pathname);
+  // Login do tipo "cliente" (real ou "ver como cliente" do admin): mesmo
+  // dashboard (mesmo design, mesmas páginas), mas só as rotas da whitelist —
+  // os dados dentro delas já vêm filtrados pelo backend (RLS) para uma
+  // conta cliente real; isto aqui só evita que uma URL interna pisque
+  // conteúdo de área que não é dele antes de bloquear.
+  const clientBlocked = isClientMode && !CLIENT_ALLOWED_PATHS.includes(location.pathname);
 
   return (
     <div className="h-screen bg-background overflow-hidden">
@@ -97,7 +108,17 @@ export default function AppLayout() {
       {/* Main content */}
       <main className="md:ml-64 h-full overflow-y-auto overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0">
         <div className="p-4 md:p-8">
-          {!isClient && <GlobalSearch />}
+          {isImpersonating && (
+            <div className="flex items-center justify-between gap-2 bg-primary/10 border border-primary/30 rounded-lg px-3 py-2 mb-4 text-xs">
+              <span className="flex items-center gap-1.5 text-primary">
+                <Eye className="w-3.5 h-3.5" /> Vendo como: {viewingClientNome || "cliente"} (somente leitura)
+              </span>
+              <button onClick={stopViewAs} className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+                <X className="w-3.5 h-3.5" /> Sair
+              </button>
+            </div>
+          )}
+          <GlobalSearch />
           {clientBlocked ? <SemAcesso /> : <Outlet />}
         </div>
       </main>

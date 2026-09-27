@@ -2,8 +2,8 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, KanbanSquare, Users, CalendarDays } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
-import { useUserProfile } from "@/lib/useUserProfile";
-import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
+import { CLIENT_NAV_ITEMS, CLIENT_BOTTOM_NAV_PATHS } from "@/lib/clientNav";
 
 const PRIMARY_TABS = [
   { key: "nav_overview",  icon: LayoutDashboard, path: "/" },
@@ -12,16 +12,16 @@ const PRIMARY_TABS = [
   { key: "nav_schedule",  icon: CalendarDays,    path: "/agenda" },
 ];
 
-// No mobile, o cliente só cabe 4 abas — as mais usadas do menu completo.
-const CLIENT_PRIMARY_TABS = CLIENT_NAV_ITEMS.filter((item) =>
-  ["/", "/faturamento", "/meu-grupo", "/meu-perfil"].includes(item.path)
-);
+// No mobile, o cliente só cabe 4 abas: Visão Geral | Financeiro | Agenda | Pedidos.
+const CLIENT_PRIMARY_TABS = CLIENT_BOTTOM_NAV_PATHS
+  .map((path) => CLIENT_NAV_ITEMS.find((item) => item.path === path))
+  .filter(Boolean);
 
 export default function MobileBottomNav() {
   const location = useLocation();
   const { t } = useLanguage();
-  const { isClient } = useUserProfile();
-  const tabs = isClient ? CLIENT_PRIMARY_TABS : PRIMARY_TABS;
+  const { isClientMode } = useEffectiveRole();
+  const tabs = isClientMode ? CLIENT_PRIMARY_TABS : PRIMARY_TABS;
 
   return (
     <nav
