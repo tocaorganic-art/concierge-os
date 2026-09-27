@@ -51,6 +51,11 @@
         "cinza"
       ],
       "description": "Cor escolhida manualmente pela equipe para classificar este cliente (uso livre — ex.: prioridade, tipo de relacionamento). Sem relacao com a cor automatica por hash usada em outras telas."
+    },
+    "idioma_padrao": {
+      "type": "string",
+      "enum": ["pt-BR", "es", "en"],
+      "description": "Idioma padrao do Portal do Cliente na primeira visita (ex.: grupo argentino em espanhol). So se aplica se o cliente ainda nao tiver escolhido um idioma manualmente; depois disso, a escolha dele prevalece."
     }
   },
   "required": [

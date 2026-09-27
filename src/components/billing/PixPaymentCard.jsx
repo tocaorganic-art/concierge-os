@@ -30,8 +30,29 @@ function CopyButton({ value, label = "Copiar" }) {
 
 // Duas formas de pagamento para cobranças de "Contas a Pagar": QR Code Pix e
 // Chave Pix (CNPJ) para transferência manual — são chaves independentes entre si.
-export default function PixPaymentCard() {
+//
+// formaPagamento vem de Proposal.forma_pagamento_preferida. Default
+// "pix_pj_cora" preserva o comportamento atual (QR/chave da empresa) para
+// todo contrato que não especifica nada. Quando o contrato pede Pix pessoal
+// (ex.: Adendo com cláusula própria de pagamento em CPF), não existe uma
+// chave pessoal segura para exibir aqui — a chave real nunca deve ficar
+// hardcoded no código nem em campo legível por mim (regra de privacidade).
+// Mostra um aviso claro em vez de inventar ou expor qualquer dado.
+export default function PixPaymentCard({ formaPagamento = "pix_pj_cora" }) {
   const [tab, setTab] = useState("qrcode");
+
+  if (formaPagamento === "pix_cpf_tony") {
+    return (
+      <div className="bg-card border border-border rounded-2xl p-5 mb-8">
+        <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3">
+          <KeyRound className="w-3.5 h-3.5" /> Como pagar
+        </div>
+        <p className="text-sm text-foreground">
+          Este contrato recebe por Pix pessoal, conforme combinado. O Tony vai te enviar a chave diretamente.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5 mb-8">
