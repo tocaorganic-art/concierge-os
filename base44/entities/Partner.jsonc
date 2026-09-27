@@ -59,7 +59,18 @@
       }
     },
     "read": {
-      "created_by_id": "{{user.id}}"
+      "$or": [
+        {
+          "user_condition": {
+            "account_type": "equipe"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
       "user_condition": {

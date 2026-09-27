@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, X, Clock, CheckCircle2 } from "lucide-react";
+import { Bell, X, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 // Returns tasks that are due within `withinMinutes` from now, today, and not completed

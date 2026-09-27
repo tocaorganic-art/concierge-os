@@ -21,7 +21,6 @@ import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import LanguageSelector from "./LanguageSelector";
-import TutorialModal from "@/components/tutorial/TutorialModal";
 
 const navKeys = [
   { key: "nav_overview", icon: LayoutDashboard, path: "/" },
