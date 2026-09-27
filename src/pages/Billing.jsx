@@ -14,6 +14,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
 import BillingFormDialog from "@/components/billing/BillingFormDialog";
 import PixPaymentCard from "@/components/billing/PixPaymentCard";
+import { getClientColor } from "@/lib/clientColor";
 
 export default function Billing() {
   const { t, lang } = useLanguage();
@@ -158,7 +159,11 @@ export default function Billing() {
               </thead>
               <tbody>
                 {filtered.map((b) => (
-                  <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
+                  <tr
+                    key={b.id}
+                    className="border-b border-border/50 hover:bg-secondary/50 transition-colors"
+                    style={b.ultima_edicao_por === "cliente" ? { borderLeft: `3px solid ${getClientColor(b.client_id)}` } : undefined}
+                  >
                     <td className="px-5 py-3.5 text-sm font-medium text-foreground">{b.client_nome}</td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">
                       {b.descricao || "—"}
@@ -171,6 +176,14 @@ export default function Billing() {
                         <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" title="Ver comprovante" className="ml-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
                           <Paperclip className="w-3 h-3" /> Comprovante
                         </a>
+                      )}
+                      {b.ultima_edicao_por === "cliente" && (
+                        <span
+                          className="ml-2 inline-flex items-center text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-full border"
+                          style={{ color: getClientColor(b.client_id), borderColor: getClientColor(b.client_id), backgroundColor: `${getClientColor(b.client_id)}1a` }}
+                        >
+                          Editado pelo cliente
+                        </span>
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">

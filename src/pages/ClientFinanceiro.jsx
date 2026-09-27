@@ -57,7 +57,7 @@ function AnexarComprovante({ billing, onUploaded }) {
     setDivergencia(null);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.entities.Billing.update(billing.id, { comprovante_url: file_url });
+      await base44.entities.Billing.update(billing.id, { comprovante_url: file_url, ultima_edicao_por: "cliente" });
 
       // Confere o valor do comprovante contra o esperado — só um aviso pro
       // cliente, nunca bloqueia o envio nem altera a cobrança.
