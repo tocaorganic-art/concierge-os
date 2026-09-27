@@ -56,6 +56,52 @@
     "observacoes": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es da proposta"
+    },
+    "documentos_cliente": {
+      "type": "array",
+      "description": "Documentos visiveis ao cliente vinculado (contrato/adendo assinado, vouchers) - mesma visibilidade da proposta em si, sem RLS de campo adicional.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": { "type": "string" },
+          "url": { "type": "string" },
+          "categoria": { "type": "string" }
+        }
+      }
+    },
+    "documentos_admin": {
+      "type": "array",
+      "description": "Documentos de uso exclusivo admin/equipe (contratos de fornecedor sem lugar proprio, listas de hospedes, meios de pagamento internos). Nunca exposto ao cliente.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": { "type": "string" },
+          "url": { "type": "string" },
+          "categoria": { "type": "string" }
+        }
+      },
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
+    },
+    "versoes_anteriores": {
+      "type": "array",
+      "description": "Historico de versoes anteriores desta proposta (ex.: valor negociado antes de um adendo final) - uso exclusivo admin, nunca exposto ao cliente.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "string", "format": "date" },
+          "valor": { "type": "number" },
+          "resumo": { "type": "string" }
+        }
+      },
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
     }
   },
   "required": [
