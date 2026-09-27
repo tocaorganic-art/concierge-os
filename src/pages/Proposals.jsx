@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle } from "lucide-react";
+import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle, FolderOpen } from "lucide-react";
 import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
+import ImportarDocumentosDialog from "@/components/proposals/ImportarDocumentosDialog";
 import { useLanguage } from "@/lib/i18n";
 import { isProposalExpired } from "@/lib/proposalUtils";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export default function Proposals() {
   const [editProposal, setEditProposal] = useState(null);
   const [showAI, setShowAI] = useState(false);
   const [whatsappProposal, setWhatsappProposal] = useState(null);
+  const [importProposal, setImportProposal] = useState(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -39,6 +41,18 @@ export default function Proposals() {
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("nome", 200),
+  });
+
+  const { data: contratosFornecedor = [] } = useQuery({
+    queryKey: ["contratos-fornecedor"],
+    queryFn: () => base44.entities.ContratoFornecedor.list("-created_date", 200),
+    enabled: !!importProposal,
+  });
+
+  const { data: recebimentos = [] } = useQuery({
+    queryKey: ["recebimentos"],
+    queryFn: () => base44.entities.Recebimento.list("-data_recebimento", 500),
+    enabled: !!importProposal,
   });
 
   const filtered = proposals.filter((p) => {
@@ -150,6 +164,13 @@ export default function Proposals() {
                       <MessageCircle className="w-4 h-4" />
                     </button>
                     <ProposalPdfButton proposal={p} />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setImportProposal(p); }}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
+                      title="Importar documentos"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
                 <div
@@ -184,6 +205,16 @@ export default function Proposals() {
 
       <ProposalFormDialog open={showForm} onOpenChange={(v) => { setShowForm(v); if (!v) queryClient.invalidateQueries({ queryKey: ["proposals"] }); }} proposal={editProposal} />
       <AIProposalModal open={showAI} onOpenChange={setShowAI} onGenerated={handleAIGenerated} />
+
+      {importProposal && (
+        <ImportarDocumentosDialog
+          open={!!importProposal}
+          onOpenChange={(v) => { if (!v) setImportProposal(null); }}
+          proposal={importProposal}
+          contratosFornecedor={contratosFornecedor.filter((c) => c.proposal_id === importProposal.id)}
+          recebimentos={recebimentos}
+        />
+      )}
 
       {whatsappProposal && (
         <WhatsAppModal
