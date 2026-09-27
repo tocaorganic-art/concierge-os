@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
-import { Camera, Loader2, ImageIcon, X } from "lucide-react";
+import { Camera, Loader2, ImageIcon, X, Sparkles } from "lucide-react";
 
 const defaultForm = { client_id: "", client_nome: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "" };
 
@@ -36,6 +36,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
   const [novaCategoria, setNovaCategoria] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [aiFilled, setAiFilled] = useState(false);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -76,6 +77,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     setCreatingCategoria(false);
     setNovaCategoria("");
     setUploadError("");
+    setAiFilled(false);
   }, [billing, open]);
 
   const mutation = useMutation({
@@ -112,6 +114,39 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm((f) => ({ ...f, comprovante_url: file_url }));
+
+      // Mesmo padrão de leitura por IA já usado em ExpenseFormDialog.jsx —
+      // só preenche campos ainda vazios, nunca sobrescreve o que o usuário
+      // já digitou.
+      try {
+        const listaCategorias = categoriasExistentes.join(", ");
+        const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
+          file_url,
+          json_schema: {
+            type: "object",
+            properties: {
+              descricao: { type: "string", description: "Descrição curta do que esta cobrança representa (ex: pacote, aluguel de carro, passagem aérea)" },
+              valor: { type: "number", description: "Valor total desta cobrança/orçamento, conforme o documento" },
+              data_vencimento: { type: "string", format: "date", description: "Data de vencimento ou validade do orçamento (YYYY-MM-DD)" },
+              categoria_sugerida: {
+                type: "string",
+                description: `Categoria mais apropriada para esta cobrança. Categorias já usadas: ${listaCategorias || "nenhuma ainda"}. Reutilize uma dessas se fizer sentido.`,
+              },
+            },
+          },
+        });
+        const data = extracted?.output || extracted || {};
+        setForm((f) => ({
+          ...f,
+          descricao: f.descricao || data.descricao || f.descricao,
+          valor: f.valor || data.valor || f.valor,
+          data_vencimento: f.data_vencimento || data.data_vencimento || f.data_vencimento,
+          categoria: f.categoria || data.categoria_sugerida || f.categoria,
+        }));
+        setAiFilled(true);
+      } catch {
+        // extração falhou — comprovante já foi anexado, só não preencheu sozinho
+      }
     } catch (err) {
       setUploadError("Não consegui enviar o arquivo. Tente novamente.");
     } finally {
@@ -150,6 +185,11 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground font-medium truncate">Comprovante anexado</p>
                 <a href={form.comprovante_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline">Ver arquivo</a>
+                {aiFilled && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20 mt-1 ml-2">
+                    <Sparkles className="w-2.5 h-2.5" /> Lido por IA
+                  </span>
+                )}
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, comprovante_url: "" }))}>
                 <X className="w-4 h-4" />
@@ -164,7 +204,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Lendo com IA...
                 </>
               ) : (
                 <>
@@ -174,6 +214,9 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
             </button>
           )}
           {uploadError && <p className="text-xs text-red-400 mt-2">{uploadError}</p>}
+          {!form.comprovante_url && !uploading && (
+            <p className="text-[11px] text-muted-foreground text-center mt-1">A IA preenche descrição, valor, vencimento e categoria automaticamente</p>
+          )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
