@@ -1,0 +1,65 @@
+{
+  "name": "ContaPagar",
+  "type": "object",
+  "properties": {
+    "contrato_fornecedor_id": {
+      "type": "string",
+      "description": "ID do ContratoFornecedor vinculado (opcional)."
+    },
+    "proposal_id": {
+      "type": "string",
+      "description": "ID da proposta/evento vinculado (opcional)."
+    },
+    "fornecedor_nome": {
+      "type": "string",
+      "description": "Nome do fornecedor a pagar."
+    },
+    "descricao": {
+      "type": "string"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor a pagar."
+    },
+    "data_vencimento": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pendente", "pago"],
+      "default": "pendente"
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date"
+    },
+    "comprovante_url": {
+      "type": "string"
+    }
+  },
+  "required": ["fornecedor_nome", "valor", "data_vencimento"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "account_type": "equipe" } },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}

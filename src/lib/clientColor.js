@@ -12,3 +12,18 @@ export function getClientColor(clientId) {
   const hue = Math.abs(hash) % 360;
   return `hsl(${hue} 65% 55%)`;
 }
+
+// Classificação manual por cor (Client.cor_classificacao) — escolhida pela
+// equipe ao criar/editar um cliente, sem significado fixo (uso livre:
+// prioridade, tipo de relacionamento etc.). Paleta fixa, diferente da cor
+// automática por hash acima.
+export const CLASSIFICATION_COLORS = {
+  vermelho: "#ef4444",
+  laranja: "#f97316",
+  amarelo: "#eab308",
+  verde: "#22c55e",
+  azul: "#3b82f6",
+  roxo: "#a855f7",
+  rosa: "#ec4899",
+  cinza: "#6b7280",
+};

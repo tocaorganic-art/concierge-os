@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CLASSIFICATION_COLORS } from "@/lib/clientColor";
 
-const defaultForm = { nome: "", email: "", telefone: "", tipo: "", origem: "", notas: "" };
+const defaultForm = { nome: "", email: "", telefone: "", tipo: "", origem: "", notas: "", cor_classificacao: "" };
 
 export default function ClientFormDialog({ open, onOpenChange, client }) {
   const [form, setForm] = useState(defaultForm);
@@ -34,6 +35,7 @@ export default function ClientFormDialog({ open, onOpenChange, client }) {
         tipo: client.tipo || "",
         origem: client.origem || "",
         notas: client.notas || "",
+        cor_classificacao: client.cor_classificacao || "",
       });
     } else {
       setForm(defaultForm);
@@ -103,6 +105,21 @@ export default function ClientFormDialog({ open, onOpenChange, client }) {
           <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Notas / Preferências</Label>
             <Textarea value={form.notas} onChange={(e) => setForm((f) => ({ ...f, notas: e.target.value }))} className="mt-1.5 bg-secondary border-border" rows={3} />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Classificação por cor</Label>
+            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+              {Object.entries(CLASSIFICATION_COLORS).map(([key, hex]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, cor_classificacao: f.cor_classificacao === key ? "" : key }))}
+                  title={key}
+                  className={`w-7 h-7 rounded-full border-2 transition-transform ${form.cor_classificacao === key ? "border-foreground scale-110" : "border-transparent"}`}
+                  style={{ backgroundColor: hex }}
+                />
+              ))}
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

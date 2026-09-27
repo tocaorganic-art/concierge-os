@@ -1,0 +1,79 @@
+{
+  "name": "ContratoFornecedor",
+  "type": "object",
+  "properties": {
+    "proposal_id": {
+      "type": "string",
+      "description": "ID da proposta/evento a que este contrato de fornecedor se refere."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente vinculado — usado so para filtrar no admin, nunca para dar acesso ao cliente (RLS abaixo bloqueia leitura do cliente por completo)."
+    },
+    "fornecedor_nome": {
+      "type": "string",
+      "description": "Nome do fornecedor/locador/prestador."
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categoria do fornecedor — livre (Imovel, Som, Transporte, Chef, etc.)."
+    },
+    "custo_total": {
+      "type": "number",
+      "description": "Custo total contratado com este fornecedor."
+    },
+    "parcelas": {
+      "type": "array",
+      "description": "Parcelas a pagar a este fornecedor.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": { "type": "string" },
+          "valor": { "type": "number" },
+          "data_vencimento": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["pendente", "pago"], "default": "pendente" },
+          "data_pagamento": { "type": "string", "format": "date" }
+        }
+      }
+    },
+    "caucao_valor": {
+      "type": "number",
+      "description": "Valor da caucao depositada com este fornecedor, se houver."
+    },
+    "comissao_recebida": {
+      "type": "number",
+      "description": "Valor que o proprio fornecedor paga ao Tony como comissao, se houver (natureza=comissao no Billing correspondente)."
+    },
+    "documento_url": {
+      "type": "string",
+      "description": "URL do contrato assinado com o fornecedor. Uso exclusivo do admin/equipe — nunca visivel ao cliente."
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": ["fornecedor_nome"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "account_type": "equipe" } },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}
