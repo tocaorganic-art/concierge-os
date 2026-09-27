@@ -116,7 +116,7 @@ export default function Reports() {
 
   const totalProposals = proposals.length;
   const conversionRate = taxaConversao(proposals);
-  const totalRevenue = billings.reduce((s, b) => s + valorRecebido(b.id, recebimentos), 0);
+  const totalRevenue = billings.reduce((s, b) => s + valorRecebido(b, recebimentos), 0);
   const totalExpenses = expenses.reduce((s, e) => s + (e.valor || 0), 0);
   const totalProfit = totalRevenue - totalExpenses;
 

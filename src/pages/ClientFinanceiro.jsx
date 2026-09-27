@@ -195,7 +195,7 @@ export default function ClientFinanceiro() {
     (b) => b.natureza !== "honorario" && statusDerivado(b, meusRecebimentos) !== "recebido" && statusDerivado(b, meusRecebimentos) !== "cancelado"
   );
   const totalContrato = honorarios.reduce((sum, b) => sum + (b.valor || 0), 0);
-  const totalPagoHonorario = honorarios.reduce((sum, b) => sum + valorRecebido(b.id, meusRecebimentos), 0);
+  const totalPagoHonorario = honorarios.reduce((sum, b) => sum + valorRecebido(b, meusRecebimentos), 0);
   const saldoHonorario = honorarios.reduce((sum, b) => sum + Math.max(0, saldoDevedor(b, meusRecebimentos)), 0);
   const proximoVencimento = honorarios
     .filter((b) => statusDerivado(b, meusRecebimentos) !== "recebido" && statusDerivado(b, meusRecebimentos) !== "cancelado")

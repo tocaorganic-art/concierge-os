@@ -16,16 +16,30 @@ export function roundCents(value) {
 // Soma líquida de recebimentos de UMA cobrança (recebimentos normais +
 // estornos, que têm valor negativo) — é a fonte de verdade de "quanto já
 // entrou" para essa cobrança, nunca o campo antigo Billing.status manual.
-export function valorRecebido(billingId, recebimentos) {
-  return roundCents(
+//
+// Fallback legado: cobranças criadas ANTES do ledger Recebimento existir
+// ficaram com status "recebido" gravado direto no Billing, sem nenhum
+// registro correspondente aqui. Sem esse fallback, valorRecebido() as trata
+// como "nada recebido" e o saldo/status derivado as reclassifica como
+// pendente/atrasado mesmo já pagas — regressão real observada pós-publish
+// (Billing 6ab95c73efec439267c6d1c0 e 6ab727454f015655ca054e7d). Só entra
+// quando NÃO HÁ nenhum registro no ledger para o billing (nem recebimento
+// nem estorno) — se já existe qualquer lançamento, o ledger manda.
+export function valorRecebido(billing, recebimentos) {
+  const doLedger = roundCents(
     recebimentos
-      .filter((r) => r.billing_id === billingId)
+      .filter((r) => r.billing_id === billing.id)
       .reduce((sum, r) => sum + (r.valor || 0), 0)
   );
+  const temLancamentoNoLedger = recebimentos.some((r) => r.billing_id === billing.id);
+  if (!temLancamentoNoLedger && billing.status === "recebido") {
+    return roundCents(billing.valor || 0);
+  }
+  return doLedger;
 }
 
 export function saldoDevedor(billing, recebimentos) {
-  return roundCents((billing.valor || 0) - valorRecebido(billing.id, recebimentos));
+  return roundCents((billing.valor || 0) - valorRecebido(billing, recebimentos));
 }
 
 // Status derivado (regra R4) — nunca digitado, sempre calculado a partir do
@@ -35,7 +49,7 @@ export function saldoDevedor(billing, recebimentos) {
 export function statusDerivado(billing, recebimentos) {
   if (billing.status === "cancelado") return "cancelado";
   const valor = billing.valor || 0;
-  const recebido = valorRecebido(billing.id, recebimentos);
+  const recebido = valorRecebido(billing, recebimentos);
   const saldo = roundCents(valor - recebido);
   if (saldo <= 0) return "recebido";
   if (recebido > 0) {
@@ -96,13 +110,19 @@ const NATUREZA_RECEITA = "honorario";
 
 // KPI 1 — Receita do mês (caixa): Σ recebimentos de natureza honorario com
 // data_recebimento no mês, considerando os billings correspondentes.
+// Inclui o mesmo fallback legado de valorRecebido(): billing honorario com
+// status "recebido" e nenhum lançamento no ledger conta pela data_pagamento.
 export function receitaCaixaDoMes(billings, recebimentos, month, year) {
-  const billingsHonorario = new Set(billings.filter((b) => b.natureza === NATUREZA_RECEITA).map((b) => b.id));
-  return roundCents(
-    recebimentos
-      .filter((r) => billingsHonorario.has(r.billing_id) && inPeriod(r.data_recebimento, month, year))
-      .reduce((sum, r) => sum + (r.valor || 0), 0)
-  );
+  const honorarios = billings.filter((b) => b.natureza === NATUREZA_RECEITA);
+  const idsHonorario = new Set(honorarios.map((b) => b.id));
+  const idsComLedger = new Set(recebimentos.map((r) => r.billing_id));
+  const doLedger = recebimentos
+    .filter((r) => idsHonorario.has(r.billing_id) && inPeriod(r.data_recebimento, month, year))
+    .reduce((sum, r) => sum + (r.valor || 0), 0);
+  const doLegado = honorarios
+    .filter((b) => b.status === "recebido" && !idsComLedger.has(b.id) && inPeriod(b.data_pagamento, month, year))
+    .reduce((sum, b) => sum + (b.valor || 0), 0);
+  return roundCents(doLedger + doLegado);
 }
 
 // KPI 2 — Faturado do mês (competência): Σ cobranças honorario emitidas
@@ -142,7 +162,7 @@ export function repassesEmCustodia(billings, recebimentos, expenses) {
   const recebidoRepasse = roundCents(
     billings
       .filter((b) => b.natureza === "repasse")
-      .reduce((sum, b) => sum + valorRecebido(b.id, recebimentos), 0)
+      .reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0)
   );
   const pagoFornecedores = roundCents(expenses.reduce((sum, e) => sum + (e.valor || 0), 0));
   return roundCents(recebidoRepasse - pagoFornecedores);
@@ -165,7 +185,7 @@ export function indiceRecebimento(billings, recebimentos) {
   const honorarios = billings.filter((b) => b.natureza === NATUREZA_RECEITA);
   const faturado = roundCents(honorarios.reduce((sum, b) => sum + (b.valor || 0), 0));
   if (faturado === 0) return null;
-  const recebido = roundCents(honorarios.reduce((sum, b) => sum + valorRecebido(b.id, recebimentos), 0));
+  const recebido = roundCents(honorarios.reduce((sum, b) => sum + valorRecebido(b, recebimentos), 0));
   return Math.round((recebido / faturado) * 100);
 }
 
