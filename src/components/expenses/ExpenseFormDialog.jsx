@@ -34,6 +34,7 @@ const defaultForm = {
   data_despesa: "",
   comprovante_url: "",
   origem: "manual",
+  status: "pago",
 };
 
 // Sugestões iniciais — a lista real cresce sozinha com o que já foi usado/criado
@@ -98,6 +99,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
         data_despesa: expense.data_despesa || "",
         comprovante_url: expense.comprovante_url || "",
         origem: expense.origem || "manual",
+        status: expense.status || "pago",
       });
       setAiFilled(expense.origem === "ia_nota_fiscal");
     } else {
@@ -334,6 +336,16 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Data</Label>
               <Input type="date" value={form.data_despesa} onChange={(e) => setForm((f) => ({ ...f, data_despesa: e.target.value }))} className="mt-1.5 bg-secondary border-border" />
             </div>
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Status</Label>
+            <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+              <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pago">Pago (já saiu do bolso)</SelectItem>
+                <SelectItem value="pendente">Pendente (orçamento/parcela futura)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {isAdmin && (

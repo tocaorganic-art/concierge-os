@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, FileText, TrendingUp, Users, AlertCircle, Wallet, Percent } from "lucide-react";
@@ -12,14 +12,24 @@ import { useLanguage } from "@/lib/i18n";
 import TaskNotifications from "@/components/dashboard/TaskNotifications";
 import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   receitaCaixaDoMesPorNatureza, faturadoCompetenciaDoMes, totalAReceber, emAtraso,
   repassesEmCustodia, taxaConversao, indiceRecebimento, caucaoEmCustodia, totalAPagarFornecedores,
 } from "@/lib/finance";
 
 // KPIs oficiais do Dashboard Admin — todos calculados via src/lib/finance.js
 // (regra R8: fonte única, mesma usada em Faturamento, Relatórios e Portal).
+//
+// Todos os KPIs financeiros são calculados sobre TODOS os clientes juntos por
+// padrão — com mais de um cliente ativo isso mistura contratos diferentes em
+// um único número (ex.: repasses em custódia de um cliente cancelando o de
+// outro). O seletor abaixo filtra billings/recebimentos/expenses/contasPagar/
+// propostas/tarefas por client_id antes de calcular qualquer KPI.
 export default function Dashboard() {
   const { t, lang } = useLanguage();
+  const [selectedClientId, setSelectedClientId] = useState("all");
 
   const { data: proposals = [] } = useQuery({
     queryKey: ["proposals"],
@@ -62,25 +72,36 @@ export default function Dashboard() {
   const localeDate = t("locale_date");
   const currSymbol = t("currency_symbol");
 
+  // Filtra tudo pelo cliente selecionado antes de calcular qualquer KPI.
+  // ContaPagar não tem client_id direto — filtra pelas propostas do cliente.
+  const isFiltered = selectedClientId !== "all";
+  const billingsF = isFiltered ? billings.filter((b) => b.client_id === selectedClientId) : billings;
+  const recebimentosF = isFiltered ? recebimentos.filter((r) => r.client_id === selectedClientId) : recebimentos;
+  const expensesF = isFiltered ? expenses.filter((e) => e.client_id === selectedClientId) : expenses;
+  const proposalsF = isFiltered ? proposals.filter((p) => p.client_id === selectedClientId) : proposals;
+  const tasksF = isFiltered ? tasks.filter((task) => task.client_id === selectedClientId) : tasks;
+  const proposalIdsF = new Set(proposalsF.map((p) => p.id));
+  const contasPagarF = isFiltered ? contasPagar.filter((c) => proposalIdsF.has(c.proposal_id)) : contasPagar;
+
   // KPI 1 e 2 — Receita própria (caixa, honorário + intermediação + comissão)
   // x Faturado (competência), nunca a mesma coisa.
-  const receitaMes = receitaCaixaDoMesPorNatureza(billings, recebimentos, currentMonth, currentYear);
-  const faturadoMes = faturadoCompetenciaDoMes(billings, currentMonth, currentYear);
+  const receitaMes = receitaCaixaDoMesPorNatureza(billingsF, recebimentosF, currentMonth, currentYear);
+  const faturadoMes = faturadoCompetenciaDoMes(billingsF, currentMonth, currentYear);
 
   // KPI 3 e 4
-  const aReceber = totalAReceber(billings, recebimentos);
-  const { total: atrasoTotal, quantidade: atrasoQtd } = emAtraso(billings, recebimentos);
+  const aReceber = totalAReceber(billingsF, recebimentosF);
+  const { total: atrasoTotal, quantidade: atrasoQtd } = emAtraso(billingsF, recebimentosF);
 
   // KPI 5
-  const custodia = repassesEmCustodia(billings, recebimentos, expenses);
-  const caucao = caucaoEmCustodia(billings, recebimentos);
-  const aPagarFornecedores = totalAPagarFornecedores(contasPagar);
+  const custodia = repassesEmCustodia(billingsF, recebimentosF, expensesF);
+  const caucao = caucaoEmCustodia(billingsF, recebimentosF);
+  const aPagarFornecedores = totalAPagarFornecedores(contasPagarF);
 
   // KPI 6 — corrige o "100% com zero propostas enviadas" (null vira "—")
-  const conversao = taxaConversao(proposals);
+  const conversao = taxaConversao(proposalsF);
 
   // KPI 7
-  const indice = indiceRecebimento(billings, recebimentos);
+  const indice = indiceRecebimento(billingsF, recebimentosF);
 
   const atualizadoEm = now.toLocaleTimeString(localeDate, { hour: "2-digit", minute: "2-digit" });
 
@@ -92,6 +113,20 @@ export default function Dashboard() {
         title={t("nav_overview")}
         subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
       />
+
+      <div className="mb-4 md:mb-6">
+        <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+          <SelectTrigger className="w-full md:w-64 bg-secondary border-border">
+            <SelectValue placeholder="Cliente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os clientes</SelectItem>
+            {clients.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-2">
         <KpiCard
@@ -160,14 +195,14 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <div className="xl:col-span-2">
-          <DashboardPipeline proposals={proposals} />
+          <DashboardPipeline proposals={proposalsF} />
         </div>
-        <DashboardAgenda tasks={tasks} />
+        <DashboardAgenda tasks={tasksF} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         <div className="xl:col-span-2">
-          <DashboardRevenueChart billings={billings} recebimentos={recebimentos} />
+          <DashboardRevenueChart billings={billingsF} recebimentos={recebimentosF} />
         </div>
         <DashboardClients clients={clients} />
       </div>

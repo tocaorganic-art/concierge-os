@@ -220,14 +220,18 @@ export function emAtraso(billings, recebimentos) {
 }
 
 // KPI 5 — Repasses em custódia: Σ recebido da parte "repasse" de cada
-// cobrança − Σ pago a fornecedores (Expense.valor). Aproximação por
-// client_id, já que não há vínculo direto Expense↔Billing em todos os
-// registros legados.
+// cobrança − Σ pago a fornecedores (Expense.valor, só as com status
+// "pago" — status "pendente" é custo orçado/contratado que ainda não
+// saiu do caixa, não pode ser descontado como se já tivesse sido pago).
+// Aproximação por client_id, já que não há vínculo direto Expense↔Billing
+// em todos os registros legados.
 export function repassesEmCustodia(billings, recebimentos, expenses) {
   const recebidoRepasse = roundCents(
     billings.reduce((sum, b) => sum + valorPorNaturezaRecebido(b, recebimentos, ["repasse"]), 0)
   );
-  const pagoFornecedores = roundCents(expenses.reduce((sum, e) => sum + (e.valor || 0), 0));
+  const pagoFornecedores = roundCents(
+    expenses.filter((e) => (e.status || "pago") === "pago").reduce((sum, e) => sum + (e.valor || 0), 0)
+  );
   return roundCents(recebidoRepasse - pagoFornecedores);
 }
 
