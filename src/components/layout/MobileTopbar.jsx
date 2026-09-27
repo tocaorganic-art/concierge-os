@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, Crown, ArrowLeft } from "lucide-react";
+import { Menu, ArrowLeft } from "lucide-react";
 
 const PRIMARY_ROUTES = ["/", "/pipeline", "/clientes", "/agenda"];
 

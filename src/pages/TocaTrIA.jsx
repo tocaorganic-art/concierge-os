@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Bot, User, Loader2, Trash2, MessageCircle } from "lucide-react";
+import { Sparkles, Send, User, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWithAI } from "@/functions/generateWithAI";
-import PageHeader from "@/components/shared/PageHeader";
 import { base44 } from "@/api/base44Client";
 
 const SUGGESTIONS = [
