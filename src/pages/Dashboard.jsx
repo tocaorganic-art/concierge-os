@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileText, TrendingUp, Users } from "lucide-react";
+import { DollarSign, FileText, TrendingUp, Users, Wallet, PiggyBank } from "lucide-react";
 import KpiCard from "@/components/shared/KpiCard";
 import PageHeader from "@/components/shared/PageHeader";
 import DashboardPipeline from "@/components/dashboard/DashboardPipeline";
@@ -30,9 +30,17 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Task.list("-created_date", 50),
   });
 
-  const { data: revenues = [] } = useQuery({
-    queryKey: ["revenues"],
-    queryFn: () => base44.entities.Revenue.list("-ano", 12),
+  // Receita = dinheiro que realmente entrou (Billing recebido), não mais a
+  // entidade Revenue (lançamento manual desconectado — achado de auditoria:
+  // "Receita do Mês" mostrava R$0 mesmo com pagamentos já recebidos).
+  const { data: billings = [] } = useQuery({
+    queryKey: ["billings-dashboard"],
+    queryFn: () => base44.entities.Billing.list("-data_pagamento", 500),
+  });
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ["expenses-dashboard"],
+    queryFn: () => base44.entities.Expense.list("-data_despesa", 500),
   });
 
   const now = new Date();
@@ -40,16 +48,28 @@ export default function Dashboard() {
   const currentYear = now.getFullYear();
   const localeDate = t("locale_date");
 
-  const monthRevenue = revenues
-    .filter((r) => r.mes === currentMonth && r.ano === currentYear)
-    .reduce((sum, r) => sum + (r.valor || 0), 0);
+  const isInMonth = (dateStr, month, year) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return d.getMonth() + 1 === month && d.getFullYear() === year;
+  };
+
+  const monthRevenue = billings
+    .filter((b) => b.status === "recebido" && isInMonth(b.data_pagamento, currentMonth, currentYear))
+    .reduce((sum, b) => sum + (b.valor || 0), 0);
+
+  const monthExpenses = expenses
+    .filter((e) => isInMonth(e.data_despesa, currentMonth, currentYear))
+    .reduce((sum, e) => sum + (e.valor || 0), 0);
+
+  const monthProfit = monthRevenue - monthExpenses;
 
   // Tendência real: mês atual vs. mês anterior (só se houver receita no mês anterior)
   const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-  const prevRevenue = revenues
-    .filter((r) => r.mes === prevMonth && r.ano === prevYear)
-    .reduce((sum, r) => sum + (r.valor || 0), 0);
+  const prevRevenue = billings
+    .filter((b) => b.status === "recebido" && isInMonth(b.data_pagamento, prevMonth, prevYear))
+    .reduce((sum, b) => sum + (b.valor || 0), 0);
   const revenueTrend = prevRevenue > 0
     ? Math.round(((monthRevenue - prevRevenue) / prevRevenue) * 100)
     : undefined;
@@ -77,13 +97,23 @@ export default function Dashboard() {
         subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
       />
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
         <KpiCard
           title={t("dash_monthly_revenue")}
           value={`${currSymbol} ${monthRevenue.toLocaleString(localeDate)}`}
           icon={DollarSign}
           trend={revenueTrend}
           trendLabel={t("dash_vs_last_month")}
+        />
+        <KpiCard
+          title="Despesas do Mês"
+          value={`${currSymbol} ${monthExpenses.toLocaleString(localeDate)}`}
+          icon={Wallet}
+        />
+        <KpiCard
+          title="Lucro do Mês"
+          value={`${currSymbol} ${monthProfit.toLocaleString(localeDate)}`}
+          icon={PiggyBank}
         />
         <KpiCard
           title={t("dash_active_proposals")}
@@ -111,7 +141,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         <div className="xl:col-span-2">
-          <DashboardRevenueChart revenues={revenues} />
+          <DashboardRevenueChart billings={billings} expenses={expenses} />
         </div>
         <DashboardClients clients={clients} />
       </div>

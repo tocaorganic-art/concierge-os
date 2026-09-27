@@ -37,9 +37,16 @@ export default function Reports() {
   const { t } = useLanguage();
   const { hasProAccess, isLoading: planLoading } = usePlan();
 
-  const { data: revenues = [], isLoading: loadingRevenues } = useQuery({
-    queryKey: ["revenues"],
-    queryFn: () => base44.entities.Revenue.list("-ano", 24),
+  // Receita/despesa calculadas direto de Billing (recebido) e Expense (pago) —
+  // não mais da entidade Revenue (lançamento manual desconectado do
+  // faturamento real, achado de auditoria).
+  const { data: billings = [], isLoading: loadingBillings } = useQuery({
+    queryKey: ["billings-reports"],
+    queryFn: () => base44.entities.Billing.list("-data_pagamento", 1000),
+  });
+  const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
+    queryKey: ["expenses-reports"],
+    queryFn: () => base44.entities.Expense.list("-data_despesa", 1000),
   });
   const { data: proposals = [], isLoading: loadingProposals } = useQuery({
     queryKey: ["proposals"],
@@ -54,17 +61,39 @@ export default function Reports() {
     queryFn: () => base44.entities.Task.list("-data", 200),
   });
 
-  const isLoading = loadingRevenues || loadingProposals || loadingClients || planLoading;
+  const isLoading = loadingBillings || loadingExpenses || loadingProposals || loadingClients || planLoading;
 
-  // Receita acumulada (área chart)
-  const revenueData = revenues
-    .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
-    .slice(-12)
-    .reduce((acc, r) => {
-      const prev = acc.length > 0 ? acc[acc.length - 1].acumulado : 0;
-      acc.push({ name: `${monthNames[r.mes - 1]}/${r.ano % 100}`, receita: r.valor, acumulado: prev + r.valor });
-      return acc;
-    }, []);
+  const monthKey = (dateStr) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}-${d.getMonth() + 1}`;
+  };
+
+  const revenueByMonth = {};
+  billings.filter((b) => b.status === "recebido").forEach((b) => {
+    const k = monthKey(b.data_pagamento);
+    if (k) revenueByMonth[k] = (revenueByMonth[k] || 0) + (b.valor || 0);
+  });
+  const expenseByMonth = {};
+  expenses.forEach((e) => {
+    const k = monthKey(e.data_despesa);
+    if (k) expenseByMonth[k] = (expenseByMonth[k] || 0) + (e.valor || 0);
+  });
+
+  const now = new Date();
+  const last12Months = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+    return { key: `${d.getFullYear()}-${d.getMonth() + 1}`, label: `${monthNames[d.getMonth()]}/${String(d.getFullYear()).slice(2)}` };
+  });
+
+  // Receita/despesa acumulada (área chart)
+  const revenueData = last12Months.reduce((acc, { key, label }) => {
+    const receita = revenueByMonth[key] || 0;
+    const despesa = expenseByMonth[key] || 0;
+    const prev = acc.length > 0 ? acc[acc.length - 1].acumulado : 0;
+    acc.push({ name: label, receita, despesa, acumulado: prev + receita });
+    return acc;
+  }, []);
 
   // Top 5 clientes
   const topClients = [...clients]
@@ -83,7 +112,9 @@ export default function Reports() {
   const totalProposals = proposals.length;
   const confirmed = proposals.filter((p) => p.status === "confirmado" || p.status === "concluido").length;
   const conversionRate = totalProposals > 0 ? Math.round((confirmed / totalProposals) * 100) : null;
-  const totalRevenue = revenues.reduce((s, r) => s + (r.valor || 0), 0);
+  const totalRevenue = billings.filter((b) => b.status === "recebido").reduce((s, b) => s + (b.valor || 0), 0);
+  const totalExpenses = expenses.reduce((s, e) => s + (e.valor || 0), 0);
+  const totalProfit = totalRevenue - totalExpenses;
 
   if (isLoading) {
     return (
@@ -96,12 +127,14 @@ export default function Reports() {
   const reportsContent = (
     <div>
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
         {[
           { label: t("reports_total_proposals"), value: totalProposals || "—" },
           { label: t("reports_conversion_rate"), value: conversionRate !== null ? `${conversionRate}%` : "—" },
           { label: t("reports_active_clients"), value: clients.length || "—" },
           { label: t("reports_total_revenue"), value: totalRevenue > 0 ? `${t("currency_symbol")} ${totalRevenue.toLocaleString(t("locale_date"))}` : "—" },
+          { label: "Despesas Totais", value: totalExpenses > 0 ? `${t("currency_symbol")} ${totalExpenses.toLocaleString(t("locale_date"))}` : "—" },
+          { label: "Lucro Total", value: totalRevenue > 0 || totalExpenses > 0 ? `${t("currency_symbol")} ${totalProfit.toLocaleString(t("locale_date"))}` : "—" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-card border border-border rounded-xl p-4">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{kpi.label}</p>
@@ -138,8 +171,10 @@ export default function Reports() {
                 <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="acumulado" stroke="hsl(24 87% 56%)" fill="url(#gradReceita)" strokeWidth={2} name="Acumulado" />
-                <Area type="monotone" dataKey="receita" stroke="hsl(200 60% 50%)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" name="Mensal" />
+                <Legend wrapperStyle={{ fontSize: 11, fontFamily: "JetBrains Mono" }} />
+                <Area type="monotone" dataKey="acumulado" stroke="hsl(24 87% 56%)" fill="url(#gradReceita)" strokeWidth={2} name="Receita acumulada" />
+                <Area type="monotone" dataKey="receita" stroke="hsl(200 60% 50%)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" name="Receita mensal" />
+                <Area type="monotone" dataKey="despesa" stroke="hsl(220 12% 45%)" fill="transparent" strokeWidth={1.5} strokeDasharray="2 2" name="Despesa mensal" />
               </AreaChart>
             </ResponsiveContainer>
           )}
