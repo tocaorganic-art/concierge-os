@@ -62,6 +62,15 @@
       ],
       "default": "manual",
       "description": "Se o lan\u00e7amento foi manual ou extra\u00eddo por IA a partir do comprovante"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pago",
+        "pendente"
+      ],
+      "default": "pago",
+      "description": "Se o valor ja saiu do bolso (pago) ou e so um custo orcado/contratado que ainda vai ser pago (pendente). Default 'pago' preserva o significado original do campo 'valor' (despesa real); marque 'pendente' para orcamentos/parcelas futuras lancados com antecedencia. KPIs de custodia/repasse (src/lib/finance.js) so contam despesas 'pago' como saida de caixa real."
     }
   },
   "required": [

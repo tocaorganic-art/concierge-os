@@ -197,8 +197,11 @@ export default function Despesas() {
                       <td className="px-5 py-3.5 text-sm text-muted-foreground font-mono">
                         {e.data_despesa ? new Date(e.data_despesa).toLocaleDateString("pt-BR") : "—"}
                       </td>
-                      <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
-                        R$ {(e.valor || 0).toLocaleString("pt-BR")}
+                      <td className="px-5 py-3.5 text-right">
+                        <p className="font-display font-semibold text-sm text-primary">R$ {(e.valor || 0).toLocaleString("pt-BR")}</p>
+                        <span className={`inline-block mt-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${e.status === "pendente" ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"}`}>
+                          {e.status === "pendente" ? "Pendente" : "Pago"}
+                        </span>
                       </td>
                       <td className="px-5 py-3.5">
                         {e.comprovante_url && (
@@ -234,9 +237,12 @@ export default function Despesas() {
                     <p className="text-xs text-muted-foreground font-mono">
                       {e.data_despesa ? new Date(e.data_despesa).toLocaleDateString("pt-BR") : "—"}
                     </p>
-                    <p className="font-display font-bold text-primary text-lg">
-                      R$ {(e.valor || 0).toLocaleString("pt-BR")}
-                    </p>
+                    <div className="text-right">
+                      <p className="font-display font-bold text-primary text-lg">R$ {(e.valor || 0).toLocaleString("pt-BR")}</p>
+                      <span className={`inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${e.status === "pendente" ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"}`}>
+                        {e.status === "pendente" ? "Pendente" : "Pago"}
+                      </span>
+                    </div>
                   </div>
                   {e.comprovante_url && (
                     <a href={e.comprovante_url} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()} className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors">
