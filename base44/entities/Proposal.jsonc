@@ -86,6 +86,30 @@
         }
       }
     },
+    "forma_pagamento_preferida": {
+      "type": "string",
+      "enum": ["pix_pj_cora", "pix_cpf_tony"],
+      "default": "pix_pj_cora",
+      "description": "Qual conta de recebimento mostrar ao cliente em \"Como pagar\". pix_pj_cora = QR/chave da empresa (padrao atual). pix_cpf_tony = contrato combinou Pix pessoal - a chave real nao fica no codigo nem em nenhum campo visivel por aqui, o Tony envia direto ao cliente."
+    },
+    "alertas_contratuais": {
+      "type": "array",
+      "description": "Alertas operacionais/financeiros derivados de clausulas do contrato deste evento (capacidade, checkout, restricoes de barulho, risco fiscal etc.) - uso exclusivo admin, entrada manual por ora (nao ha motor generico de clausulas ainda).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": { "type": "string" },
+          "titulo": { "type": "string" },
+          "descricao": { "type": "string" },
+          "valor_estimado": { "type": "number" }
+        }
+      },
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
+    },
     "versoes_anteriores": {
       "type": "array",
       "description": "Historico de versoes anteriores desta proposta (ex.: valor negociado antes de um adendo final) - uso exclusivo admin, nunca exposto ao cliente.",

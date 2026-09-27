@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle, FolderOpen } from "lucide-react";
 import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
 import ImportarDocumentosDialog from "@/components/proposals/ImportarDocumentosDialog";
+import AlertasContratuais from "@/components/proposals/AlertasContratuais";
 import { useLanguage } from "@/lib/i18n";
 import { isProposalExpired } from "@/lib/proposalUtils";
 import { Button } from "@/components/ui/button";
@@ -189,6 +190,7 @@ export default function Proposals() {
                   )}
                   {p.num_pax > 0 && <span className="font-mono text-xs">{p.num_pax} pax</span>}
                 </div>
+                <AlertasContratuais alertas={p.alertas_contratuais || []} />
               </div>
             ))}
           </div>

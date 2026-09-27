@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useUserProfile } from "@/lib/useUserProfile";
+import { useLanguage } from "@/lib/i18n";
 import { LogOut, Home, Wallet, MessageSquare, UserRound } from "lucide-react";
 
 // Layout enxuto para quem acessa como "cliente" — sem o menu interno
@@ -21,12 +23,28 @@ const TABS = [
 export default function ClientLayout() {
   const [firstName, setFirstName] = useState("");
   const location = useLocation();
+  const { user } = useUserProfile();
+  const { setLang } = useLanguage();
 
   useEffect(() => {
     base44.auth.me()
       .then((u) => setFirstName(u?.full_name?.split(" ")[0] || ""))
       .catch(() => {});
   }, []);
+
+  // Idioma padrão por cliente (ex.: grupo argentino em espanhol) — só aplica
+  // uma vez, na primeira visita sem preferência salva; depois disso o
+  // usuário já escolheu manualmente e isso nunca sobrescreve de novo.
+  useEffect(() => {
+    if (!user?.client_id) return;
+    if (localStorage.getItem("concierge_lang")) return;
+    base44.entities.Client.filter({ id: user.client_id }, "-created_date", 1)
+      .then((rows) => {
+        const idioma = rows?.[0]?.idioma_padrao;
+        if (idioma) setLang(idioma);
+      })
+      .catch(() => {});
+  }, [user?.client_id, setLang]);
 
   return (
     <div className="min-h-screen bg-background">

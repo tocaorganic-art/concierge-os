@@ -152,6 +152,13 @@ export default function ClientFinanceiro() {
     enabled: Boolean(clientId),
   });
 
+  const { data: minhasPropostas = [] } = useQuery({
+    queryKey: ["my_proposals", clientId],
+    queryFn: () => base44.entities.Proposal.filter({ client_id: clientId }, "-created_date", 10),
+    enabled: Boolean(clientId),
+  });
+  const formaPagamento = minhasPropostas?.[0]?.forma_pagamento_preferida;
+
   // Bloco 1 — Honorário de concierge: só cobranças classificadas como
   // natureza="honorario". Registros ainda "a_classificar" não entram aqui
   // até a equipe confirmar a natureza (ver relatório da migração).
@@ -270,7 +277,7 @@ export default function ClientFinanceiro() {
       )}
 
       {/* Como pagar */}
-      {temContasAPagarPendente && <PixPaymentCard />}
+      {temContasAPagarPendente && <PixPaymentCard formaPagamento={formaPagamento} />}
 
       {honorarios.length === 0 && outrasCobrancasAbertas.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
