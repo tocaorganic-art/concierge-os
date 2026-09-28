@@ -82,6 +82,15 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
             <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} onEdit={(x) => { setEditBilling(x); setShowForm(true); }} defaultAberto={b.id === alvoId} />
           ))}
         </div>
+        {/* Total da categoria — soma dos valores das cobranças deste bloco */}
+        <div className="flex items-center justify-between gap-2 pt-3 mt-1 border-t border-border/60">
+          <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+            Total ({itens.length} {itens.length === 1 ? "lançamento" : "lançamentos"})
+          </span>
+          <span className="font-display font-semibold text-primary text-lg">
+            R$ {itens.reduce((sum, b) => sum + (b.valor || 0), 0).toLocaleString("pt-BR")}
+          </span>
+        </div>
       </div>
     );
 
