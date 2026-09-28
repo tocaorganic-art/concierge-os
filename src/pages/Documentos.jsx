@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { FolderOpen, FileText, Loader2, ExternalLink } from "lucide-react";
+import ChatAnexo from "@/components/chat/ChatAnexo";
 
 // Documentos do cliente — só o que a proposta expõe em documentos_cliente
 // (Proposal.documentos_admin fica com RLS de campo admin-only, nunca chega
@@ -17,6 +18,15 @@ export default function Documentos() {
   });
 
   const documentos = proposals.flatMap((p) => p.documentos_cliente || []);
+
+  // Anexos enviados no Chat — aparecem aqui com a origem identificada, sem
+  // criar cópias: o mesmo registro Comentario é a fonte (mesma RLS).
+  const { data: comentarios = [] } = useQuery({
+    queryKey: ["chat_anexos", effectiveClientId],
+    queryFn: () => base44.entities.Comentario.filter({ client_id: effectiveClientId, escopo: "geral" }, "-created_date", 100),
+    enabled: Boolean(effectiveClientId),
+  });
+  const anexosChat = comentarios.filter((c) => c.anexo_url);
 
   if (isLoading) {
     return (
@@ -53,6 +63,23 @@ export default function Documentos() {
               <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </a>
           ))}
+        </div>
+      )}
+
+      {anexosChat.length > 0 && (
+        <div className="mt-8">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">Do Chat</p>
+          <div className="space-y-2">
+            {anexosChat.map((c) => (
+              <div key={c.id} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground truncate">{c.texto?.trim() || "Anexo da conversa"}</p>
+                  <p className="text-[11px] text-muted-foreground">Chat · {new Date(c.created_date).toLocaleDateString("pt-BR")}</p>
+                </div>
+                <ChatAnexo anexoUrl={c.anexo_url} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

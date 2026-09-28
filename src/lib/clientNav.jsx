@@ -17,6 +17,7 @@ export const CLIENT_NAV_ITEMS = [
   { key: "nav_documentos", labelFallback: "Documentos", icon: FolderOpen, path: "/documentos" },
   { key: "nav_reports", labelFallback: "Relatórios", icon: BarChart3, path: "/relatorios" },
   { key: "nav_perfil", labelFallback: "Perfil", icon: UserRound, path: "/meu-perfil" },
+  { key: "nav_chat", labelFallback: "Chat", icon: MessageSquare, path: "/chat" },
 ];
 
 // Barra inferior do celular: só os 4 principais, conforme especificado.

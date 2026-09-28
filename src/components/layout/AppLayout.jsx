@@ -12,6 +12,7 @@ import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import TutorialModal from "@/components/tutorial/TutorialModal";
 import PwaInstallPopup from "@/components/PwaInstallPopup";
 import GlobalSearch from "./GlobalSearch";
+import FloatingChat from "@/components/chat/FloatingChat";
 
 // Rotas que uma conta "cliente" pode acessar dentro do MESMO dashboard do
 // admin — o cliente vê só os próprios dados (regra de acesso no backend,
@@ -28,6 +29,7 @@ const CLIENT_ALLOWED_PATHS = [
   "/meu-contrato",
   "/documentos",
   "/meu-perfil",
+  "/chat",
 ];
 
 function SemAcesso() {
@@ -119,6 +121,9 @@ function AppLayoutInner() {
 
       {/* Mobile bottom nav */}
       <MobileBottomNav />
+
+      {/* Chat flutuante cliente↔equipe — fixo em todas as páginas */}
+      <FloatingChat />
 
       {/* Onboarding wizard */}
       {showOnboarding && user && (

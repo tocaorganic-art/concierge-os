@@ -19,6 +19,7 @@ import {
   Gauge,
   Handshake,
   UserCircle,
+  MessagesSquare,
   MessageSquare,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -51,6 +52,14 @@ export default function Sidebar({ onOpenTutorial }) {
   const { data: naoLidos = [] } = useQuery({
     queryKey: ["comentarios-nao-lidos"],
     queryFn: () => base44.entities.Comentario.filter({ autor_tipo: "cliente", lido: false }, "-created_date", 100),
+    enabled: !isClientMode,
+    refetchInterval: 30000,
+  });
+
+  // Não lidas do chat geral (escopo="geral") — badge do item Chat do menu.
+  const { data: naoLidosChat = [] } = useQuery({
+    queryKey: ["chat-nao-lidos-menu"],
+    queryFn: () => base44.entities.Comentario.filter({ escopo: "geral", lido: false, autor_tipo: "cliente" }, "-created_date", 100),
     enabled: !isClientMode,
     refetchInterval: 30000,
   });
@@ -195,6 +204,21 @@ export default function Sidebar({ onOpenTutorial }) {
             <UserCircle className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/meu-perfil" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
             <span className="flex-1">Meu Perfil</span>
             {location.pathname === "/meu-perfil" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
+          <Link
+            to="/chat"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/chat"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <MessagesSquare className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/chat" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+            <span className="flex-1">Chat</span>
+            {naoLidosChat.length > 0 && (
+              <span className="text-[10px] font-mono font-bold bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">{naoLidosChat.length}</span>
+            )}
+            {location.pathname === "/chat" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </Link>
           <Link
             to="/portal"

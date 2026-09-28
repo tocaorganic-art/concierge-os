@@ -1,8 +1,9 @@
 import React, { useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Send, Pencil } from "lucide-react";
+import { Send, Pencil, Paperclip, X } from "lucide-react";
 import { useUserProfile } from "@/lib/useUserProfile";
+import ChatAnexo from "@/components/chat/ChatAnexo";
 
 const EDITAVEL_MINUTOS = 5;
 
@@ -18,6 +19,7 @@ export default function ChatGeral({ clientId }) {
   const [texto, setTexto] = useState("");
   const [editandoId, setEditandoId] = useState(null);
   const [textoEdicao, setTextoEdicao] = useState("");
+  const [anexo, setAnexo] = useState(null);
   const listRef = useRef(null);
 
   const { data: comentarios = [] } = useQuery({
@@ -39,6 +41,7 @@ export default function ChatGeral({ clientId }) {
     mutationFn: (data) => base44.entities.Comentario.create(data),
     onSuccess: () => {
       setTexto("");
+      setAnexo(null);
       queryClient.invalidateQueries({ queryKey: ["chat_geral", clientId] });
     },
   });
@@ -51,14 +54,20 @@ export default function ChatGeral({ clientId }) {
     },
   });
 
-  const handleEnviar = () => {
-    if (!texto.trim() || !clientId) return;
+  const handleEnviar = async () => {
+    if ((!texto.trim() && !anexo) || !clientId || createMutation.isPending) return;
+    let anexoUrl = null;
+    if (anexo) {
+      const res = await base44.integrations.Core.UploadPrivateFile({ file: anexo });
+      anexoUrl = res?.file_uri || null;
+    }
     createMutation.mutate({
       client_id: clientId,
       escopo: "geral",
       autor_tipo: isClient ? "cliente" : "equipe",
       autor_nome: user?.full_name || "",
       texto: texto.trim(),
+      ...(anexoUrl ? { anexo_url: anexoUrl } : {}),
     });
   };
 
@@ -89,6 +98,7 @@ export default function ChatGeral({ clientId }) {
             ) : (
               <p className="text-muted-foreground mt-0.5">{c.texto}</p>
             )}
+            {c.anexo_url && <ChatAnexo anexoUrl={c.anexo_url} />}
             {podeEditar(c) && editandoId !== c.id && (
               <button
                 onClick={() => { setEditandoId(c.id); setTextoEdicao(c.texto); }}
@@ -101,7 +111,19 @@ export default function ChatGeral({ clientId }) {
         ))}
         {comentarios.length === 0 && <p className="text-[12px] text-muted-foreground">Nenhuma mensagem ainda. Diga oi!</p>}
       </div>
+      {anexo && (
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1 flex-shrink-0">
+          <Paperclip className="w-3 h-3" /> {anexo.name}
+          <button onClick={() => setAnexo(null)} className="hover:text-foreground" aria-label="Remover anexo">
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
       <div className="flex gap-1.5 flex-shrink-0">
+        <label className="flex items-center flex-shrink-0 cursor-pointer text-primary hover:text-primary/80" title="Anexar arquivo">
+          <Paperclip className="w-4 h-4" />
+          <input type="file" className="hidden" onChange={(e) => setAnexo(e.target.files?.[0] || null)} />
+        </label>
         <input
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
