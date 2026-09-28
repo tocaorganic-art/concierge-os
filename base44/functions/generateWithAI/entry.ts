@@ -128,6 +128,39 @@ Seja direta, prática e amigável. Responda sempre em português brasileiro. Use
       prompt = `Sugira o melhor horário para uma nova tarefa de ${new_task_duration || 60} minutos.
 Horários já ocupados hoje: ${occupied.length > 0 ? occupied.join(", ") : "Nenhum"}
 Responda apenas com o horário no formato HH:MM (ex: 14:30), sem explicações.`;
+    } else if (type === "global_search") {
+      // Busca com IA sobre os PRÓPRIOS dados do cliente — o contexto já vem
+      // pronto do frontend (contrato, financeiro, pedidos, grupo, agenda,
+      // documentos), montado SÓ com dados que o RLS já liberou pra esse
+      // usuário (mesmas queries client_id-scoped usadas no resto do app).
+      // Nunca inventa dado que não esteja no contexto.
+      const { pergunta, contexto } = payload;
+      prompt = `Você é o assistente do Concierge OS. Responda a pergunta do cliente EXCLUSIVAMENTE com base no contexto abaixo (dados reais dele: contrato, financeiro, pedidos, grupo, agenda e documentos). Nunca invente valores, datas ou informações que não estejam no contexto. Se a resposta não estiver disponível, diga isso claramente e sugira a seção do painel onde a pessoa pode conferir ou falar com o concierge.
+
+Contexto (dados do cliente):
+"""
+${(contexto || "").slice(0, 15000)}
+"""
+
+Pergunta: ${pergunta}
+
+Responda em português, direto e curto (no máximo 4 frases), citando de qual área do painel veio a informação quando possível (ex: "conforme Faturamento...").`;
+    } else if (type === "contract_qa") {
+      // Responde SOMENTE com base no texto do contrato já extraído no
+      // frontend (via ExtractDataFromUploadedFile) — nunca inventa cláusula.
+      // Se a pergunta não puder ser respondida pelo texto, diz isso
+      // explicitamente em vez de arriscar um chute.
+      const { pergunta, contrato_texto } = payload;
+      prompt = `Você responde perguntas EXCLUSIVAMENTE com base no texto do contrato/regras da casa abaixo. Nunca invente cláusulas, valores ou informações que não estejam literalmente no texto. Se a resposta não estiver no texto, diga claramente que não encontrou essa informação no contrato e sugira falar com o concierge.
+
+Texto do contrato/regras da casa:
+"""
+${(contrato_texto || "").slice(0, 15000)}
+"""
+
+Pergunta do cliente: ${pergunta}
+
+Responda em português, de forma direta e curta, citando a parte relevante do contrato quando possível.`;
     }
 
     const message = await anthropic.messages.create({

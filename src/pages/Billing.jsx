@@ -23,6 +23,7 @@ import { getClientColor } from "@/lib/clientColor";
 import {
   statusDerivado, saldoDevedor, valorRecebido, agruparBillingsCliente,
   receitaCaixaDoMes, totalAReceber, emAtraso, indiceRecebimento,
+  comprovantesDoBilling, ultimoComprovante,
 } from "@/lib/finance";
 
 // Faturamento de uma conta "cliente" — billings/recebimentos já filtrados
@@ -325,9 +326,9 @@ export default function Billing() {
                               {translateCategoria(b.categoria, lang)}
                             </span>
                           )}
-                          {b.comprovante_url && (
-                            <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" title="Ver comprovante" onClick={(e) => e.stopPropagation()} className="ml-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
-                              <Paperclip className="w-3 h-3" /> Comprovante
+                          {ultimoComprovante(b) && (
+                            <a href={ultimoComprovante(b).url} target="_blank" rel="noopener noreferrer" title="Ver último comprovante" onClick={(e) => e.stopPropagation()} className="ml-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+                              <Paperclip className="w-3 h-3" /> Comprovante{comprovantesDoBilling(b).length > 1 ? ` (${comprovantesDoBilling(b).length})` : ""}
                             </a>
                           )}
                           {b.ultima_edicao_por === "cliente" && (
@@ -417,9 +418,9 @@ export default function Billing() {
                         {translateCategoria(b.categoria, lang)}
                       </span>
                     )}
-                    {b.comprovante_url && (
-                      <a href={b.comprovante_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
-                        <Paperclip className="w-3 h-3" /> Comprovante
+                    {ultimoComprovante(b) && (
+                      <a href={ultimoComprovante(b).url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+                        <Paperclip className="w-3 h-3" /> Comprovante{comprovantesDoBilling(b).length > 1 ? ` (${comprovantesDoBilling(b).length})` : ""}
                       </a>
                     )}
                   </div>

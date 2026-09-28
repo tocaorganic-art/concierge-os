@@ -4,11 +4,17 @@
   "properties": {
     "billing_id": {
       "type": "string",
-      "description": "ID da cobranca (Billing) a que este comentario se refere."
+      "description": "ID da cobranca (Billing) a que este comentario se refere. Vazio quando escopo='geral' (chat flutuante do cliente, nao preso a uma cobranca especifica)."
+    },
+    "escopo": {
+      "type": "string",
+      "enum": ["billing", "geral"],
+      "default": "billing",
+      "description": "'billing' = fio de comentarios de uma cobranca especifica (billing_id obrigatorio). 'geral' = chat flutuante do cliente com a equipe, uma unica thread por cliente (billing_id vazio)."
     },
     "client_id": {
       "type": "string",
-      "description": "ID do cliente (denormalizado a partir do Billing, usado so para RLS de leitura pelo proprio cliente)."
+      "description": "ID do cliente. Usado pra RLS de leitura pelo proprio cliente e, quando escopo='geral', pra identificar de qual cliente e a thread (ja que nao ha billing_id nesse caso)."
     },
     "autor_tipo": {
       "type": "string",
@@ -33,7 +39,7 @@
       "description": "Se o destinatario (a outra parte da conversa) ja abriu/leu este comentario - usado para o contador de nao lidos no admin."
     }
   },
-  "required": ["billing_id", "texto"],
+  "required": ["texto"],
   "rls": {
     "create": {
       "$or": [

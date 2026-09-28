@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Paperclip, Camera, ChevronDown, Send, Pencil } from "lucide-react";
-import { statusDerivado } from "@/lib/finance";
+import { statusDerivado, comprovantesDoBilling } from "@/lib/finance";
 import { useUserProfile } from "@/lib/useUserProfile";
 
 const EDITAVEL_MINUTOS = 5;
@@ -26,13 +26,17 @@ export const STATUS_LABEL = {
 };
 
 // Permite ao cliente anexar seu próprio comprovante de pagamento a uma
-// parcela pendente/parcial — só grava comprovante_url (RLS de campo em
-// base44/entities/Billing.jsonc), nunca altera valor, status ou natureza.
+// parcela pendente/parcial — grava em 'comprovantes' (histórico, RLS de
+// campo em base44/entities/Billing.jsonc), nunca altera valor, status ou
+// natureza. Reenviar NÃO apaga o anterior — cada envio vira um item novo,
+// pra permitir corrigir um anexo errado sem perder o que já tinha sido
+// mandado (achado real: cliente só conseguia anexar 1x, sem como corrigir).
 export function AnexarComprovante({ billing, onUploaded }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [divergencia, setDivergencia] = useState(null);
+  const jaTemComprovante = comprovantesDoBilling(billing).length > 0;
 
   const handleFileSelected = async (e) => {
     const file = e.target.files?.[0];
@@ -42,7 +46,11 @@ export function AnexarComprovante({ billing, onUploaded }) {
     setDivergencia(null);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.entities.Billing.update(billing.id, { comprovante_url: file_url, ultima_edicao_por: "cliente" });
+      const historico = [
+        ...comprovantesDoBilling(billing),
+        { url: file_url, enviado_por: "cliente", enviado_em: new Date().toISOString() },
+      ];
+      await base44.entities.Billing.update(billing.id, { comprovante_url: file_url, comprovantes: historico, ultima_edicao_por: "cliente" });
       try {
         const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
           file_url,
@@ -69,7 +77,7 @@ export function AnexarComprovante({ billing, onUploaded }) {
       <input ref={fileInputRef} type="file" accept="image/*,.pdf" capture="environment" className="hidden" onChange={handleFileSelected} />
       <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-60">
         {uploading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Camera className="w-2.5 h-2.5" />}
-        {uploading ? "Lendo com IA..." : "Anexar comprovante de pagamento"}
+        {uploading ? "Lendo com IA..." : jaTemComprovante ? "Reenviar comprovante" : "Anexar comprovante de pagamento"}
       </button>
       {error && <p className="text-[10px] text-red-400 mt-0.5">{error}</p>}
       {divergencia && (
@@ -204,7 +212,8 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, defaultAberto 
   const recebimentosDaParcela = recebimentos.filter((r) => r.billing_id === billing.id);
   const status = statusDerivado(billing, recebimentos);
   const meta = STATUS_LABEL[status] || STATUS_LABEL.pendente;
-  const podeAnexar = status !== "recebido" && status !== "cancelado" && !billing.comprovante_url;
+  const podeAnexar = status !== "recebido" && status !== "cancelado";
+  const comprovantes = comprovantesDoBilling(billing);
 
   return (
     <div id={`billing-${billing.id}`} className="border-b border-border/60 last:border-0 py-2.5 scroll-mt-24">
@@ -235,10 +244,17 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, defaultAberto 
               </div>
             ))
           )}
-          {billing.comprovante_url && (
-            <a href={billing.comprovante_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline">
-              <Paperclip className="w-2.5 h-2.5" /> Ver comprovante
-            </a>
+          {comprovantes.length > 0 && (
+            <div className="space-y-1">
+              {comprovantes.map((c, i) => (
+                <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
+                  <Paperclip className="w-2.5 h-2.5" />
+                  {comprovantes.length > 1 ? `Comprovante ${i + 1}` : "Ver comprovante"}
+                  {c.enviado_em && ` · ${formatDate(c.enviado_em.slice(0, 10))}`}
+                  {c.enviado_por && ` · enviado por ${c.enviado_por === "cliente" ? "você" : "equipe"}`}
+                </a>
+              ))}
+            </div>
           )}
           {podeAnexar && <AnexarComprovante billing={billing} onUploaded={onUploaded} />}
           <ComentariosThread billingId={billing.id} clientId={billing.client_id} />

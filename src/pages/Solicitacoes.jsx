@@ -165,7 +165,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
 }
 
 export default function Solicitacoes() {
-  const { isClientMode: isClient } = useEffectiveRole();
+  const { isClientMode: isClient, effectiveClientId } = useEffectiveRole();
   const { user } = useUserProfile();
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
@@ -313,7 +313,7 @@ export default function Solicitacoes() {
           tipo={novoTipo}
           user={user}
           onClose={() => setNovoTipo(null)}
-          onSubmit={(data) => createMutation.mutate(data)}
+          onSubmit={(data) => createMutation.mutate({ ...data, client_id: effectiveClientId })}
           isSubmitting={createMutation.isPending}
         />
       )}
