@@ -15,9 +15,20 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <App />
 )
 
-// Registra o Service Worker para funcionamento offline (PWA)
+// Service Worker do PWA — apenas em produção. Em desenvolvimento ele
+// cacheia chunks antigos do Vite (código novo misturado com antigo) e
+// quebra o React na inicialização com "Cannot read properties of null
+// (reading 'useState')". No dev, desregistramos workers antigos e
+// limpamos os caches deixados por versões anteriores.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    if (import.meta.env.DEV) {
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+        .then(() => caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))))
+        .catch(() => {});
+      return;
+    }
     navigator.serviceWorker.register('/sw.js').catch((err) => {
       console.warn('SW registration failed:', err);
     });

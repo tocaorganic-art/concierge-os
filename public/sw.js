@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'toca-concierge-v3';
+const CACHE_VERSION = 'toca-concierge-v4';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -35,6 +35,17 @@ self.addEventListener('fetch', (event) => {
 
   // Skip API/auth calls
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return;
+
+  // Nunca intercepta os arquivos internos do Vite nem chunks de JS/CSS do dev
+  // server — servi-los do cache entrega código antigo misturado com novo e
+  // quebra o React (erro de hook nulo / "useState" de null).
+  if (
+    url.pathname.startsWith('/src/') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.startsWith('/@vite') ||
+    url.pathname.startsWith('/@react-refresh') ||
+    url.pathname === '/sw.js'
+  ) return;
 
   // Network-first for navigation requests, fallback to cache
   if (request.mode === 'navigate') {
