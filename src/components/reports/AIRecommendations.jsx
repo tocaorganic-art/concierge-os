@@ -10,7 +10,7 @@ const typeConfig = {
 };
 
 const AiBadge = () => (
-  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2">✦ IA</span>
+  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2"><Sparkles className="w-2.5 h-2.5" /> IA</span>
 );
 
 export default function AIRecommendations({ proposals, clients, tasks }) {

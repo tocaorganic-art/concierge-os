@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, MapPin, Sparkles } from "lucide-react";
 
 export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitting }) {
   const [titulo, setTitulo] = useState("");
@@ -46,7 +46,7 @@ export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitti
         </button>
 
         <div className="mb-5">
-          <span className="text-3xl">{tipo.emoji}</span>
+          <tipo.Icon className="w-8 h-8 text-primary" />
           <h2 className="font-heading text-xl font-bold text-foreground mt-2">{tipo.label}</h2>
           <p className="text-xs text-muted-foreground">{tipo.sub}</p>
         </div>
@@ -70,11 +70,13 @@ export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitti
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 value={destino}
                 onChange={(e) => setDestino(e.target.value)}
-                placeholder="📍 Destino / Local"
+                placeholder="Destino / Local"
+                className="pl-9"
               />
             </div>
             <div>
@@ -87,8 +89,8 @@ export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitti
             </div>
           </div>
           <Button type="submit" className="w-full gap-2" disabled={isSubmitting || !titulo.trim()}>
-            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isSubmitting ? "Enviando..." : "Enviar pedido ✦"}
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {isSubmitting ? "Enviando..." : "Enviar pedido"}
           </Button>
         </form>
       </div>

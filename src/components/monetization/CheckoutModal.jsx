@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import GoogleIcon from "@/components/GoogleIcon";
 
@@ -109,7 +109,7 @@ export default function CheckoutModal({ open, onOpenChange, plan, billingCycle }
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-11"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {loading ? "Redirecionando..." : "Ir para o checkout →"}
+              {loading ? "Redirecionando..." : <span className="inline-flex items-center gap-1">Ir para o checkout <ArrowRight className="w-3.5 h-3.5" /></span>}
             </Button>
           )}
 

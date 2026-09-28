@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, User, CreditCard, Users, Image, Globe, Trash2, Lock, Save, ExternalLink, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, User, CreditCard, Users, Image, Globe, Trash2, Lock, Save, ExternalLink, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,7 +115,7 @@ export default function Settings() {
             </select>
           </div>
           <Button onClick={saveOperation} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2" size="sm">
-            <Save className="w-3.5 h-3.5" /> {saved ? "Salvo! ✓" : "Salvar"}
+            {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />} {saved ? "Salvo!" : "Salvar"}
           </Button>
         </div>
       </Section>

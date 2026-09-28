@@ -62,16 +62,16 @@ function ProposalCard({ p, provided, snapshot, onMoveLeft, onMoveRight, stageIdx
           <button
             onClick={onMoveLeft}
             disabled={!onMoveLeft}
-            className="flex-1 py-1.5 rounded-md text-xs font-mono bg-secondary text-muted-foreground hover:bg-secondary/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-mono bg-secondary text-muted-foreground hover:bg-secondary/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            ← {stageIdx > 0 ? stages[stageIdx - 1].label : ""}
+            <ChevronLeft className="w-3.5 h-3.5" /> {stageIdx > 0 ? stages[stageIdx - 1].label : ""}
           </button>
           <button
             onClick={onMoveRight}
             disabled={!onMoveRight}
-            className="flex-1 py-1.5 rounded-md text-xs font-mono bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-mono bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            {stageIdx < stages.length - 1 ? stages[stageIdx + 1].label : ""} →
+            {stageIdx < stages.length - 1 ? stages[stageIdx + 1].label : ""} <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       )}

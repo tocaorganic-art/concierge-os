@@ -4,16 +4,16 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, MapPin, Phone, Percent, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, MapPin, Phone, Percent, Pencil, Trash2, UtensilsCrossed, Palmtree, Car, Building2, Ticket, Sparkles, Handshake } from "lucide-react";
 import PartnerFormDialog from "@/components/partners/PartnerFormDialog";
 
 const CATS = {
-  restaurante: { emoji: "🍽️", label: "Restaurante" },
-  passeio:     { emoji: "🏝️", label: "Passeio" },
-  transfer:    { emoji: "🚗", label: "Transfer" },
-  hospedagem:  { emoji: "🏨", label: "Hospedagem" },
-  evento:      { emoji: "🎭", label: "Evento" },
-  outros:      { emoji: "✦",  label: "Outros" },
+  restaurante: { Icon: UtensilsCrossed, label: "Restaurante" },
+  passeio:     { Icon: Palmtree, label: "Passeio" },
+  transfer:    { Icon: Car, label: "Transfer" },
+  hospedagem:  { Icon: Building2, label: "Hospedagem" },
+  evento:      { Icon: Ticket, label: "Evento" },
+  outros:      { Icon: Sparkles, label: "Outros" },
 };
 
 export default function Parceiros() {
@@ -57,12 +57,16 @@ export default function Parceiros() {
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar parceiro..." className="pl-9" />
         </div>
         <div className="flex gap-1 bg-secondary/50 border border-border rounded-xl p-1 flex-wrap">
-          {["todos", ...Object.keys(CATS)].map((c) => (
-            <button key={c} onClick={() => setCatFilter(c)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
-              {c === "todos" ? "Todos" : CATS[c]?.emoji + " " + CATS[c]?.label}
-            </button>
-          ))}
+          {["todos", ...Object.keys(CATS)].map((c) => {
+            const CatIcon = CATS[c]?.Icon;
+            return (
+              <button key={c} onClick={() => setCatFilter(c)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${catFilter === c ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
+                {CatIcon && <CatIcon className="w-3.5 h-3.5" />}
+                {c === "todos" ? "Todos" : CATS[c]?.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -70,7 +74,7 @@ export default function Parceiros() {
         <div className="text-center py-20 text-muted-foreground text-sm">Carregando...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          <div className="text-4xl mb-3">🤝</div>
+          <Handshake className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
           <p className="text-sm">Nenhum parceiro cadastrado</p>
         </div>
       ) : (
@@ -81,7 +85,7 @@ export default function Parceiros() {
               <div key={p.id} className="bg-card border border-border rounded-2xl p-5 gold-border-hover transition-all">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{cat.emoji}</span>
+                    <cat.Icon className="w-6 h-6 text-primary" />
                     <div>
                       <h3 className="font-semibold text-foreground text-sm">{p.nome}</h3>
                       <Badge variant="outline" className="text-[10px] font-mono mt-1">{cat.label}</Badge>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/shared/PageHeader";
@@ -65,7 +66,7 @@ const ChartCard = ({ title, children, badge }) => (
   <div className="bg-card border border-border rounded-xl p-5">
     <div className="flex items-center gap-2 mb-4">
       <h3 className="font-heading text-lg font-semibold text-foreground">{title}</h3>
-      {badge && <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">{badge}</span>}
+      {badge && <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">{badge}</span>}
     </div>
     {children}
   </div>
@@ -203,7 +204,7 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Funnel */}
-        <ChartCard title="Funil de Vendas" badge="✦ IA">
+        <ChartCard title="Funil de Vendas" badge={<><Sparkles className="w-2.5 h-2.5" /> IA</>}>
           <FunnelChart proposals={proposals} />
         </ChartCard>
 

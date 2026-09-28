@@ -79,7 +79,7 @@ export default function Plans() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("success")) {
-      setToast({ type: "success", msg: "✓ Assinatura ativada! Bem-vindo ao Toca Concierge." });
+      setToast({ type: "success", msg: "Assinatura ativada! Bem-vindo ao Toca Concierge." });
       setTimeout(() => setToast(null), 5000);
     } else if (params.get("canceled")) {
       setToast({ type: "info", msg: "Checkout cancelado. Você pode assinar quando quiser." });
@@ -107,7 +107,6 @@ export default function Plans() {
       tagline: "Concierge IA sempre disponível",
       icon: Zap,
       highlight: false,
-      emoji: "🏝️",
       features: [
         "Concierge IA 24h",
         "Roteiros personalizados",
@@ -122,7 +121,6 @@ export default function Plans() {
       tagline: "Concierge humano + IA",
       icon: Star,
       highlight: true,
-      emoji: "✦",
       features: [
         "Tudo do Essencial",
         "Concierge humano dedicado",
@@ -138,7 +136,6 @@ export default function Plans() {
       tagline: "O melhor da experiência",
       icon: Crown,
       highlight: false,
-      emoji: "🖤",
       features: [
         "Tudo do Premium",
         "Concierge dedicado exclusivo",
@@ -159,7 +156,10 @@ export default function Plans() {
           toast.type === "error" ? "bg-red-500/15 border-red-500/30 text-red-400" :
           "bg-secondary border-border text-foreground"
         }`}>
-          {toast.msg}
+          <span className="inline-flex items-center gap-1.5">
+            {toast.type === "success" && <Check className="w-4 h-4 flex-shrink-0" />}
+            {toast.msg}
+          </span>
         </div>
       )}
 
@@ -213,22 +213,22 @@ export default function Plans() {
             >
               {plan.highlight && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-primary text-primary-foreground text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                    ✦ Mais popular
+                  <span className="inline-flex items-center gap-1 bg-primary text-primary-foreground text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                    <Sparkles className="w-2.5 h-2.5" /> Mais popular
                   </span>
                 </div>
               )}
               {isBlack && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-foreground text-background text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                    🖤 Elite
+                  <span className="inline-flex items-center gap-1 bg-foreground text-background text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                    <Crown className="w-2.5 h-2.5" /> Elite
                   </span>
                 </div>
               )}
 
               <div className="mb-5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-xl ${isBlack ? "bg-foreground/10" : plan.highlight ? "bg-primary/20" : "bg-secondary"}`}>
-                  {plan.emoji}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${isBlack ? "bg-foreground/10" : plan.highlight ? "bg-primary/20" : "bg-secondary"}`}>
+                  <Icon className="w-5 h-5 text-primary" />
                 </div>
                 <h2 className="font-heading text-xl font-bold text-foreground">{plan.name}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{plan.tagline}</p>
@@ -302,8 +302,8 @@ export default function Plans() {
         </div>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground mt-10 font-mono">
-        ✦ Pagamento seguro via Stripe · Sem contratos · Cancele a qualquer momento
+      <p className="text-center text-xs text-muted-foreground mt-10 font-mono inline-flex items-center gap-1.5 justify-center w-full">
+        <Sparkles className="w-3 h-3 flex-shrink-0" /> Pagamento seguro via Stripe · Sem contratos · Cancele a qualquer momento
       </p>
     </div>
   );

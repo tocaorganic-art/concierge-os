@@ -2,13 +2,13 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, Sparkles, CheckCircle2, XCircle, Palmtree, UtensilsCrossed, Gem, LifeBuoy } from "lucide-react";
 
 const TIPOS = {
-  experiencia: { emoji: "🏝️", label: "Experiência" },
-  reserva:     { emoji: "🍽️", label: "Reserva" },
-  exclusivo:   { emoji: "🚁", label: "Exclusivo" },
-  ajuda:       { emoji: "🆘", label: "Urgente" },
+  experiencia: { Icon: Palmtree, label: "Experiência" },
+  reserva:     { Icon: UtensilsCrossed, label: "Reserva" },
+  exclusivo:   { Icon: Gem, label: "Exclusivo" },
+  ajuda:       { Icon: LifeBuoy, label: "Urgente" },
 };
 
 const STATUS = {
@@ -31,7 +31,7 @@ export default function RequestHistory({ requests }) {
             <div key={req.id} className="bg-card/60 border border-border rounded-xl p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="text-xl flex-shrink-0">{tipo.emoji}</span>
+                  <tipo.Icon className="w-5 h-5 flex-shrink-0 text-primary" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{req.titulo}</p>
                     <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
@@ -45,7 +45,7 @@ export default function RequestHistory({ requests }) {
               </div>
               {req.resposta_concierge && (
                 <div className="mt-3 bg-primary/5 border border-primary/15 rounded-lg p-3 text-xs text-foreground/80">
-                  <span className="text-primary font-mono text-[9px] uppercase tracking-wider block mb-1">✦ Resposta do concierge</span>
+                  <span className="text-primary font-mono text-[9px] uppercase tracking-wider inline-flex items-center gap-1 mb-1"><Sparkles className="w-2.5 h-2.5" /> Resposta do concierge</span>
                   {req.resposta_concierge}
                 </div>
               )}

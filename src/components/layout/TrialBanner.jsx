@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { X, Flame, Clock } from "lucide-react";
+import { X, Flame, Clock, Sparkles, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 export default function TrialBanner({ daysLeft, onDismiss }) {
@@ -21,7 +21,7 @@ export default function TrialBanner({ daysLeft, onDismiss }) {
   return (
     <div className={`relative flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium border-b ${bgClass}`}>
       {Icon && <Icon className="w-3.5 h-3.5 flex-shrink-0" />}
-      <span className="text-primary mr-1">✦</span>
+      <Sparkles className="w-3.5 h-3.5 text-primary mr-1" />
       {expired ? (
         <span>
           {t("trial_expired")}{" "}
@@ -36,8 +36,8 @@ export default function TrialBanner({ daysLeft, onDismiss }) {
           <strong className={urgent ? "text-amber-300" : "text-primary"}>
             {daysLeft} {daysLeft === 1 ? t("trial_day_left") : t("trial_days_left")}
           </strong>.{" "}
-          <Link to="/planos" className="underline font-semibold hover:opacity-80 transition-colors">
-            {t("trial_view_plans")} →
+          <Link to="/planos" className="inline-flex items-center gap-0.5 underline font-semibold hover:opacity-80 transition-colors">
+            {t("trial_view_plans")} <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </span>
       )}

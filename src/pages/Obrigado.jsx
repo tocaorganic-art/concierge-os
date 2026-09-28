@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, ArrowRight, Sparkles } from "lucide-react";
+import { CheckCircle, ArrowRight, Sparkles, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Obrigado() {
@@ -29,8 +29,8 @@ export default function Obrigado() {
         </div>
 
         {/* Heading */}
-        <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3">
-          Bem-vindo à Toca! 🎉
+        <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3 inline-flex items-center gap-2 justify-center">
+          Bem-vindo à Toca! <PartyPopper className="w-7 h-7 text-primary flex-shrink-0" />
         </h1>
         <p className="text-muted-foreground text-base mb-2">
           Sua assinatura foi ativada com sucesso.
@@ -52,8 +52,8 @@ export default function Obrigado() {
           <ArrowRight className="w-4 h-4" />
         </Button>
 
-        <p className="mt-6 text-xs text-muted-foreground font-mono">
-          ✦ Dúvidas? Fale conosco pelo WhatsApp
+        <p className="mt-6 text-xs text-muted-foreground font-mono inline-flex items-center gap-1.5 justify-center w-full">
+          <Sparkles className="w-3 h-3 flex-shrink-0" /> Dúvidas? Fale conosco pelo WhatsApp
         </p>
       </div>
     </div>

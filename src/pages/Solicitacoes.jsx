@@ -17,22 +17,28 @@ import {
   Calendar,
   User,
   Plus,
+  Palmtree,
+  UtensilsCrossed,
+  Gem,
+  LifeBuoy,
+  MapPin,
+  Inbox,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const TIPOS_NOVO_PEDIDO = [
-  { id: "experiencia", emoji: "🏝️", label: "Experiência", sub: "Roteiros, passeios e aventuras" },
-  { id: "reserva", emoji: "🍽️", label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
-  { id: "exclusivo", emoji: "🚁", label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
-  { id: "ajuda", emoji: "🆘", label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
+  { id: "experiencia", Icon: Palmtree, label: "Experiência", sub: "Roteiros, passeios e aventuras" },
+  { id: "reserva", Icon: UtensilsCrossed, label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
+  { id: "exclusivo", Icon: Gem, label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
+  { id: "ajuda", Icon: LifeBuoy, label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
 ];
 
 const TIPOS = {
-  experiencia: { label: "Experiência", emoji: "🏝️", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  reserva:     { label: "Reserva",     emoji: "🍽️", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  exclusivo:   { label: "Exclusivo",   emoji: "🚁", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
-  ajuda:       { label: "Urgente",     emoji: "🆘", color: "bg-red-500/10 text-red-400 border-red-500/20" },
+  experiencia: { label: "Experiência", Icon: Palmtree,        color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  reserva:     { label: "Reserva",     Icon: UtensilsCrossed,  color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+  exclusivo:   { label: "Exclusivo",   Icon: Gem,              color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+  ajuda:       { label: "Urgente",     Icon: LifeBuoy,         color: "bg-red-500/10 text-red-400 border-red-500/20" },
 };
 
 const STATUS = {
@@ -73,7 +79,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
     <div className="bg-card border border-border rounded-2xl p-5 gold-border-hover transition-all">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <span className="text-2xl flex-shrink-0">{tipo.emoji}</span>
+          <tipo.Icon className="w-6 h-6 flex-shrink-0 text-primary" />
           <div className="min-w-0">
             <h3 className="font-semibold text-foreground text-sm truncate">{req.titulo}</h3>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -103,7 +109,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
           <span className="flex items-center gap-1"><User className="w-3 h-3" />{req.client_nome}</span>
         )}
         {req.destino && (
-          <span>📍 {req.destino}</span>
+          <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" /> {req.destino}</span>
         )}
         {req.data_desejada && (
           <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{format(new Date(req.data_desejada), "dd/MM/yyyy")}</span>
@@ -112,7 +118,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
 
       {req.resposta_concierge && !showReply && (
         <div className="mt-3 ml-9 bg-secondary/50 rounded-xl p-3 text-xs text-foreground/70 border border-border">
-          <span className="text-primary font-mono text-[10px] uppercase tracking-wider block mb-1">✦ Resposta enviada</span>
+          <span className="inline-flex items-center gap-1 text-primary font-mono text-[10px] uppercase tracking-wider mb-1"><Sparkles className="w-2.5 h-2.5" /> Resposta enviada</span>
           {req.resposta_concierge}
         </div>
       )}
@@ -241,7 +247,7 @@ export default function Solicitacoes() {
               onClick={() => setNovoTipo(tipo)}
               className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors flex-shrink-0"
             >
-              <span className="text-xl">{tipo.emoji}</span>
+              <tipo.Icon className="w-5 h-5 text-primary" />
               <span className="text-[11px] text-foreground whitespace-nowrap">{tipo.label}</span>
             </button>
           ))}
@@ -262,15 +268,18 @@ export default function Solicitacoes() {
           ))}
         </div>
         <div className="flex gap-1 bg-secondary/50 border border-border rounded-xl p-1">
-          {["todos", "experiencia", "reserva", "exclusivo", "ajuda"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setFiltroTipo(t)}
-              className={`px-2 py-1 rounded-lg text-xs transition-all ${filtroTipo === t ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {t === "todos" ? "Todos" : TIPOS[t]?.emoji}
-            </button>
-          ))}
+          {["todos", "experiencia", "reserva", "exclusivo", "ajuda"].map((t) => {
+            const TipoIcon = TIPOS[t]?.Icon;
+            return (
+              <button
+                key={t}
+                onClick={() => setFiltroTipo(t)}
+                className={`px-2 py-1 rounded-lg text-xs transition-all ${filtroTipo === t ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {t === "todos" ? "Todos" : <TipoIcon className="w-4 h-4" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -281,7 +290,7 @@ export default function Solicitacoes() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          <div className="text-4xl mb-3">🏝️</div>
+          <Inbox className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
           <p className="text-sm">Nenhuma solicitação encontrada</p>
           <p className="text-xs mt-1 opacity-60">Quando seus clientes fizerem pedidos, eles aparecerão aqui</p>
         </div>

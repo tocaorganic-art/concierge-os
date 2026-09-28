@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Download, X, Smartphone } from "lucide-react";
+import { Download, X, Smartphone, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "toca_pwa_popup_dismissed";
@@ -90,8 +90,8 @@ export default function PwaInstallPopup() {
             </p>
 
             {isIOS ? (
-              <p className="text-[10px] text-muted-foreground leading-tight">
-                Toque em <span className="text-primary">Compartilhar</span> → "Adicionar à Tela de Início"
+              <p className="text-[10px] text-muted-foreground leading-tight inline-flex items-center gap-1 flex-wrap">
+                Toque em <span className="text-primary">Compartilhar</span> <ArrowRight className="w-2.5 h-2.5 flex-shrink-0" /> "Adicionar à Tela de Início"
               </p>
             ) : (
               <Button onClick={handleInstall} size="sm" className="w-full gap-1.5 h-8 text-xs">

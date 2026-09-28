@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DollarSign, FileText, TrendingUp, Users, AlertCircle, Wallet, Percent, Eye } from "lucide-react";
+import { DollarSign, FileText, TrendingUp, Users, AlertCircle, AlertTriangle, Wallet, Percent, Eye, Palmtree, UtensilsCrossed, Gem, LifeBuoy } from "lucide-react";
 import KpiCard from "@/components/shared/KpiCard";
 import PageHeader from "@/components/shared/PageHeader";
 import DashboardPipeline from "@/components/dashboard/DashboardPipeline";
@@ -29,10 +29,10 @@ import {
 } from "@/lib/finance";
 
 const TIPOS_PEDIDO = [
-  { id: "experiencia", emoji: "🏝️", label: "Experiência", sub: "Roteiros, passeios e aventuras" },
-  { id: "reserva", emoji: "🍽️", label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
-  { id: "exclusivo", emoji: "🚁", label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
-  { id: "ajuda", emoji: "🆘", label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
+  { id: "experiencia", Icon: Palmtree, label: "Experiência", sub: "Roteiros, passeios e aventuras" },
+  { id: "reserva", Icon: UtensilsCrossed, label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
+  { id: "exclusivo", Icon: Gem, label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
+  { id: "ajuda", Icon: LifeBuoy, label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
 ];
 
 // Visão Geral de uma conta "cliente" (real ou "ver como cliente" do admin) —
@@ -162,7 +162,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
               onClick={() => setSelectedTipo(tipo)}
               className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-secondary/30 hover:border-primary/40 transition-colors"
             >
-              <span className="text-2xl">{tipo.emoji}</span>
+              <tipo.Icon className="w-6 h-6 text-primary" />
               <span className="text-[11px] text-foreground text-center">{tipo.label}</span>
             </button>
           ))}
@@ -359,7 +359,7 @@ export default function Dashboard() {
           valueClassName="text-emerald-400"
           trendLabel={
             receitaNaoClassificada > 0
-              ? `⚠ ${currSymbol} ${receitaNaoClassificada.toLocaleString(localeDate)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.`
+              ? <span className="inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3 flex-shrink-0" /> {currSymbol} {receitaNaoClassificada.toLocaleString(localeDate)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.</span>
               : `Honorário ${currSymbol} ${receitaMes.honorario.toLocaleString(localeDate)} · Intermediação ${currSymbol} ${receitaMes.intermediacao.toLocaleString(localeDate)} · Comissão ${currSymbol} ${receitaMes.comissao.toLocaleString(localeDate)}`
           }
         />
