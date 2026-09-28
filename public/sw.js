@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'toca-concierge-v4';
+const CACHE_VERSION = 'toca-concierge-v5';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -46,6 +46,26 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/@react-refresh') ||
     url.pathname === '/sw.js'
   ) return;
+
+  // Chunks de JS/CSS: NUNCA servem do cache primeiro — código velho
+  // misturado com novo duplica o React e trava a tela (preta) após o
+  // login. Rede primeiro; o cache fica só como fallback offline.
+  const isCodeAsset =
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    /\.(js|css|mjs)(\?|$)/.test(url.pathname + url.search);
+  if (isCodeAsset) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
 
   // Network-first for navigation requests, fallback to cache
   if (request.mode === 'navigate') {
