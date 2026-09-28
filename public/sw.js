@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'toca-concierge-v6';
+const CACHE_VERSION = 'toca-concierge-v7';
 const PRECACHE = [
   '/',
   '/index.html',
