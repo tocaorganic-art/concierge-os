@@ -8,8 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
-
 const TIPOS = [
   "Viagem de luxo", "Casamento", "Evento corporativo",
   "Experiência local", "Transfer VIP", "Personalizado",
@@ -51,7 +49,7 @@ export default function AIProposalModal({ open, onOpenChange, onGenerated }) {
   const handleGenerate = async () => {
     if (!form.client_nome || !form.destino) return;
     setLoading(true);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "proposal",
       payload: { ...form, referencia_estilo: uploadedRef },
     });

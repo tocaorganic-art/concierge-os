@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MessageCircle, Sparkles, Loader2, Copy, ExternalLink } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
+import { base44 } from "@/api/base44Client";
 
 const TEMPLATES = [
   { id: "confirmar_chegada", label: "Confirmar chegada" },
@@ -27,7 +27,7 @@ export default function WhatsAppModal({ open, onOpenChange, client_nome, telefon
   const handleGenerate = async (template = null) => {
     setLoading(true);
     setActiveTemplate(template);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "whatsapp",
       payload: {
         template: template || "custom",

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { linkInvitedAccount } from "@/functions/linkInvitedAccount";
 
 // Resolve quem está logado e qual o tipo de acesso dele:
 // admin (dono da conta), equipe (colaborador interno) ou cliente (acesso restrito ao Portal do Cliente).
@@ -31,7 +30,7 @@ export function useUserProfile() {
 
         if (u.email) {
           try {
-            const result = await linkInvitedAccount({ user: { id: u.id, email: u.email } });
+            const result = await base44.functions.invoke("linkInvitedAccount", { user: { id: u.id, email: u.email } });
             if (result?.status === "linked") {
               u = await base44.auth.me();
             }

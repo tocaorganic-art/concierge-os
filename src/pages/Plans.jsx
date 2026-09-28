@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, X, Crown, Star, Zap, ChevronDown, ChevronUp, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { stripeCheckout } from "@/functions/stripeCheckout";
+import { base44 } from "@/api/base44Client";
 import { useLocation } from "react-router-dom";
 
 // Price IDs reais do Stripe
@@ -90,7 +90,7 @@ export default function Plans() {
   const handleCheckout = async (planId) => {
     setLoadingPlan(planId);
     const price_id = PRICE_IDS[planId][billing];
-    const res = await stripeCheckout({ price_id, plan_id: planId, cycle: billing });
+    const res = await base44.functions.invoke("stripeCheckout", { price_id, plan_id: planId, cycle: billing });
     const url = res?.data?.url;
     if (url) {
       window.location.href = url;

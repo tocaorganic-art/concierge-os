@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { stripeCheckout } from "@/functions/stripeCheckout";
 import GoogleIcon from "@/components/GoogleIcon";
 
 const PRICE_IDS = {
@@ -44,7 +43,7 @@ export default function CheckoutModal({ open, onOpenChange, plan, billingCycle }
     if (!priceId) return;
     setLoading(true);
     setError(null);
-    const res = await stripeCheckout({ price_id: priceId, plan_id: plan, cycle });
+    const res = await base44.functions.invoke("stripeCheckout", { price_id: priceId, plan_id: plan, cycle });
     const url = res?.data?.url;
     if (url) {
       window.location.href = url;

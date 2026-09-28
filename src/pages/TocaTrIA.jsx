@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, User, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { generateWithAI } from "@/functions/generateWithAI";
 import { base44 } from "@/api/base44Client";
 
 const SUGGESTIONS = [
@@ -59,7 +58,7 @@ export default function TocaTrIA() {
     setMessages(newMessages);
     setLoading(true);
 
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "chat",
       payload: {
         messages: newMessages,

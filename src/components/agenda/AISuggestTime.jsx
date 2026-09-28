@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
+import { base44 } from "@/api/base44Client";
 
 export default function AISuggestTime({ tasksToday, onSuggest }) {
   const [loading, setLoading] = useState(false);
 
   const handleSuggest = async () => {
     setLoading(true);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "schedule_suggestion",
       payload: { tasks_today: tasksToday, new_task_duration: 60 },
     });

@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CalendarClock } from "lucide-react";
-import { checkDeadlineAlerts } from "@/functions/checkDeadlineAlerts";
+import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
 
 // Painel de alertas de prazo: tarefas pendentes atrasadas/próximas e propostas
@@ -13,7 +13,7 @@ export default function DeadlineAlerts() {
   const { data: alertas = [] } = useQuery({
     queryKey: ["deadline-alerts"],
     queryFn: async () => {
-      const res = await checkDeadlineAlerts({ notify: false });
+      const res = await base44.functions.invoke("checkDeadlineAlerts", { notify: false });
       return res?.data?.alertas || [];
     },
     staleTime: 5 * 60 * 1000,

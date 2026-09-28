@@ -11,7 +11,6 @@ import PlanGate from "@/components/monetization/PlanGate";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import { useNavigate } from "react-router-dom";
-import { stripePortal } from "@/functions/stripePortal";
 
 function Section({ icon: Icon, title, children }) {
   return (
@@ -83,7 +82,7 @@ export default function Settings() {
 
   const handlePortal = async () => {
     setPortalLoading(true);
-    const res = await stripePortal({});
+    const res = await base44.functions.invoke("stripePortal", {});
     const url = res?.data?.url;
     if (url) window.location.href = url;
     else setPortalLoading(false);

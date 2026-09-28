@@ -18,7 +18,6 @@ import {
   User,
   Plus,
 } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -54,7 +53,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
 
   const generateAIReply = async () => {
     setLoadingAI(true);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "chat",
       payload: {
         messages: [
