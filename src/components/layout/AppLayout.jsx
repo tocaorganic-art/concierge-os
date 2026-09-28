@@ -65,12 +65,6 @@ function AppLayoutInner() {
       // Onboarding
       if (u.first_login !== false) setShowOnboarding(true);
 
-      // Tutorial — show automatically if not seen yet (after onboarding)
-      const tutorialSeen = localStorage.getItem(`tutorial_seen_${u.id}`);
-      if (!tutorialSeen && u.first_login === false) {
-        setTimeout(() => setShowTutorial(true), 800);
-      }
-
     }).catch(() => {});
   }, []);
 
@@ -130,14 +124,7 @@ function AppLayoutInner() {
       {showOnboarding && user && (
         <OnboardingWizard
           user={user}
-          onComplete={() => {
-            setShowOnboarding(false);
-            // Show tutorial after onboarding completes for the first time
-            const tutorialSeen = user?.id ? localStorage.getItem(`tutorial_seen_${user.id}`) : null;
-            if (!tutorialSeen) {
-              setTimeout(() => setShowTutorial(true), 500);
-            }
-          }}
+          onComplete={() => setShowOnboarding(false)}
         />
       )}
 
