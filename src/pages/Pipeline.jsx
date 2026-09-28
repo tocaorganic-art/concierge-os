@@ -128,7 +128,7 @@ export default function Pipeline() {
     <div>
       <DashboardBannerHeader
         data={new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
-        bannerUrl="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/2de6cef7c_Gemini_Generated_Image_58bzn758bzn758bz.jpg"
+        bannerVideoUrl="https://media.base44.com/videos/public/6a1f06cb2529a2c8784acc2c/059002cd8_gemini_generated_video_e6f924d9.mp4"
         alt="Trancoso Resolve — Quem resolve, pertinho de você"
         categorias={stages.map((s) => s.label)}
       />
