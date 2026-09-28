@@ -9,7 +9,7 @@ const BANNER_URL =
 
 const CATEGORIAS = ["Experiência", "Reservar", "Exclusivo", "Ajuda"];
 
-export default function DashboardBannerHeader({ data, bannerUrl = BANNER_URL, bannerVideoUrl, alt = "Toca Experience — Seu próximo destino começa aqui", categorias = CATEGORIAS }) {
+export default function DashboardBannerHeader({ data, bannerUrl = BANNER_URL, bannerVideoUrl, alt = "Toca Experience — Seu próximo destino começa aqui", categorias = CATEGORIAS, showInfo = true }) {
   // prefers-reduced-motion: o vídeo de capa fica parado no 1º frame.
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
@@ -32,16 +32,18 @@ export default function DashboardBannerHeader({ data, bannerUrl = BANNER_URL, ba
           className="w-full rounded-xl border border-border"
         />
       )}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-        {categorias.map((c) => (
-          <span key={c} className="liquid-glass rounded-full px-3 py-1.5 text-xs font-medium text-white">
-            {c}
+      {!showInfo ? null : (
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          {categorias.map((c) => (
+            <span key={c} className="liquid-glass rounded-full px-3 py-1.5 text-xs font-medium text-white">
+              {c}
+            </span>
+          ))}
+          <span className="liquid-glass rounded-full px-3 py-1.5 text-xs font-medium text-white capitalize">
+            {data}
           </span>
-        ))}
-        <span className="liquid-glass rounded-full px-3 py-1.5 text-xs font-medium text-white capitalize">
-          {data}
-        </span>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

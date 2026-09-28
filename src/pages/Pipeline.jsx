@@ -130,7 +130,8 @@ export default function Pipeline() {
         data={new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
         bannerVideoUrl="https://media.base44.com/videos/public/6a1f06cb2529a2c8784acc2c/059002cd8_gemini_generated_video_e6f924d9.mp4"
         alt="Trancoso Resolve — Quem resolve, pertinho de você"
-        categorias={stages.map((s) => s.label)}
+        categorias={[]}
+        showInfo={false}
       />
       <div className="hidden md:flex justify-end mb-4">
         <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
