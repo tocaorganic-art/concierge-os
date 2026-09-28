@@ -41,6 +41,10 @@
       "default": "normal",
       "description": "Prioridade da solicita\u00e7\u00e3o"
     },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente (Client), quando o solicitante e uma conta cliente vinculada. Usado pra agregar pedidos por cliente em Documentos e na busca com IA, sem depender de created_by_id (que e o id do usuario, nao do registro Client). Pode ficar vazio em registros antigos."
+    },
     "client_nome": {
       "type": "string",
       "description": "Nome do cliente"

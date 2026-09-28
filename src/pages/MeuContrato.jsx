@@ -1,9 +1,98 @@
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { agruparBillingsCliente } from "@/lib/finance";
-import { FileText, Loader2, Download, ExternalLink } from "lucide-react";
+import { FileText, Loader2, Download, ExternalLink, Sparkles, Send, AlertCircle } from "lucide-react";
+
+// Busca com IA sobre o contrato assinado — extrai o texto do PDF/imagem UMA
+// vez por sessão (ExtractDataFromUploadedFile, mesmo padrão de leitura já
+// usado em Faturamento/Pedidos) e reusa pra todas as perguntas seguintes, em
+// vez de reler o arquivo a cada pergunta. A resposta é sempre baseada SÓ
+// nesse texto (ver prompt em generateWithAI "contract_qa") — nunca inventa
+// cláusula, e avisa quando não encontra a informação.
+function BuscaContrato({ contratoUrl }) {
+  const [pergunta, setPergunta] = useState("");
+  const [historico, setHistorico] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [contratoTexto, setContratoTexto] = useState(null);
+
+  const garantirTexto = async () => {
+    if (contratoTexto) return contratoTexto;
+    const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
+      file_url: contratoUrl,
+      json_schema: {
+        type: "object",
+        properties: {
+          texto_completo: { type: "string", description: "Todo o texto do documento, na íntegra, sem resumir nem traduzir." },
+        },
+      },
+    });
+    const texto = (extracted?.output || extracted || {}).texto_completo || "";
+    setContratoTexto(texto);
+    return texto;
+  };
+
+  const handlePerguntar = async (e) => {
+    e.preventDefault();
+    const texto = pergunta.trim();
+    if (!texto || carregando) return;
+    setPergunta("");
+    setErro("");
+    setCarregando(true);
+    try {
+      const contratoTextoAtual = await garantirTexto();
+      if (!contratoTextoAtual) {
+        setErro("Não consegui ler o texto do contrato. Tente novamente em instantes.");
+        return;
+      }
+      const res = await base44.functions.invoke("generateWithAI", {
+        type: "contract_qa",
+        payload: { pergunta: texto, contrato_texto: contratoTextoAtual },
+      });
+      setHistorico((h) => [...h, { pergunta: texto, resposta: res?.data?.result || "" }]);
+    } catch {
+      setErro("Não consegui responder agora. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-5 mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="w-4 h-4 text-primary" />
+        <p className="text-sm font-semibold text-foreground">Pergunte sobre o contrato</p>
+      </div>
+      {historico.length > 0 && (
+        <div className="space-y-3 mb-3">
+          {historico.map((h, i) => (
+            <div key={i} className="text-sm">
+              <p className="text-foreground font-medium">{h.pergunta}</p>
+              <p className="text-muted-foreground mt-0.5">{h.resposta}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {erro && (
+        <p className="text-xs text-red-400 mb-2 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {erro}</p>
+      )}
+      <form onSubmit={handlePerguntar} className="flex gap-2">
+        <input
+          value={pergunta}
+          onChange={(e) => setPergunta(e.target.value)}
+          placeholder="Ex: Posso levar animal de estimação?"
+          disabled={carregando}
+          className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+        />
+        <button type="submit" disabled={carregando || !pergunta.trim()} className="px-3 rounded-lg bg-primary text-primary-foreground disabled:opacity-50">
+          {carregando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+        </button>
+      </form>
+    </div>
+  );
+}
 
 // Meu Contrato — composição do preço cheio (itens_contrato, dado público do
 // próprio contrato) + as parcelas de "Seu Contrato" (nunca a alocação
@@ -63,6 +152,8 @@ export default function MeuContrato() {
           )}
         </div>
       )}
+
+      {proposta?.contrato_assinado_url && <BuscaContrato contratoUrl={proposta.contrato_assinado_url} />}
 
       {itens.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">

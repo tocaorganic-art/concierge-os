@@ -187,7 +187,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           tipo={selectedTipo}
           user={user}
           onClose={() => setSelectedTipo(null)}
-          onSubmit={(data) => createMutation.mutate(data)}
+          onSubmit={(data) => createMutation.mutate({ ...data, client_id: user?.client_id })}
           isSubmitting={createMutation.isPending}
         />
       )}
