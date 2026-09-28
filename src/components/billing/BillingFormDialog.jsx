@@ -157,6 +157,9 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
       queryClient.invalidateQueries({ queryKey: ["billings"] });
       onOpenChange(false);
     },
+    onError: (err) => {
+      setFormError(`Não foi possível salvar${err?.message ? `: ${err.message}` : "."} Tente novamente.`);
+    },
   });
 
   const handleClientChange = (clientId) => {

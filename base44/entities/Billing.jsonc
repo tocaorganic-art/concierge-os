@@ -247,12 +247,12 @@
         {
           "$and": [
             {
-              "user_condition": {
-                "account_type": "cliente"
-              }
+              "data.client_id": "{{user.data.client_id}}"
             },
             {
-              "data.client_id": "{{user.data.client_id}}"
+              "data.client_id": {
+                "$ne": null
+              }
             }
           ]
         }
@@ -286,12 +286,12 @@
         {
           "$and": [
             {
-              "user_condition": {
-                "account_type": "cliente"
-              }
+              "data.client_id": "{{user.data.client_id}}"
             },
             {
-              "data.client_id": "{{user.data.client_id}}"
+              "data.client_id": {
+                "$ne": null
+              }
             }
           ]
         }
