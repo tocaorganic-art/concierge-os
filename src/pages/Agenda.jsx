@@ -8,6 +8,7 @@ import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import TaskFormDialog from "@/components/agenda/TaskFormDialog";
 import TaskReminderBanner from "@/components/agenda/TaskReminderBanner";
+import FaturasDoDia from "@/components/agenda/FaturasDoDia";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
@@ -39,6 +40,14 @@ export default function Agenda() {
   const { data: tasks = [], isLoading, isError } = useQuery({
     queryKey: ["tasks"],
     queryFn: () => base44.entities.Task.list("-data", 200),
+  });
+
+  // Faturas com vencimento — só equipe/admin (o cliente vê tudo no Financeiro;
+  // para um cliente real, RLS já filtraria, mas a seção fica interna mesmo).
+  const { data: billings = [] } = useQuery({
+    queryKey: ["agenda-billings"],
+    queryFn: () => base44.entities.Billing.list("-data_vencimento", 200),
+    enabled: !isClient,
   });
 
   const toggleTask = useMutation({
@@ -221,6 +230,7 @@ export default function Agenda() {
           ) : (
             getTasksForDate(currentDate).map((task) => <TaskCard key={task.id} task={task} />)
           )}
+          <FaturasDoDia billings={billings} dateStr={format(currentDate, "yyyy-MM-dd")} />
         </div>
       </div>
 
@@ -243,6 +253,7 @@ export default function Agenda() {
                   </div>
                   <div className="space-y-2">
                     {dayTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+                    <FaturasDoDia billings={billings} dateStr={format(day, "yyyy-MM-dd")} />
                   </div>
                 </div>
               );
@@ -268,6 +279,7 @@ export default function Agenda() {
                 getTasksForDate(currentDate).map((task) => <TaskCard key={task.id} task={task} />)
               )}
             </div>
+            <FaturasDoDia billings={billings} dateStr={format(currentDate, "yyyy-MM-dd")} />
           </div>
         )}
       </div>
