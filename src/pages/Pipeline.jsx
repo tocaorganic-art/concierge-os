@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Plus, MapPin, Calendar, Users as UsersIcon, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import PageHeader from "@/components/shared/PageHeader";
+import DashboardBannerHeader from "@/components/dashboard/DashboardBannerHeader";
 import ProposalFormDialog from "@/components/proposals/ProposalFormDialog";
 import { isProposalExpired } from "@/lib/proposalUtils";
 
@@ -126,15 +126,17 @@ export default function Pipeline() {
 
   return (
     <div>
-      <PageHeader
-        title="Pipeline"
-        subtitle="Acompanhe suas propostas por etapa"
-        action={
-          <Button onClick={() => setShowForm(true)} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> Nova Proposta
-          </Button>
-        }
+      <DashboardBannerHeader
+        data={new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+        bannerUrl="https://media.base44.com/images/public/6a1f06cb2529a2c8784acc2c/2de6cef7c_Gemini_Generated_Image_58bzn758bzn758bz.jpg"
+        alt="Trancoso Resolve — Quem resolve, pertinho de você"
+        categorias={stages.map((s) => s.label)}
       />
+      <div className="hidden md:flex justify-end mb-4">
+        <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Plus className="w-4 h-4" /> Nova Proposta
+        </Button>
+      </div>
 
       {/* ── DESKTOP: Kanban drag & drop ── */}
       <div className="hidden md:block">
