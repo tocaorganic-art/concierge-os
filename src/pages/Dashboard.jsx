@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DollarSign, FileText, TrendingUp, Users, AlertCircle, AlertTriangle, Wallet, Percent, Eye, Palmtree, UtensilsCrossed, Gem, LifeBuoy } from "lucide-react";
 import KpiCard from "@/components/shared/KpiCard";
-import PageHeader from "@/components/shared/PageHeader";
+import DashboardBannerHeader from "@/components/dashboard/DashboardBannerHeader";
 import DashboardPipeline from "@/components/dashboard/DashboardPipeline";
 import DashboardAgenda from "@/components/dashboard/DashboardAgenda";
 import DashboardClients from "@/components/dashboard/DashboardClients";
@@ -263,7 +263,7 @@ export default function Dashboard() {
     const tasksCliente = tasks.filter((tk) => tk.client_id === effectiveClientId);
     return (
       <div>
-        <PageHeader title={t("nav_overview")} subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })} />
+        <DashboardBannerHeader data={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })} />
         <DashboardCliente
           billings={billingsCliente}
           recebimentos={recebimentosCliente}
@@ -327,9 +327,8 @@ export default function Dashboard() {
     <div>
       <TaskNotifications tasks={tasks} />
       <DeadlineAlerts />
-      <PageHeader
-        title={t("nav_overview")}
-        subtitle={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
+      <DashboardBannerHeader
+        data={now.toLocaleDateString(localeDate, { weekday: "long", day: "numeric", month: "long" })}
       />
 
       <div className="flex items-center gap-2 mb-4 md:mb-6">
