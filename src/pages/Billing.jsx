@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip, TrendingUp } from "lucide-react";
+import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip, TrendingUp, FileSpreadsheet } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { useToast } from "@/components/ui/use-toast";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,6 +110,32 @@ export default function Billing() {
   const [recebimentoBilling, setRecebimentoBilling] = useState(null);
   const [estornoAlvo, setEstornoAlvo] = useState(null);
   const [expandido, setExpandido] = useState(null);
+  const [exportando, setExportando] = useState(false);
+  const { toast } = useToast();
+
+  const exportarSheets = async () => {
+    setExportando(true);
+    try {
+      const now = new Date();
+      const res = await base44.functions.invoke("exportBillingToSheets", {
+        mes: now.getMonth() + 1,
+        ano: now.getFullYear(),
+      });
+      const data = res?.data ?? res;
+      if (data?.status === "sem_dados") {
+        toast({ title: "Nada para exportar", description: "Não há cobranças nem custos neste mês." });
+      } else if (data?.spreadsheet_url) {
+        window.open(data.spreadsheet_url, "_blank");
+        toast({ title: "Planilha criada", description: "Faturamento e custos do mês exportados para o Google Sheets." });
+      } else {
+        throw new Error(data?.error || "Erro desconhecido.");
+      }
+    } catch (e) {
+      toast({ title: "Erro ao exportar", description: e?.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setExportando(false);
+    }
+  };
 
   const { data: billings = [], isLoading } = useQuery({
     queryKey: ["billings"],
@@ -185,9 +212,14 @@ export default function Billing() {
         title={t("billing_title")}
         subtitle={t("billing_subtitle")}
         action={
-          <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            <Plus className="w-4 h-4" /> {t("btn_new_charge")}
-          </Button>
+          <div className="hidden md:flex items-center gap-2">
+            <Button variant="outline" onClick={exportarSheets} disabled={exportando} className="gap-2 border-border bg-secondary hover:bg-accent">
+              <FileSpreadsheet className="w-4 h-4" /> {exportando ? "Exportando..." : "Exportar Sheets"}
+            </Button>
+            <Button onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              <Plus className="w-4 h-4" /> {t("btn_new_charge")}
+            </Button>
+          </div>
         }
       />
 
