@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
-  receitaCaixaDoMesPorNatureza, faturadoCompetenciaDoMes, totalAReceber, totalAReceberClientes,
+  receitaCaixaDoMesPorNatureza, receitaNaoClassificadaDoMes, faturadoCompetenciaDoMes, totalAReceber, totalAReceberClientes,
   emAtrasoTotal, repassesEmCustodia, taxaConversao, indiceRecebimento, caucaoEmCustodia,
   totalAPagarFornecedores, saldoDevedor, valorRecebido, agruparBillingsCliente,
 } from "@/lib/finance";
@@ -291,6 +291,7 @@ export default function Dashboard() {
   // KPI 1 e 2 — Receita própria (caixa, honorário + intermediação + comissão)
   // x Faturado (competência, por data de emissão/assinatura do contrato).
   const receitaMes = receitaCaixaDoMesPorNatureza(billingsF, recebimentosF, currentMonth, currentYear);
+  const receitaNaoClassificada = receitaNaoClassificadaDoMes(billingsF, recebimentosF, currentMonth, currentYear);
   const faturadoMes = faturadoCompetenciaDoMes(billingsF, currentMonth, currentYear);
 
   // KPI 3 — dois cartões: o que o cliente deve no total x só a receita
@@ -356,7 +357,11 @@ export default function Dashboard() {
           value={`${currSymbol} ${receitaMes.total.toLocaleString(localeDate)}`}
           icon={DollarSign}
           valueClassName="text-emerald-400"
-          trendLabel={`Honorário ${currSymbol} ${receitaMes.honorario.toLocaleString(localeDate)} · Intermediação ${currSymbol} ${receitaMes.intermediacao.toLocaleString(localeDate)} · Comissão ${currSymbol} ${receitaMes.comissao.toLocaleString(localeDate)}`}
+          trendLabel={
+            receitaNaoClassificada > 0
+              ? `⚠ ${currSymbol} ${receitaNaoClassificada.toLocaleString(localeDate)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.`
+              : `Honorário ${currSymbol} ${receitaMes.honorario.toLocaleString(localeDate)} · Intermediação ${currSymbol} ${receitaMes.intermediacao.toLocaleString(localeDate)} · Comissão ${currSymbol} ${receitaMes.comissao.toLocaleString(localeDate)}`
+          }
         />
         <KpiCard
           title="Faturado do Mês (Competência)"
@@ -403,6 +408,7 @@ export default function Dashboard() {
           value={`${currSymbol} ${aPagarFornecedores.toLocaleString(localeDate)}`}
           icon={AlertCircle}
           valueClassName="text-red-400"
+          trendLabel="Custos vinculados a contratos de clientes (repasse) — não é margem própria"
         />
       </div>
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
