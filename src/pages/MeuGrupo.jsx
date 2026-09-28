@@ -93,6 +93,29 @@ export default function MeuGrupo() {
     enabled: Boolean(proposalId),
   });
 
+  // Ordena por chegada (data + horário) pra quem organiza os traslados saber
+  // quem desembarca primeiro. horario_chegada e um campo texto livre (sem
+  // formato obrigatorio no schema), entao o parse e best-effort: so ordena
+  // por horario quando reconhece "HH:MM" no inicio da string; quem nao tem
+  // data/horario preenchido vai pro final da lista, nunca pro comeco.
+  const hospedesOrdenados = React.useMemo(() => {
+    const parseMinutos = (h) => {
+      const m = String(h || "").trim().match(/^(\d{1,2}):(\d{2})/);
+      return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+    };
+    return [...hospedes].sort((a, b) => {
+      const dataA = a.data_chegada || "9999-12-31";
+      const dataB = b.data_chegada || "9999-12-31";
+      if (dataA !== dataB) return dataA < dataB ? -1 : 1;
+      const minA = parseMinutos(a.horario_chegada);
+      const minB = parseMinutos(b.horario_chegada);
+      if (minA === null && minB === null) return 0;
+      if (minA === null) return 1;
+      if (minB === null) return -1;
+      return minA - minB;
+    });
+  }, [hospedes]);
+
   const excedente = Math.max(0, hospedes.length - CAPACIDADE_PERNOITE);
   const semVoo = hospedes.filter((h) => !h.voo_chegada && !h.voo_saida).length;
   const semDocumento = hospedes.filter((h) => !h.documento_preenchido).length;
@@ -131,7 +154,7 @@ export default function MeuGrupo() {
         <p className="text-sm text-muted-foreground text-center py-12">Nenhum hóspede cadastrado ainda.</p>
       ) : (
         <div className="space-y-3">
-          {hospedes.map((h) => (
+          {hospedesOrdenados.map((h) => (
             <HospedeRow key={h.id} hospede={h} onSaved={() => queryClient.invalidateQueries({ queryKey: ["my_hospedes", proposalId] })} />
           ))}
         </div>

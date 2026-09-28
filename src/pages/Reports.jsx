@@ -1,8 +1,9 @@
 import React from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, FileText, CheckCircle2, Wallet, AlertCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/shared/PageHeader";
+import KpiCard from "@/components/shared/KpiCard";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
@@ -13,40 +14,151 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { taxaConversao, valorRecebido } from "@/lib/finance";
+import { taxaConversao, valorRecebido, saldoDevedor, emAtrasoTotal, agruparBillingsCliente, roundCents } from "@/lib/finance";
 
-// Relatórios de uma conta "cliente" — só os pagamentos dele, por data e por
-// item (nunca despesas internas, lucro, ranking de outros clientes — esses
-// conceitos não fazem sentido pra uma única conta e a maioria nem é mais
-// legível via API para esse papel).
+// Relatórios de uma conta "cliente" — painel analítico do EVENTO dele (nunca
+// despesas internas, lucro, ranking de outros clientes — esses conceitos não
+// fazem sentido pra uma única conta e a maioria nem é mais legível via API
+// pra esse papel). Não guarda nem lista comprovantes aqui — isso continua em
+// Documentos/Faturamento; esta tela só resume os números que já vêm de lá.
 function ReportsCliente({ recebimentos, billings, t }) {
   const localeDate = t("locale_date");
   const currSymbol = t("currency_symbol");
-  const billingById = new Map(billings.map((b) => [b.id, b]));
+  const fmt = (v) => `${currSymbol} ${v.toLocaleString(localeDate)}`;
+
+  const ativos = billings.filter((b) => b.status !== "cancelado");
+
+  if (billings.length === 0) {
+    return <p className="text-sm text-muted-foreground text-center py-12">Nenhum lançamento financeiro ainda.</p>;
+  }
+
+  const totalContratado = roundCents(ativos.reduce((s, b) => s + (b.valor || 0), 0));
+  const totalPago = roundCents(ativos.reduce((s, b) => s + valorRecebido(b, recebimentos), 0));
+  const totalAPagar = roundCents(ativos.reduce((s, b) => s + Math.max(0, saldoDevedor(b, recebimentos)), 0));
+  const { total: emAtrasoValor, quantidade: emAtrasoQtd } = emAtrasoTotal(billings, recebimentos);
+
+  const { adicionais, caucao } = agruparBillingsCliente(billings);
+  const caucaoContratada = roundCents(caucao.reduce((s, b) => s + (b.valor || 0), 0));
+  const despesasFixas = roundCents(adicionais.filter((b) => b.tipo_despesa === "fixa").reduce((s, b) => s + (b.valor || 0), 0));
+  const despesasVariaveis = roundCents(adicionais.filter((b) => b.tipo_despesa === "variavel").reduce((s, b) => s + (b.valor || 0), 0));
+
+  const porCategoria = {};
+  adicionais.forEach((b) => {
+    const k = b.categoria?.trim() || "Outros";
+    porCategoria[k] = roundCents((porCategoria[k] || 0) + (b.valor || 0));
+  });
+  const categoriaData = Object.entries(porCategoria).map(([name, value]) => ({ name, value }));
+
+  const monthKeyLocal = (d) => {
+    const dt = new Date(d);
+    return `${dt.getFullYear()}-${dt.getMonth() + 1}`;
+  };
+  const pagoPorMes = {};
+  recebimentos.forEach((r) => {
+    if (!r.data_recebimento) return;
+    const k = monthKeyLocal(r.data_recebimento);
+    pagoPorMes[k] = roundCents((pagoPorMes[k] || 0) + (r.valor || 0));
+  });
+  const now = new Date();
+  const evolucaoData = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+    return { name: `${monthNames[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`, pago: pagoPorMes[key] || 0 };
+  });
+
+  const proximosVencimentos = ativos
+    .filter((b) => saldoDevedor(b, recebimentos) > 0 && b.data_vencimento)
+    .sort((a, b) => new Date(a.data_vencimento) - new Date(b.data_vencimento))
+    .slice(0, 5);
 
   return (
-    <div>
-      {recebimentos.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">Nenhum pagamento registrado ainda.</p>
-      ) : (
-        <div className="bg-card border border-border rounded-xl divide-y divide-border">
-          {recebimentos.map((r) => (
-            <div key={r.id} className="flex items-center justify-between px-4 py-3">
-              <div className="min-w-0">
-                <p className="text-sm text-foreground truncate">
-                  {billingById.get(r.billing_id)?.descricao || "Pagamento"}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {new Date(r.data_recebimento).toLocaleDateString(localeDate)}{r.metodo ? ` · ${r.metodo}` : ""}
-                </p>
-              </div>
-              <span className={`font-display font-semibold flex-shrink-0 ${r.valor < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                {currSymbol} {r.valor.toLocaleString(localeDate)}
-              </span>
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+        <KpiCard title="Total Contratado" value={fmt(totalContratado)} icon={FileText} to="/faturamento" />
+        <KpiCard title="Total Pago" value={fmt(totalPago)} icon={CheckCircle2} valueClassName="text-emerald-400" to="/faturamento?status=recebido" />
+        <KpiCard title="A Pagar" value={fmt(totalAPagar)} icon={Wallet} to="/faturamento?status=aberto" />
+        <KpiCard title="Caução" value={fmt(caucaoContratada)} icon={Wallet} to="/faturamento?tipo=caucao" />
+        <KpiCard
+          title="Em Atraso"
+          value={fmt(emAtrasoValor)}
+          icon={AlertCircle}
+          valueClassName={emAtrasoQtd > 0 ? "text-red-400" : undefined}
+          to="/faturamento?status=atrasado"
+          trendLabel={emAtrasoQtd > 0 ? `${emAtrasoQtd} cobrança${emAtrasoQtd > 1 ? "s" : ""}` : "nenhuma"}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <ChartCard title="Despesas Fixas x Variáveis">
+          {despesasFixas === 0 && despesasVariaveis === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Sem despesas adicionais lançadas</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={[{ name: "Despesas", fixa: despesasFixas, variavel: despesasVariaveis }]} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" horizontal={false} />
+                <XAxis type="number" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="name" width={0} tick={false} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(v), ""]} />
+                <Legend wrapperStyle={{ fontSize: 11, fontFamily: "JetBrains Mono" }} />
+                <Bar dataKey="fixa" name="Fixas" fill="hsl(24 87% 56%)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="variavel" name="Variáveis" fill="hsl(200 60% 50%)" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Despesas por Categoria">
+          {categoriaData.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Sem despesas adicionais lançadas</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={categoriaData} cx="50%" cy="45%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                  {categoriaData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(v), ""]} />
+                <Legend formatter={(val) => <span style={{ color: "hsl(220 10% 70%)", fontSize: 11, fontFamily: "JetBrains Mono" }}>{val}</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Evolução dos Pagamentos">
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={evolucaoData}>
+              <defs>
+                <linearGradient id="gradPagoCliente" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(24 87% 56%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(24 87% 56%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(v), "Pago"]} />
+              <Area type="monotone" dataKey="pago" stroke="hsl(24 87% 56%)" fill="url(#gradPagoCliente)" strokeWidth={2} name="Pago" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Próximos Vencimentos">
+          {proximosVencimentos.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Nenhum vencimento em aberto</p>
+          ) : (
+            <div className="divide-y divide-border">
+              {proximosVencimentos.map((b) => (
+                <div key={b.id} className="flex items-center justify-between py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm text-foreground truncate">{b.descricao || "Cobrança"}</p>
+                    <p className="text-[11px] text-muted-foreground">{new Date(b.data_vencimento).toLocaleDateString(localeDate)}</p>
+                  </div>
+                  <span className="font-display font-semibold text-foreground flex-shrink-0">{fmt(Math.max(0, saldoDevedor(b, recebimentos)))}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
+        </ChartCard>
+      </div>
     </div>
   );
 }

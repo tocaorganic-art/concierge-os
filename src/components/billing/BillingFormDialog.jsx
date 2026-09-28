@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus } from "lucide-react";
+import { possivelBillingDuplicado, comprovantesDoBilling } from "@/lib/finance";
 
 const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "", tipo_despesa: "variavel", motivo_cancelamento: "" };
 
@@ -50,6 +51,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
   const [multiplas, setMultiplas] = useState(false);
   const [despesasExtra, setDespesasExtra] = useState([{ descricao: "", valor: "" }]);
   const [formError, setFormError] = useState("");
+  const [confirmarDuplicata, setConfirmarDuplicata] = useState(false);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -104,6 +106,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     setMultiplas(false);
     setDespesasExtra([{ descricao: "", valor: "" }]);
     setFormError("");
+    setConfirmarDuplicata(false);
   }, [billing, open]);
 
   const mutation = useMutation({
@@ -224,7 +227,44 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
       return;
     }
     setFormError("");
-    mutation.mutate({ ...form, valor: form.valor ? Number(form.valor) : 0 });
+
+    // Regra R7 estendida a Billing: avisa (não bloqueia) antes de criar uma
+    // cobrança idêntica a uma já ativa — mesmo padrão de possivelDuplicata()
+    // usado em RegistrarRecebimentoDialog para Recebimento.
+    if (!billing && !confirmarDuplicata) {
+      const duplicadas = multiplas
+        ? despesasExtra
+            .filter((l) => l.descricao.trim() && Number(l.valor) > 0)
+            .filter((l) => possivelBillingDuplicado(billings, { client_id: form.client_id, descricao: l.descricao, valor: Number(l.valor), data_vencimento: form.data_vencimento }))
+        : possivelBillingDuplicado(billings, { client_id: form.client_id, descricao: form.descricao, valor: Number(form.valor) || 0, data_vencimento: form.data_vencimento })
+        ? [form]
+        : [];
+      if (duplicadas.length > 0) {
+        setConfirmarDuplicata(true);
+        setFormError(
+          multiplas
+            ? `Já existe cobrança igual a "${duplicadas[0].descricao}" (mesmo cliente, valor e vencimento). Clique em Criar de novo para confirmar mesmo assim.`
+            : "Já existe uma cobrança igual (mesmo cliente, descrição, valor e vencimento) ativa. Clique em Criar de novo para confirmar mesmo assim."
+        );
+        return;
+      }
+    }
+
+    // Só grava um comprovante NOVO no histórico se a URL mudou desde o que
+    // já estava salvo — evita empilhar o mesmo anexo de novo a cada "Salvar"
+    // sem upload novo (edição de outro campo, por exemplo).
+    const historicoExistente = billing ? comprovantesDoBilling(billing) : [];
+    const ultimoUrl = historicoExistente[historicoExistente.length - 1]?.url;
+    const comprovantesPayload =
+      form.comprovante_url && form.comprovante_url !== ultimoUrl
+        ? [...historicoExistente, { url: form.comprovante_url, enviado_por: "equipe", enviado_em: new Date().toISOString() }]
+        : undefined;
+
+    mutation.mutate({
+      ...form,
+      valor: form.valor ? Number(form.valor) : 0,
+      ...(comprovantesPayload ? { comprovantes: comprovantesPayload } : {}),
+    });
   };
 
   return (
@@ -261,6 +301,20 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
               <Button type="button" variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, comprovante_url: "" }))}>
                 <X className="w-4 h-4" />
               </Button>
+            </div>
+          ) : billing && comprovantesDoBilling(billing).length > 0 ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] text-muted-foreground">
+                {comprovantesDoBilling(billing).length} comprovante(s) já anexado(s) nesta cobrança.
+              </p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full flex items-center justify-center gap-2 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Lendo com IA...</> : <><Camera className="w-4 h-4" /> Anexar mais um comprovante</>}
+              </button>
             </div>
           ) : (
             <button

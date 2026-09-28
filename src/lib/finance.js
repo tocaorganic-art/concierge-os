@@ -42,6 +42,21 @@ export function saldoDevedor(billing, recebimentos) {
   return roundCents((billing.valor || 0) - valorRecebido(billing, recebimentos));
 }
 
+// Histórico de comprovantes de UMA cobrança — sempre usar isto em vez de ler
+// billing.comprovante_url direto. Fallback legado: registros antigos só têm
+// o campo comprovante_url (string única, sem histórico); tratamos como uma
+// lista de 1 item pra não perder o que já existe.
+export function comprovantesDoBilling(billing) {
+  if (Array.isArray(billing.comprovantes) && billing.comprovantes.length > 0) return billing.comprovantes;
+  if (billing.comprovante_url) return [{ url: billing.comprovante_url, enviado_por: null, enviado_em: null }];
+  return [];
+}
+
+export function ultimoComprovante(billing) {
+  const lista = comprovantesDoBilling(billing);
+  return lista.length > 0 ? lista[lista.length - 1] : null;
+}
+
 // Status derivado (regra R4) — nunca digitado, sempre calculado a partir do
 // saldo. Exceção: "cancelado" é o único status que pode ser setado
 // manualmente (com motivo_cancelamento obrigatório), e prevalece sobre o
@@ -57,7 +72,7 @@ export function statusDerivado(billing, recebimentos) {
   // admin, não uma cobrança em aberto/atrasada do ponto de vista do
   // cliente (que já agiu). Só se aplica enquanto nada foi lançado ainda
   // no ledger para essa cobrança.
-  if (billing.comprovante_url && recebido === 0) return "aguardando_confirmacao";
+  if (comprovantesDoBilling(billing).length > 0 && recebido === 0) return "aguardando_confirmacao";
   if (recebido > 0) {
     const vencida = billing.data_vencimento && new Date(billing.data_vencimento) < new Date();
     return vencida ? "atrasado" : "parcialmente_recebido";
@@ -89,6 +104,24 @@ export function possivelDuplicata(billing, recebimentos, valor, data, metodo) {
       roundCents(r.valor) === roundCents(valor) &&
       r.data_recebimento === data &&
       r.metodo === metodo
+  );
+}
+
+// Mesma ideia de possivelDuplicata(), mas pra criação de Billing: mesmo
+// cliente + descrição + valor + vencimento já lançado (e ainda não
+// cancelado) pede confirmação antes de criar outro — não bloqueia (podem
+// ser duas cobranças legitimamente iguais), só avisa. Usado no fluxo de
+// "várias despesas nesta cobrança" do BillingFormDialog, onde criar N
+// registros de uma vez sem esse aviso facilita duplicar por engano.
+export function possivelBillingDuplicado(billings, { client_id, descricao, valor, data_vencimento }) {
+  const normDescricao = (s) => (s || "").trim().toLowerCase();
+  return billings.some(
+    (b) =>
+      b.status !== "cancelado" &&
+      b.client_id === client_id &&
+      normDescricao(b.descricao) === normDescricao(descricao) &&
+      roundCents(b.valor) === roundCents(valor) &&
+      (b.data_vencimento || "") === (data_vencimento || "")
   );
 }
 
