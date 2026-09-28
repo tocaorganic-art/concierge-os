@@ -66,7 +66,7 @@ export default function PwaInstallPopup() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-xs animate-in slide-in-from-bottom-5 fade-in duration-500">
+    <div className="fixed bottom-4 left-4 md:left-72 z-50 max-w-xs animate-in slide-in-from-bottom-5 fade-in duration-500">
       <div className="relative bg-card border border-border rounded-2xl p-4 shadow-2xl gold-glow pointer-events-auto">
         <button
           onClick={dismiss}

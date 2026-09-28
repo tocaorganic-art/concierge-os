@@ -94,7 +94,7 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
           Casa = despesa fixa · Extras = despesa variável
         </p>
         <Button size="sm" onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5">
-          <Plus className="w-3.5 h-3.5" /> {t("btn_new_charge")}
+          <Plus className="w-3.5 h-3.5" /> Nova cobrança
         </Button>
       </div>
       <Bloco titulo="Seu Contrato" itens={contrato} subtitulo="Despesa fixa — o que está previsto no contrato da casa" />
