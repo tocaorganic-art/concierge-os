@@ -34,6 +34,8 @@ import {
 // origem, não é só UI escondendo).
 function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusStatus, focusTipo }) {
   const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [editBilling, setEditBilling] = useState(null);
 
   const { data: proposals = [] } = useQuery({
     queryKey: ["my_proposals", effectiveClientId],
@@ -68,15 +70,16 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [alvoId]);
 
-  const Bloco = ({ titulo, itens, destacar }) =>
+  const Bloco = ({ titulo, itens, destacar, subtitulo }) =>
     itens.length > 0 && (
       <div className={`bg-card border rounded-2xl p-5 mb-6 ${destacar ? "border-primary/50 ring-1 ring-primary/30" : "border-border"}`}>
-        <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+        <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-1">
           <Receipt className="w-3.5 h-3.5" /> {titulo}
         </div>
+        {subtitulo && <p className="text-[11px] text-muted-foreground mb-2">{subtitulo}</p>}
         <div>
           {itens.map((b) => (
-            <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} defaultAberto={b.id === alvoId} />
+            <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} onEdit={(x) => { setEditBilling(x); setShowForm(true); }} defaultAberto={b.id === alvoId} />
           ))}
         </div>
       </div>
@@ -86,13 +89,28 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
 
   return (
     <div className="max-w-2xl">
-      <Bloco titulo="Seu Contrato" itens={contrato} />
-      <Bloco titulo="Serviços Adicionais" itens={adicionais} />
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+          Casa = despesa fixa · Extras = despesa variável
+        </p>
+        <Button size="sm" onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5">
+          <Plus className="w-3.5 h-3.5" /> {t("btn_new_charge")}
+        </Button>
+      </div>
+      <Bloco titulo="Seu Contrato" itens={contrato} subtitulo="Despesa fixa — o que está previsto no contrato da casa" />
+      <Bloco titulo="Serviços Adicionais" itens={adicionais} subtitulo="Despesa variável — serviços e custos extras fora do pacote" />
       <Bloco titulo="Caução (devolvível)" itens={caucao} destacar={focusTipo === "caucao"} />
       {temAdicionaisAberto && <PixPaymentCard formaPagamento={formaPagamento} chavePixContrato={chavePixContrato} />}
       {contrato.length === 0 && adicionais.length === 0 && caucao.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
       )}
+      <BillingFormDialog
+        open={showForm}
+        onOpenChange={setShowForm}
+        billing={editBilling}
+        clientMode
+        fixedClient={{ id: effectiveClientId, nome: billings[0]?.client_nome || "" }}
+      />
     </div>
   );
 }

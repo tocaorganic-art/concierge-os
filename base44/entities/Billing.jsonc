@@ -12,7 +12,7 @@
     },
     "proposal_id": {
       "type": "string",
-      "description": "ID da proposta/evento vinculado (opcional) — usado para agrupar as parcelas de um mesmo pacote e calcular \"Parcela X de Y\" de forma estruturada, em vez de depender de texto livre na descricao."
+      "description": "ID da proposta/evento vinculado (opcional) \u2014 usado para agrupar as parcelas de um mesmo pacote e calcular \"Parcela X de Y\" de forma estruturada, em vez de depender de texto livre na descricao."
     },
     "numero_parcela": {
       "type": "number",
@@ -41,7 +41,7 @@
         "variavel"
       ],
       "default": "variavel",
-      "description": "fixa = valor recorrente ou previsto em contrato (ex.: aluguel/contrato da casa). variavel = servico adicional ou cobranca que varia durante a estadia. Cauc\u00e3o continua identificada por natureza='caucao', independente deste campo."
+      "description": "fixa = valor recorrente ou previsto em contrato (ex.: aluguel/contrato da casa). variavel = servico adicional ou cobranca que varia durante a estadia. Caucao continua identificada por natureza='caucao', independente deste campo."
     },
     "status": {
       "type": "string",
@@ -53,7 +53,7 @@
         "cancelado"
       ],
       "default": "pendente",
-      "description": "Status derivado do saldo (ver src/lib/finance.js) — nao editar manualmente exceto 'cancelado', que exige motivo_cancelamento. pendente: nada recebido. parcialmente_recebido: 0 < recebido < valor. recebido: saldo zerado. atrasado: saldo>0 e hoje>vencimento. cancelado: motivo obrigatorio."
+      "description": "Status derivado do saldo (ver src/lib/finance.js) \u2014 nao editar manualmente exceto 'cancelado', que exige motivo_cancelamento. pendente: nada recebido. parcialmente_recebido: 0 < recebido < valor. recebido: saldo zerado. atrasado: saldo>0 e hoje>vencimento. cancelado: motivo obrigatorio."
     },
     "motivo_cancelamento": {
       "type": "string",
@@ -74,13 +74,19 @@
     },
     "alocacao": {
       "type": "array",
-      "description": "Divisao opcional de um Billing misto (preco cheio) em partes por natureza — ex.: uma parcela de aluguel que contem repasse ao proprietario + intermediacao + honorario embutidos. Soma das partes deve bater com 'valor'. Uso exclusivo do admin; nunca exposto ao cliente (RLS de campo abaixo). Quando ausente, o campo 'natureza' acima classifica o Billing inteiro.",
+      "description": "Divisao opcional de um Billing misto (preco cheio) em partes por natureza \u2014 ex.: uma parcela de aluguel que contem repasse ao proprietario + intermediacao + honorario embutidos. Soma das partes deve bater com 'valor'. Uso exclusivo do admin; nunca exposto ao cliente (RLS de campo abaixo). Quando ausente, o campo 'natureza' acima classifica o Billing inteiro.",
       "items": {
         "type": "object",
         "properties": {
           "natureza": {
             "type": "string",
-            "enum": ["honorario", "intermediacao", "comissao", "repasse", "caucao"]
+            "enum": [
+              "honorario",
+              "intermediacao",
+              "comissao",
+              "repasse",
+              "caucao"
+            ]
           },
           "valor": {
             "type": "number"
@@ -160,9 +166,20 @@
       "items": {
         "type": "object",
         "properties": {
-          "url": { "type": "string" },
-          "enviado_por": { "type": "string", "enum": ["cliente", "equipe"] },
-          "enviado_em": { "type": "string", "description": "Data/hora ISO do envio." }
+          "url": {
+            "type": "string"
+          },
+          "enviado_por": {
+            "type": "string",
+            "enum": [
+              "cliente",
+              "equipe"
+            ]
+          },
+          "enviado_em": {
+            "type": "string",
+            "description": "Data/hora ISO do envio."
+          }
         }
       },
       "rls": {
@@ -226,6 +243,18 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "account_type": "cliente"
+              }
+            },
+            {
+              "data.client_id": "{{user.data.client_id}}"
+            }
+          ]
         }
       ]
     },
@@ -253,6 +282,18 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "account_type": "cliente"
+              }
+            },
+            {
+              "data.client_id": "{{user.data.client_id}}"
+            }
+          ]
         }
       ]
     },

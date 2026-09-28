@@ -207,7 +207,7 @@ function ComentariosThread({ billingId, clientId }) {
 // Uma linha de cobrança clicável — expande para mostrar o histórico de
 // recebimentos e comprovantes daquela cobrança específica, mais um fio de
 // comentários entre cliente e equipe.
-export function LinhaParcela({ billing, recebimentos, onUploaded, defaultAberto = false }) {
+export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaultAberto = false }) {
   const [aberto, setAberto] = useState(defaultAberto);
   const recebimentosDaParcela = recebimentos.filter((r) => r.billing_id === billing.id);
   const status = statusDerivado(billing, recebimentos);
@@ -225,6 +225,12 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, defaultAberto 
           <p className="text-[11px] text-muted-foreground">Venc. {formatDate(billing.data_vencimento)}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          {billing.tipo_despesa === "fixa" && (
+            <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-info/30 bg-info/10 text-info">Fixa</span>
+          )}
+          {billing.tipo_despesa === "variavel" && (
+            <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-warning/30 bg-warning/10 text-warning">Variável</span>
+          )}
           <span className="font-display font-semibold text-primary">R$ {(billing.valor || 0).toLocaleString("pt-BR")}</span>
           <span className={`inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${meta.className}`}>{meta.label}</span>
           <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
@@ -255,6 +261,15 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, defaultAberto 
                 </a>
               ))}
             </div>
+          )}
+          {onEdit && billing.status !== "cancelado" && (
+            <button
+              type="button"
+              onClick={() => onEdit(billing)}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Pencil className="w-2.5 h-2.5" /> Editar cobrança
+            </button>
           )}
           {podeAnexar && <AnexarComprovante billing={billing} onUploaded={onUploaded} />}
           <ComentariosThread billingId={billing.id} clientId={billing.client_id} />

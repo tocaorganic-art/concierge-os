@@ -38,7 +38,7 @@ function normalize(str) {
   return (str || "").trim().toLowerCase();
 }
 
-export default function BillingFormDialog({ open, onOpenChange, billing }) {
+export default function BillingFormDialog({ open, onOpenChange, billing, clientMode = false, fixedClient = null }) {
   const { t, lang } = useLanguage();
   const [form, setForm] = useState(defaultForm);
   const [creatingCategoria, setCreatingCategoria] = useState(false);
@@ -94,6 +94,8 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
         tipo_despesa: billing.tipo_despesa || "variavel",
         motivo_cancelamento: billing.motivo_cancelamento || "",
       });
+    } else if (clientMode && fixedClient?.id) {
+      setForm({ ...defaultForm, client_id: fixedClient.id, client_nome: fixedClient.nome || "" });
     } else {
       setForm(defaultForm);
     }
@@ -107,12 +109,13 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     setDespesasExtra([{ descricao: "", valor: "" }]);
     setFormError("");
     setConfirmarDuplicata(false);
-  }, [billing, open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billing, open, clientMode, fixedClient?.id]);
 
   const mutation = useMutation({
     mutationFn: async (data) => {
       if (billing) {
-        return base44.entities.Billing.update(billing.id, data);
+        return base44.entities.Billing.update(billing.id, clientMode ? { ...data, ultima_edicao_por: "cliente" } : data);
       }
       if (multiplas) {
         // Cada despesa desta cobrança vira um Billing PRÓPRIO — nunca
@@ -257,7 +260,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
     const ultimoUrl = historicoExistente[historicoExistente.length - 1]?.url;
     const comprovantesPayload =
       form.comprovante_url && form.comprovante_url !== ultimoUrl
-        ? [...historicoExistente, { url: form.comprovante_url, enviado_por: "equipe", enviado_em: new Date().toISOString() }]
+        ? [...historicoExistente, { url: form.comprovante_url, enviado_por: clientMode ? "cliente" : "equipe", enviado_em: new Date().toISOString() }]
         : undefined;
 
     mutation.mutate({
@@ -340,17 +343,19 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
           )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente</Label>
-            <Select value={form.client_id} onValueChange={handleClientChange}>
-              <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
-              <SelectContent>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!(clientMode && fixedClient?.id) && (
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente</Label>
+              <Select value={form.client_id} onValueChange={handleClientChange}>
+                <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Proposta vinculada (opcional)</Label>
             <Select value={form.proposal_id || undefined} onValueChange={(v) => setForm((f) => ({ ...f, proposal_id: v }))}>
@@ -509,7 +514,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing }) {
             </div>
           )}
 
-          {!multiplas && (
+          {!multiplas && !clientMode && (
             <div>
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
