@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, X, Clock } from "lucide-react";
+import { Bell, X, Clock, Zap } from "lucide-react";
 import { format } from "date-fns";
 
 // Returns tasks that are due within `withinMinutes` from now, today, and not completed
@@ -71,8 +71,8 @@ export default function TaskNotifications({ tasks }) {
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-xs font-mono font-bold ${isNow ? "text-red-400" : "text-amber-400"}`}>
-                  {isNow ? "⚡ Agora" : `em ${diffMin} min`}
+                <span className={`inline-flex items-center gap-1 text-xs font-mono font-bold ${isNow ? "text-red-400" : "text-amber-400"}`}>
+                  {isNow ? <><Zap className="w-3 h-3" /> Agora</> : `em ${diffMin} min`}
                 </span>
                 <span className="font-mono text-xs text-muted-foreground">{task.horario}</span>
                 {task.tipo && (

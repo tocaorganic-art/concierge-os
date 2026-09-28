@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FileText, Loader2, X } from "lucide-react";
 
 const defaultForm = {
   client_id: "",
@@ -33,10 +34,14 @@ const defaultForm = {
   observacoes: "",
   forma_pagamento_preferida: "pix_pj_cora",
   chave_pix_recebimento: "",
+  contrato_assinado_url: "",
 };
 
 export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
   const [form, setForm] = useState(defaultForm);
+  const [uploadingContrato, setUploadingContrato] = useState(false);
+  const [uploadContratoError, setUploadContratoError] = useState("");
+  const contratoInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: clients = [] } = useQuery({
@@ -60,6 +65,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
         observacoes: proposal.observacoes || "",
         forma_pagamento_preferida: proposal.forma_pagamento_preferida || "pix_pj_cora",
         chave_pix_recebimento: proposal.chave_pix_recebimento || "",
+        contrato_assinado_url: proposal.contrato_assinado_url || "",
       });
     } else {
       setForm(defaultForm);
@@ -233,6 +239,48 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                 />
               </div>
             )}
+            <div className="col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Contrato assinado (PDF/imagem)</Label>
+              <input
+                ref={contratoInputRef}
+                type="file"
+                accept="application/pdf,image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploadingContrato(true);
+                  setUploadContratoError("");
+                  try {
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    setForm((f) => ({ ...f, contrato_assinado_url: file_url }));
+                  } catch {
+                    setUploadContratoError("Não consegui enviar o arquivo. Tente novamente.");
+                  } finally {
+                    setUploadingContrato(false);
+                    if (contratoInputRef.current) contratoInputRef.current.value = "";
+                  }
+                }}
+              />
+              {form.contrato_assinado_url ? (
+                <div className="mt-1.5 flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
+                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                  <a href={form.contrato_assinado_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">
+                    Ver contrato anexado
+                  </a>
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, contrato_assinado_url: "" }))}>
+                    <X className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400" />
+                  </button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" disabled={uploadingContrato} onClick={() => contratoInputRef.current?.click()} className="mt-1.5 gap-1.5">
+                  {uploadingContrato ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                  {uploadingContrato ? "Enviando..." : "Anexar contrato assinado"}
+                </Button>
+              )}
+              {uploadContratoError && <p className="text-[11px] text-red-400 mt-1">{uploadContratoError}</p>}
+              <p className="text-[11px] text-muted-foreground mt-1">Aparece integralmente em "Meu Contrato" para o cliente.</p>
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip, TrendingUp, FileSpreadsheet } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { useToast } from "@/components/ui/use-toast";
@@ -30,7 +31,7 @@ import {
 // que fazem sentido pro cliente: Seu Contrato, Serviços Adicionais e
 // Caução (nunca contratos/custos de fornecedor — RLS já bloqueia isso na
 // origem, não é só UI escondendo).
-function FaturamentoCliente({ billings, recebimentos, effectiveClientId }) {
+function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusStatus, focusTipo }) {
   const queryClient = useQueryClient();
 
   const { data: proposals = [] } = useQuery({
@@ -45,15 +46,36 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId }) {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["billings"] });
 
-  const Bloco = ({ titulo, itens }) =>
+  // Vindo de um KPI clicável da Visão Geral (?status=... ou ?tipo=caucao) —
+  // acha o primeiro registro que bate e rola/abre ele automaticamente, pra
+  // "abrir o Financeiro já filtrado" mesmo sem um filtro de lista aqui
+  // (a tela do cliente é agrupada em blocos, não em lista filtrável).
+  const todasAtivas = [...contrato, ...adicionais, ...caucao];
+  const alvoId = React.useMemo(() => {
+    if (focusTipo === "caucao") return caucao[0]?.id;
+    if (!focusStatus) return null;
+    if (focusStatus === "aberto") {
+      return todasAtivas.find((b) => saldoDevedor(b, recebimentos) > 0)?.id;
+    }
+    return todasAtivas.find((b) => statusDerivado(b, recebimentos) === focusStatus)?.id;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusStatus, focusTipo, billings]);
+
+  useEffect(() => {
+    if (!alvoId) return;
+    const el = document.getElementById(`billing-${alvoId}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [alvoId]);
+
+  const Bloco = ({ titulo, itens, destacar }) =>
     itens.length > 0 && (
-      <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+      <div className={`bg-card border rounded-2xl p-5 mb-6 ${destacar ? "border-primary/50 ring-1 ring-primary/30" : "border-border"}`}>
         <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
           <Receipt className="w-3.5 h-3.5" /> {titulo}
         </div>
         <div>
           {itens.map((b) => (
-            <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} />
+            <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} defaultAberto={b.id === alvoId} />
           ))}
         </div>
       </div>
@@ -65,7 +87,7 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId }) {
     <div className="max-w-2xl">
       <Bloco titulo="Seu Contrato" itens={contrato} />
       <Bloco titulo="Serviços Adicionais" itens={adicionais} />
-      <Bloco titulo="Caução (devolvível)" itens={caucao} />
+      <Bloco titulo="Caução (devolvível)" itens={caucao} destacar={focusTipo === "caucao"} />
       {temAdicionaisAberto && <PixPaymentCard formaPagamento={formaPagamento} chavePixContrato={chavePixContrato} />}
       {contrato.length === 0 && adicionais.length === 0 && caucao.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
@@ -77,10 +99,13 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId }) {
 export default function Billing() {
   const { t, lang } = useLanguage();
   const { isClientMode, effectiveClientId } = useEffectiveRole();
+  const [searchParams] = useSearchParams();
+  const focusStatus = searchParams.get("status");
+  const focusTipo = searchParams.get("tipo");
   const [showForm, setShowForm] = useState(false);
   const [editBilling, setEditBilling] = useState(null);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState(focusStatus || "all");
   const [filterCategoria, setFilterCategoria] = useState("all");
   const [recebimentoBilling, setRecebimentoBilling] = useState(null);
   const [estornoAlvo, setEstornoAlvo] = useState(null);
@@ -129,9 +154,12 @@ export default function Billing() {
     .map((b) => ({ ...b, statusCalc: statusDerivado(b, recebimentos), saldo: saldoDevedor(b, recebimentos) }))
     .filter((b) => {
       const matchSearch = !search || b.client_nome?.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = filterStatus === "all" || b.statusCalc === filterStatus;
+      const matchStatus =
+        filterStatus === "all" ||
+        (filterStatus === "aberto" ? b.saldo > 0 && b.statusCalc !== "cancelado" : b.statusCalc === filterStatus);
       const matchCategoria = filterCategoria === "all" || b.categoria === filterCategoria;
-      return matchSearch && matchStatus && matchCategoria;
+      const matchTipo = !focusTipo || focusTipo !== "caucao" || b.natureza === "caucao";
+      return matchSearch && matchStatus && matchCategoria && matchTipo;
     });
 
   const now = new Date();
@@ -167,7 +195,13 @@ export default function Billing() {
     return (
       <div>
         <PageHeader title={t("billing_title")} subtitle={t("billing_subtitle")} />
-        <FaturamentoCliente billings={billingsCliente} recebimentos={recebimentosCliente} effectiveClientId={effectiveClientId} />
+        <FaturamentoCliente
+          billings={billingsCliente}
+          recebimentos={recebimentosCliente}
+          effectiveClientId={effectiveClientId}
+          focusStatus={focusStatus}
+          focusTipo={focusTipo}
+        />
       </div>
     );
   }
@@ -229,7 +263,9 @@ export default function Billing() {
           <SelectTrigger className="w-full sm:w-40 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="aberto">Em aberto (não pago)</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="aguardando_confirmacao">Aguardando confirmação</SelectItem>
             <SelectItem value="parcialmente_recebido">Parcial</SelectItem>
             <SelectItem value="recebido">Recebido</SelectItem>
             <SelectItem value="atrasado">Atrasado</SelectItem>
@@ -317,12 +353,18 @@ export default function Billing() {
                           R$ {(b.valor || 0).toLocaleString("pt-BR")}
                         </td>
                         <td className="px-5 py-3.5">
-                          {b.statusCalc !== "recebido" && b.statusCalc !== "cancelado" && (
-                            <Button variant="ghost" size="sm" className="text-xs text-green-400 hover:text-green-300"
-                              onClick={(e) => { e.stopPropagation(); setRecebimentoBilling(b); }}>
-                              Registrar Recebimento
+                          <div className="flex items-center gap-1 flex-wrap justify-end">
+                            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary"
+                              onClick={(e) => { e.stopPropagation(); setEditBilling(b); setShowForm(true); }}>
+                              Editar
                             </Button>
-                          )}
+                            {b.statusCalc !== "recebido" && b.statusCalc !== "cancelado" && (
+                              <Button variant="ghost" size="sm" className="text-xs text-green-400 hover:text-green-300"
+                                onClick={(e) => { e.stopPropagation(); setRecebimentoBilling(b); }}>
+                                Registrar Recebimento
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                       {isExpandido && (
@@ -394,14 +436,22 @@ export default function Billing() {
                     R$ {(b.valor || 0).toLocaleString("pt-BR")}
                   </p>
                 </div>
-                {b.statusCalc !== "recebido" && b.statusCalc !== "cancelado" && (
+                <div className="flex gap-2 mt-3">
                   <button
-                    onClick={() => setRecebimentoBilling(b)}
-                    className="mt-3 w-full py-2 rounded-lg border border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-colors"
+                    onClick={() => { setEditBilling(b); setShowForm(true); }}
+                    className="flex-1 py-2 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:bg-secondary transition-colors"
                   >
-                    Registrar Recebimento
+                    Editar
                   </button>
-                )}
+                  {b.statusCalc !== "recebido" && b.statusCalc !== "cancelado" && (
+                    <button
+                      onClick={() => setRecebimentoBilling(b)}
+                      className="flex-1 py-2 rounded-lg border border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-colors"
+                    >
+                      Registrar Recebimento
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

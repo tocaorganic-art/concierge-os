@@ -1,10 +1,16 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-export default function KpiCard({ title, value, icon: Icon, trend, trendLabel, valueClassName }) {
+export default function KpiCard({ title, value, icon: Icon, trend, trendLabel, valueClassName, to }) {
   const isPositive = trend > 0;
+  const Wrapper = to ? Link : "div";
+  const wrapperProps = to ? { to } : {};
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 gold-border-hover transition-all duration-300">
+    <Wrapper
+      {...wrapperProps}
+      className={`bg-card border border-border rounded-xl p-5 gold-border-hover transition-all duration-300 block text-left ${to ? "cursor-pointer hover:border-primary/40" : ""}`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center">
           <Icon className="w-5 h-5 text-primary" />
@@ -26,6 +32,6 @@ export default function KpiCard({ title, value, icon: Icon, trend, trendLabel, v
       {trendLabel && (
         <p className="text-xs text-muted-foreground mt-1">{trendLabel}</p>
       )}
-    </div>
+    </Wrapper>
   );
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, UtensilsCrossed, Palmtree, Car, Building2, Ticket, Sparkles } from "lucide-react";
 
 const EMPTY = { nome: "", categoria: "restaurante", cidade: "", estado: "", telefone: "", email: "", comissao_pct: "", descricao: "", ativo: true };
 
@@ -49,12 +49,12 @@ export default function PartnerFormDialog({ open, partner, onClose }) {
           <Select value={form.categoria} onValueChange={(v) => set("categoria", v)}>
             <SelectTrigger><SelectValue placeholder="Categoria" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="restaurante">🍽️ Restaurante</SelectItem>
-              <SelectItem value="passeio">🏝️ Passeio</SelectItem>
-              <SelectItem value="transfer">🚗 Transfer</SelectItem>
-              <SelectItem value="hospedagem">🏨 Hospedagem</SelectItem>
-              <SelectItem value="evento">🎭 Evento</SelectItem>
-              <SelectItem value="outros">✦ Outros</SelectItem>
+              <SelectItem value="restaurante"><span className="inline-flex items-center gap-1.5"><UtensilsCrossed className="w-3.5 h-3.5" /> Restaurante</span></SelectItem>
+              <SelectItem value="passeio"><span className="inline-flex items-center gap-1.5"><Palmtree className="w-3.5 h-3.5" /> Passeio</span></SelectItem>
+              <SelectItem value="transfer"><span className="inline-flex items-center gap-1.5"><Car className="w-3.5 h-3.5" /> Transfer</span></SelectItem>
+              <SelectItem value="hospedagem"><span className="inline-flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> Hospedagem</span></SelectItem>
+              <SelectItem value="evento"><span className="inline-flex items-center gap-1.5"><Ticket className="w-3.5 h-3.5" /> Evento</span></SelectItem>
+              <SelectItem value="outros"><span className="inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Outros</span></SelectItem>
             </SelectContent>
           </Select>
 

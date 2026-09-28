@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays, MessageCircle, ExternalLink, ClipboardCopy, Check } from "lucide-react";
+import { Plus, CheckCircle2, Circle, ChevronLeft, ChevronRight, CalendarDays, MessageCircle, ExternalLink, ClipboardCopy, Check, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from "@/components/shared/PageHeader";
@@ -120,7 +120,7 @@ export default function Agenda() {
             {task.tipo && <StatusBadge status={task.tipo} />}
             {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
             {task.lembrete_antecedencia && (
-              <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">🔔 {task.lembrete_antecedencia}</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full"><Bell className="w-2.5 h-2.5" /> {task.lembrete_antecedencia}</span>
             )}
             {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
           </div>

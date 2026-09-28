@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Check, X } from "lucide-react";
+import { ChevronRight, Check, X, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,7 +192,7 @@ export default function OnboardingWizard({ user, onComplete }) {
                     disabled={!clientForm.nome || createClient.isPending}
                     onClick={() => createClient.mutate(clientForm)}
                   >
-                    {createClient.isPending ? t("btn_save") + "..." : t("onboard_add") + " →"}
+                    {createClient.isPending ? t("btn_save") + "..." : <span className="inline-flex items-center gap-1">{t("onboard_add")} <ChevronRight className="w-3.5 h-3.5" /></span>}
                   </Button>
                 </div>
               </div>
@@ -243,7 +243,7 @@ export default function OnboardingWizard({ user, onComplete }) {
                       status: "lead",
                     })}
                   >
-                    {createProposal.isPending ? t("btn_save") + "..." : `✦ ${t("onboard_create_proposal")}`}
+                    {createProposal.isPending ? t("btn_save") + "..." : <span className="inline-flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" /> {t("onboard_create_proposal")}</span>}
                   </Button>
                 </div>
               </div>

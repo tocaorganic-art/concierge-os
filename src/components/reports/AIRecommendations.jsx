@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, TrendingUp, AlertCircle, Lightbulb, RefreshCw } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
+import { base44 } from "@/api/base44Client";
 
 const typeConfig = {
   urgente: { icon: AlertCircle, color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
@@ -10,7 +10,7 @@ const typeConfig = {
 };
 
 const AiBadge = () => (
-  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2">✦ IA</span>
+  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2"><Sparkles className="w-2.5 h-2.5" /> IA</span>
 );
 
 export default function AIRecommendations({ proposals, clients, tasks }) {
@@ -19,7 +19,7 @@ export default function AIRecommendations({ proposals, clients, tasks }) {
 
   const handleGenerate = async () => {
     setLoading(true);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "ai_suggestions",
       payload: { proposals, clients, tasks: tasks || [] },
     });

@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Users, Star, MessageSquare, CheckCircle2 } from "lucide-react";
+import { Users, Star, MessageSquare, CheckCircle2, Zap, Sparkles, Crown } from "lucide-react";
 
 function KPI({ label, value, sub, icon: Icon, color }) {
   return (
@@ -126,12 +126,12 @@ export default function ConciergeKPIs() {
         <h2 className="text-sm font-semibold text-foreground mb-4">Distribuição por plano</h2>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { id: "essencial", label: "Essencial", emoji: "⚡", color: "border-blue-500/20 bg-blue-500/5" },
-            { id: "premium",   label: "Premium",   emoji: "✦",  color: "border-primary/20 bg-primary/5" },
-            { id: "black",     label: "Black",     emoji: "🖤", color: "border-foreground/10 bg-foreground/5" },
+            { id: "essencial", label: "Essencial", Icon: Zap,      color: "border-blue-500/20 bg-blue-500/5 text-blue-400" },
+            { id: "premium",   label: "Premium",   Icon: Sparkles, color: "border-primary/20 bg-primary/5 text-primary" },
+            { id: "black",     label: "Black",     Icon: Crown,    color: "border-foreground/10 bg-foreground/5 text-foreground" },
           ].map((plan) => (
             <div key={plan.id} className={`border rounded-xl p-4 text-center ${plan.color}`}>
-              <div className="text-2xl mb-1">{plan.emoji}</div>
+              <plan.Icon className="w-6 h-6 mx-auto mb-1" />
               <p className="font-display text-xl font-bold text-foreground">{planCounts[plan.id]}</p>
               <p className="text-xs text-muted-foreground">{plan.label}</p>
             </div>

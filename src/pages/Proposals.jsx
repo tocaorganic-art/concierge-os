@@ -21,7 +21,7 @@ import AIProposalModal from "@/components/proposals/AIProposalModal";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 
 const AiBadge = () => (
-  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full border border-primary/20">✦ IA</span>
+  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full border border-primary/20"><Sparkles className="w-2.5 h-2.5" /> IA</span>
 );
 
 export default function Proposals() {

@@ -1,4 +1,5 @@
 import React from "react";
+import { ArrowDown } from "lucide-react";
 
 export default function FunnelChart({ proposals }) {
   const stages = [
@@ -27,7 +28,7 @@ export default function FunnelChart({ proposals }) {
               <span className="text-sm font-medium text-foreground">{stage.label}</span>
               <div className="flex items-center gap-3">
                 {conversion !== null && (
-                  <span className="font-mono text-xs text-muted-foreground">↓ {conversion}%</span>
+                  <span className="inline-flex items-center gap-0.5 font-mono text-xs text-muted-foreground"><ArrowDown className="w-3 h-3" /> {conversion}%</span>
                 )}
                 <span className="font-mono text-sm font-bold text-foreground">{stage.count}</span>
               </div>

@@ -16,6 +16,10 @@ import {
   Lock,
   Sparkles,
   PlayCircle,
+  Gauge,
+  Handshake,
+  UserCircle,
+  MessageSquare,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -164,7 +168,7 @@ export default function Sidebar({ onOpenTutorial }) {
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
             }`}
           >
-            <span className="text-base">📊</span>
+            <Gauge className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/kpis" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
             <span className="flex-1">KPIs Concierge</span>
             {location.pathname === "/kpis" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </Link>
@@ -176,7 +180,7 @@ export default function Sidebar({ onOpenTutorial }) {
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
             }`}
           >
-            <span className="text-base">🤝</span>
+            <Handshake className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/parceiros" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
             <span className="flex-1">Parceiros</span>
             {location.pathname === "/parceiros" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </Link>
@@ -188,7 +192,7 @@ export default function Sidebar({ onOpenTutorial }) {
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
             }`}
           >
-            <span className="text-base">✨</span>
+            <UserCircle className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/meu-perfil" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
             <span className="flex-1">Meu Perfil</span>
             {location.pathname === "/meu-perfil" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </Link>
@@ -212,7 +216,7 @@ export default function Sidebar({ onOpenTutorial }) {
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
             }`}
           >
-            <span className="text-base">🏝️</span>
+            <MessageSquare className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/solicitacoes" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
             <span className="flex-1">Solicitações</span>
             {location.pathname === "/solicitacoes" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </Link>
@@ -228,7 +232,7 @@ export default function Sidebar({ onOpenTutorial }) {
               location.pathname === "/toca-tria" ? "text-primary" : "text-primary/60 group-hover:text-primary"
             }`} />
             <span className="flex-1">Toca TrIA</span>
-            <span className="text-[9px] font-mono font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full border border-primary/20">✦ IA</span>
+            <span className="inline-flex items-center gap-0.5 text-[9px] font-mono font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full border border-primary/20"><Sparkles className="w-2.5 h-2.5" /> IA</span>
           </Link>
         </div>
       </nav>

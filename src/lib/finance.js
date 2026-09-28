@@ -52,6 +52,12 @@ export function statusDerivado(billing, recebimentos) {
   const recebido = valorRecebido(billing, recebimentos);
   const saldo = roundCents(valor - recebido);
   if (saldo <= 0) return "recebido";
+  // Cliente já anexou comprovante mas o admin ainda não lançou o
+  // Recebimento correspondente — o próximo passo é a confirmação do
+  // admin, não uma cobrança em aberto/atrasada do ponto de vista do
+  // cliente (que já agiu). Só se aplica enquanto nada foi lançado ainda
+  // no ledger para essa cobrança.
+  if (billing.comprovante_url && recebido === 0) return "aguardando_confirmacao";
   if (recebido > 0) {
     const vencida = billing.data_vencimento && new Date(billing.data_vencimento) < new Date();
     return vencida ? "atrasado" : "parcialmente_recebido";
@@ -184,6 +190,34 @@ export function receitaCaixaDoMesPorNatureza(billings, recebimentos, month, year
 
 export function receitaCaixaDoMes(billings, recebimentos, month, year) {
   return receitaCaixaDoMesPorNatureza(billings, recebimentos, month, year).total;
+}
+
+// Receita do mês (caixa) recebida mas ainda SEM classificação de natureza
+// (cobrança sem `natureza` nem `alocacao` preenchidos — "A Classificar" na
+// tela de Faturamento). Esse valor não é repasse nem caução: é dinheiro que
+// entrou e não foi contado em nenhum KPI de receita própria por falta de
+// classificação — achado real: cartão "Receita Própria do Mês" mostrando
+// R$0 com recebimento confirmado via Pix, porque a cobrança ligada nunca
+// teve a natureza definida. Existe só para alertar o operador; não decide
+// sozinho como classificar (isso exige revisão humana do contrato).
+export function receitaNaoClassificadaDoMes(billings, recebimentos, month, year) {
+  const idsComLedger = new Set(recebimentos.map((r) => r.billing_id));
+  const billingsById = new Map(billings.map((b) => [b.id, b]));
+  let total = 0;
+
+  recebimentos.forEach((r) => {
+    const b = billingsById.get(r.billing_id);
+    if (!b || !b.valor || !inPeriod(r.data_recebimento, month, year)) return;
+    if (partesDaAlocacao(b).length === 0) total += r.valor || 0;
+  });
+
+  billings
+    .filter((b) => b.status === "recebido" && !idsComLedger.has(b.id) && inPeriod(b.data_pagamento, month, year))
+    .forEach((b) => {
+      if (partesDaAlocacao(b).length === 0) total += b.valor || 0;
+    });
+
+  return roundCents(total);
 }
 
 // KPI 2 — Faturado do mês (competência): Σ receita própria contida em

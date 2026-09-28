@@ -18,6 +18,7 @@ export function formatDate(d) {
 
 export const STATUS_LABEL = {
   pendente: { label: "Pendente", className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+  aguardando_confirmacao: { label: "Aguardando confirmação", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
   parcialmente_recebido: { label: "Parcial", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
   recebido: { label: "Pago", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
   atrasado: { label: "Atrasado", className: "bg-red-500/10 text-red-400 border-red-500/20" },
@@ -190,15 +191,15 @@ function ComentariosThread({ billingId, clientId }) {
 // Uma linha de cobrança clicável — expande para mostrar o histórico de
 // recebimentos e comprovantes daquela cobrança específica, mais um fio de
 // comentários entre cliente e equipe.
-export function LinhaParcela({ billing, recebimentos, onUploaded }) {
-  const [aberto, setAberto] = useState(false);
+export function LinhaParcela({ billing, recebimentos, onUploaded, defaultAberto = false }) {
+  const [aberto, setAberto] = useState(defaultAberto);
   const recebimentosDaParcela = recebimentos.filter((r) => r.billing_id === billing.id);
   const status = statusDerivado(billing, recebimentos);
   const meta = STATUS_LABEL[status] || STATUS_LABEL.pendente;
   const podeAnexar = status !== "recebido" && status !== "cancelado" && !billing.comprovante_url;
 
   return (
-    <div className="border-b border-border/60 last:border-0 py-2.5">
+    <div id={`billing-${billing.id}`} className="border-b border-border/60 last:border-0 py-2.5 scroll-mt-24">
       <button type="button" onClick={() => setAberto((a) => !a)} className="w-full flex items-start justify-between gap-2 text-left">
         <div className="min-w-0">
           <p className="text-sm text-foreground">

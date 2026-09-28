@@ -8,15 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
-
 const TIPOS = [
   "Viagem de luxo", "Casamento", "Evento corporativo",
   "Experiência local", "Transfer VIP", "Personalizado",
 ];
 
 const AiBadge = () => (
-  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2">✦ IA</span>
+  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2"><Sparkles className="w-2.5 h-2.5" /> IA</span>
 );
 
 export default function AIProposalModal({ open, onOpenChange, onGenerated }) {
@@ -51,7 +49,7 @@ export default function AIProposalModal({ open, onOpenChange, onGenerated }) {
   const handleGenerate = async () => {
     if (!form.client_nome || !form.destino) return;
     setLoading(true);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "proposal",
       payload: { ...form, referencia_estilo: uploadedRef },
     });

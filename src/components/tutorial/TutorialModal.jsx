@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, BarChart3, Bell, Smartphone, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 
@@ -75,20 +75,20 @@ function Slide2({ t }) {
       {/* Chaos icon cluster */}
       <div className="relative w-28 h-28">
         {[
-          { label: "📊", rotate: "-12deg", x: "-20px", y: "0px", delay: "0s" },
-          { label: "🔔", rotate: "8deg", x: "20px", y: "-8px", delay: "0.3s" },
-          { label: "📱", rotate: "-5deg", x: "0px", y: "12px", delay: "0.6s" },
+          { Icon: BarChart3, rotate: "-12deg", x: "-20px", y: "0px", delay: "0s" },
+          { Icon: Bell, rotate: "8deg", x: "20px", y: "-8px", delay: "0.3s" },
+          { Icon: Smartphone, rotate: "-5deg", x: "0px", y: "12px", delay: "0.6s" },
         ].map((item, i) => (
           <div
             key={i}
-            className="absolute inset-0 flex items-center justify-center text-3xl"
+            className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `rotate(${item.rotate}) translate(${item.x}, ${item.y})`,
               animation: `float${i} 3s ease-in-out infinite`,
               animationDelay: item.delay,
             }}
           >
-            {item.label}
+            <item.Icon className="w-8 h-8 text-primary" />
           </div>
         ))}
         <style>{`
@@ -162,10 +162,10 @@ function Slide4({ t }) {
       {/* Animated AI badge */}
       <div className="relative">
         <div
-          className="text-3xl font-mono font-bold px-6 py-3 rounded-xl border border-primary/40 bg-primary/10 text-primary"
+          className="inline-flex items-center gap-2 text-3xl font-mono font-bold px-6 py-3 rounded-xl border border-primary/40 bg-primary/10 text-primary"
           style={{ animation: "aiPulse 2s ease-in-out infinite" }}
         >
-          ✦ IA
+          <Sparkles className="w-7 h-7" /> IA
         </div>
         <style>{`
           @keyframes aiPulse {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Crown, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import { Crown, Sparkles, Loader2, CheckCircle2, Wine, Plane } from "lucide-react";
 
 const VIAJA_COM = [
   { v: "sozinho", l: "Sozinho" },
@@ -84,7 +84,7 @@ export default function ClientProfile() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span>🍷</span> Preferências de consumo
+            <Wine className="w-4 h-4 text-primary" /> Preferências de consumo
           </h2>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Bebidas preferidas</label>
@@ -98,7 +98,7 @@ export default function ClientProfile() {
 
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span>✈️</span> Perfil de viagem
+            <Plane className="w-4 h-4 text-primary" /> Perfil de viagem
           </h2>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Viajo com</label>
@@ -141,8 +141,8 @@ export default function ClientProfile() {
         </div>
 
         <Button type="submit" className="w-full gap-2" disabled={mutation.isPending}>
-          {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : null}
-          {mutation.isPending ? "Salvando..." : saved ? "Preferências salvas!" : "Salvar preferências ✦"}
+          {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Sparkles className="w-4 h-4" />}
+          {mutation.isPending ? "Salvando..." : saved ? "Preferências salvas!" : "Salvar preferências"}
         </Button>
       </form>
     </div>

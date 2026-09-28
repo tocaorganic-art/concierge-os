@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MessageCircle, Sparkles, Loader2, Copy, ExternalLink } from "lucide-react";
-import { generateWithAI } from "@/functions/generateWithAI";
+import { base44 } from "@/api/base44Client";
 
 const TEMPLATES = [
   { id: "confirmar_chegada", label: "Confirmar chegada" },
@@ -14,7 +14,7 @@ const TEMPLATES = [
 ];
 
 const AiBadge = () => (
-  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2">✦ IA</span>
+  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-primary/20 ml-2"><Sparkles className="w-2.5 h-2.5" /> IA</span>
 );
 
 export default function WhatsAppModal({ open, onOpenChange, client_nome, telefone, context = "" }) {
@@ -27,7 +27,7 @@ export default function WhatsAppModal({ open, onOpenChange, client_nome, telefon
   const handleGenerate = async (template = null) => {
     setLoading(true);
     setActiveTemplate(template);
-    const res = await generateWithAI({
+    const res = await base44.functions.invoke("generateWithAI", {
       type: "whatsapp",
       payload: {
         template: template || "custom",

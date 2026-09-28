@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { stripeCheckout } from "@/functions/stripeCheckout";
 import GoogleIcon from "@/components/GoogleIcon";
 
 const PRICE_IDS = {
@@ -44,7 +43,7 @@ export default function CheckoutModal({ open, onOpenChange, plan, billingCycle }
     if (!priceId) return;
     setLoading(true);
     setError(null);
-    const res = await stripeCheckout({ price_id: priceId, plan_id: plan, cycle });
+    const res = await base44.functions.invoke("stripeCheckout", { price_id: priceId, plan_id: plan, cycle });
     const url = res?.data?.url;
     if (url) {
       window.location.href = url;
@@ -110,7 +109,7 @@ export default function CheckoutModal({ open, onOpenChange, plan, billingCycle }
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-11"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {loading ? "Redirecionando..." : "Ir para o checkout →"}
+              {loading ? "Redirecionando..." : <span className="inline-flex items-center gap-1">Ir para o checkout <ArrowRight className="w-3.5 h-3.5" /></span>}
             </Button>
           )}
 
