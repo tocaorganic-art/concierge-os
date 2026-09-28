@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { agruparBillingsCliente } from "@/lib/finance";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, Download, ExternalLink } from "lucide-react";
 
 // Meu Contrato — composição do preço cheio (itens_contrato, dado público do
 // próprio contrato) + as parcelas de "Seu Contrato" (nunca a alocação
@@ -42,6 +42,27 @@ export default function MeuContrato() {
         <FileText className="w-5 h-5 text-primary" />
         <h1 className="font-heading text-2xl font-bold text-foreground">Meu Contrato</h1>
       </div>
+
+      {proposta?.contrato_assinado_url && (
+        <div className="bg-card border border-border rounded-xl p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Contrato assinado</p>
+            <div className="flex items-center gap-3">
+              <a href={proposta.contrato_assinado_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                <ExternalLink className="w-3.5 h-3.5" /> Abrir
+              </a>
+              <a href={proposta.contrato_assinado_url} download className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                <Download className="w-3.5 h-3.5" /> Baixar
+              </a>
+            </div>
+          </div>
+          {proposta.contrato_assinado_url.toLowerCase().endsWith(".pdf") ? (
+            <iframe src={proposta.contrato_assinado_url} title="Contrato assinado" className="w-full h-[70vh] rounded-lg border border-border" />
+          ) : (
+            <img src={proposta.contrato_assinado_url} alt="Contrato assinado" className="w-full rounded-lg border border-border" />
+          )}
+        </div>
+      )}
 
       {itens.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">

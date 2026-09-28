@@ -103,6 +103,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           title="Total Contratado"
           value={`${currSymbol} ${totalContratado.toLocaleString(localeDate)}`}
           icon={FileText}
+          to="/faturamento"
           trendLabel={`Contrato ${currSymbol} ${contrato.reduce((s, b) => s + (b.valor || 0), 0).toLocaleString(localeDate)} · Adicionais ${currSymbol} ${adicionais.reduce((s, b) => s + (b.valor || 0), 0).toLocaleString(localeDate)}`}
         />
         <KpiCard
@@ -110,6 +111,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           value={`${currSymbol} ${totalPago.toLocaleString(localeDate)}`}
           icon={DollarSign}
           valueClassName="text-emerald-400"
+          to="/faturamento?status=recebido"
           trendLabel={dataUltimoPagamento ? `${pagosResumo.length} Pix · ${new Date(dataUltimoPagamento + "T00:00:00").toLocaleDateString(localeDate)}` : undefined}
         />
         <KpiCard
@@ -117,12 +119,14 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           value={`${currSymbol} ${totalAPagar.toLocaleString(localeDate)}`}
           icon={Wallet}
           valueClassName={totalAPagar > 0 ? "text-amber-400" : "text-emerald-400"}
+          to="/faturamento?status=aberto"
           trendLabel={proximoVencimento ? `Próx. venc. ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${currSymbol} ${(proximoVencimentoValor || 0).toLocaleString(localeDate)}` : undefined}
         />
         <KpiCard
           title="Caução"
           value={`${currSymbol} ${totalCaucao.toLocaleString(localeDate)}`}
           icon={Wallet}
+          to="/faturamento?tipo=caucao"
           trendLabel="Devolvível em 48h após vistoria"
         />
       </div>
@@ -133,6 +137,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
             value={`${currSymbol} ${emAtrasoValor.toLocaleString(localeDate)}`}
             icon={AlertCircle}
             valueClassName="text-red-400"
+            to="/faturamento?status=atrasado"
             trendLabel={`${emAtrasoQtd} cobrança${emAtrasoQtd > 1 ? "s" : ""}`}
           />
         </div>
@@ -363,6 +368,7 @@ export default function Dashboard() {
           title="A Receber dos Clientes"
           value={`${currSymbol} ${aReceberClientes.toLocaleString(localeDate)}`}
           icon={Wallet}
+          to="/faturamento?status=aberto"
           trendLabel="Valor cheio (repasse + receita própria + caução)"
         />
         <KpiCard
@@ -378,6 +384,7 @@ export default function Dashboard() {
           value={`${currSymbol} ${atrasoTotal.toLocaleString(localeDate)}`}
           icon={AlertCircle}
           valueClassName="text-red-400"
+          to="/faturamento?status=atrasado"
           trendLabel={atrasoQtd > 0 ? `${atrasoQtd} cobrança${atrasoQtd > 1 ? "s" : ""}` : "nenhuma"}
         />
         <KpiCard
@@ -389,6 +396,7 @@ export default function Dashboard() {
           title="Caução em Custódia"
           value={`${currSymbol} ${caucao.toLocaleString(localeDate)}`}
           icon={Wallet}
+          to="/faturamento?tipo=caucao"
         />
         <KpiCard
           title="A Pagar a Fornecedores"

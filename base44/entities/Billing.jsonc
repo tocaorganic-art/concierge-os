@@ -34,6 +34,15 @@
       "type": "number",
       "description": "Valor da cobran\u00e7a"
     },
+    "tipo_despesa": {
+      "type": "string",
+      "enum": [
+        "fixa",
+        "variavel"
+      ],
+      "default": "variavel",
+      "description": "fixa = valor recorrente ou previsto em contrato (ex.: aluguel/contrato da casa). variavel = servico adicional ou cobranca que varia durante a estadia. Cauc\u00e3o continua identificada por natureza='caucao', independente deste campo."
+    },
     "status": {
       "type": "string",
       "enum": [

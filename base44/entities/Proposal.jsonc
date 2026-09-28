@@ -69,6 +69,10 @@
       "type": "string",
       "description": "Observa\u00e7\u00f5es da proposta"
     },
+    "contrato_assinado_url": {
+      "type": "string",
+      "description": "URL do PDF/imagem do contrato assinado da casa, exibido integralmente na pagina \"Meu Contrato\" do cliente. Upload feito pelo admin (mesma RLS de update da entidade); visivel ao cliente vinculado (mesma visibilidade da proposta)."
+    },
     "documentos_cliente": {
       "type": "array",
       "description": "Documentos visiveis ao cliente vinculado (contrato/adendo assinado, vouchers) - mesma visibilidade da proposta em si, sem RLS de campo adicional.",

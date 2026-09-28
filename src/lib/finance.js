@@ -52,6 +52,12 @@ export function statusDerivado(billing, recebimentos) {
   const recebido = valorRecebido(billing, recebimentos);
   const saldo = roundCents(valor - recebido);
   if (saldo <= 0) return "recebido";
+  // Cliente já anexou comprovante mas o admin ainda não lançou o
+  // Recebimento correspondente — o próximo passo é a confirmação do
+  // admin, não uma cobrança em aberto/atrasada do ponto de vista do
+  // cliente (que já agiu). Só se aplica enquanto nada foi lançado ainda
+  // no ledger para essa cobrança.
+  if (billing.comprovante_url && recebido === 0) return "aguardando_confirmacao";
   if (recebido > 0) {
     const vencida = billing.data_vencimento && new Date(billing.data_vencimento) < new Date();
     return vencida ? "atrasado" : "parcialmente_recebido";

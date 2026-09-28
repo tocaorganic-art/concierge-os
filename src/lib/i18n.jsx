@@ -16,6 +16,12 @@ const translations = {
     nav_expenses: "Despesas",
     nav_plans: "Planos",
     nav_signout: "Sair",
+    nav_billing_cliente: "Financeiro",
+    nav_solicitacoes: "Pedidos",
+    nav_meu_grupo: "Meu Grupo",
+    nav_meu_contrato: "Meu Contrato",
+    nav_documentos: "Documentos",
+    nav_perfil: "Perfil",
 
     // Dashboard
     dash_monthly_revenue: "Receita do Mês",
@@ -278,6 +284,12 @@ const translations = {
     nav_expenses: "Expenses",
     nav_plans: "Plans",
     nav_signout: "Sign Out",
+    nav_billing_cliente: "Billing",
+    nav_solicitacoes: "Requests",
+    nav_meu_grupo: "My Group",
+    nav_meu_contrato: "My Contract",
+    nav_documentos: "Documents",
+    nav_perfil: "Profile",
 
     dash_monthly_revenue: "Monthly Revenue",
     dash_active_proposals: "Active Proposals",
@@ -528,6 +540,12 @@ const translations = {
     nav_expenses: "Gastos",
     nav_plans: "Planes",
     nav_signout: "Salir",
+    nav_billing_cliente: "Financiero",
+    nav_solicitacoes: "Pedidos",
+    nav_meu_grupo: "Mi Grupo",
+    nav_meu_contrato: "Mi Contrato",
+    nav_documentos: "Documentos",
+    nav_perfil: "Perfil",
 
     dash_monthly_revenue: "Ingresos del Mes",
     dash_active_proposals: "Propuestas Activas",
