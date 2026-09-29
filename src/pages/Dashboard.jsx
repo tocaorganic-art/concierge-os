@@ -27,6 +27,7 @@ import {
   emAtrasoTotal, repassesEmCustodia, taxaConversao, indiceRecebimento, caucaoEmCustodia,
   totalAPagarFornecedores, saldoDevedor, valorRecebido, agruparBillingsCliente,
 } from "@/lib/finance";
+import { formatBRL } from "@/lib/formatBRL";
 
 const TIPOS_PEDIDO = [
   { id: "experiencia", Icon: Palmtree, label: "Experiência", sub: "Roteiros, passeios e aventuras" },
@@ -46,7 +47,6 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
   const proposta = proposals.find((p) => p.id === proposalIdSelecionado) || proposals[0];
 
   const localeDate = t("locale_date");
-  const currSymbol = t("currency_symbol");
 
   const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
   const servicos = [...contrato, ...adicionais];
@@ -101,14 +101,14 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
         <KpiCard
           title="Total Contratado"
-          value={`${currSymbol} ${totalContratado.toLocaleString(localeDate)}`}
+          value={formatBRL(totalContratado)}
           icon={FileText}
           to="/faturamento"
-          trendLabel={`Contrato ${currSymbol} ${contrato.reduce((s, b) => s + (b.valor || 0), 0).toLocaleString(localeDate)} · Adicionais ${currSymbol} ${adicionais.reduce((s, b) => s + (b.valor || 0), 0).toLocaleString(localeDate)}`}
+          trendLabel={`Contrato ${formatBRL(contrato.reduce((s, b) => s + (b.valor || 0), 0))} · Adicionais ${formatBRL(adicionais.reduce((s, b) => s + (b.valor || 0), 0))}`}
         />
         <KpiCard
           title="Pago"
-          value={`${currSymbol} ${totalPago.toLocaleString(localeDate)}`}
+          value={formatBRL(totalPago)}
           icon={DollarSign}
           valueClassName="text-emerald-400"
           to="/faturamento?status=recebido"
@@ -116,15 +116,15 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
         />
         <KpiCard
           title="A Pagar"
-          value={`${currSymbol} ${totalAPagar.toLocaleString(localeDate)}`}
+          value={formatBRL(totalAPagar)}
           icon={Wallet}
           valueClassName={totalAPagar > 0 ? "text-amber-400" : "text-emerald-400"}
           to="/faturamento?status=aberto"
-          trendLabel={proximoVencimento ? `Próx. venc. ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${currSymbol} ${(proximoVencimentoValor || 0).toLocaleString(localeDate)}` : undefined}
+          trendLabel={proximoVencimento ? `Próx. venc. ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${formatBRL(proximoVencimentoValor || 0)}` : undefined}
         />
         <KpiCard
           title="Caução"
-          value={`${currSymbol} ${totalCaucao.toLocaleString(localeDate)}`}
+          value={formatBRL(totalCaucao)}
           icon={Wallet}
           to="/faturamento?tipo=caucao"
           trendLabel="Devolvível em 48h após vistoria"
@@ -134,7 +134,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
           <KpiCard
             title="Em Atraso"
-            value={`${currSymbol} ${emAtrasoValor.toLocaleString(localeDate)}`}
+            value={formatBRL(emAtrasoValor)}
             icon={AlertCircle}
             valueClassName="text-red-400"
             to="/faturamento?status=atrasado"
@@ -254,7 +254,6 @@ export default function Dashboard() {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
   const localeDate = t("locale_date");
-  const currSymbol = t("currency_symbol");
 
   if (isClientMode) {
     const billingsCliente = billings.filter((b) => b.client_id === effectiveClientId);
@@ -353,31 +352,31 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-2">
         <KpiCard
           title="Receita Própria do Mês (Caixa)"
-          value={`${currSymbol} ${receitaMes.total.toLocaleString(localeDate)}`}
+          value={formatBRL(receitaMes.total)}
           icon={DollarSign}
           valueClassName="text-emerald-400"
           trendLabel={
             receitaNaoClassificada > 0
-              ? <span className="inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3 flex-shrink-0" /> {currSymbol} {receitaNaoClassificada.toLocaleString(localeDate)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.</span>
-              : `Honorário ${currSymbol} ${receitaMes.honorario.toLocaleString(localeDate)} · Intermediação ${currSymbol} ${receitaMes.intermediacao.toLocaleString(localeDate)} · Comissão ${currSymbol} ${receitaMes.comissao.toLocaleString(localeDate)}`
+              ? <span className="inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3 flex-shrink-0" /> {formatBRL(receitaNaoClassificada)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.</span>
+              : `Honorário ${formatBRL(receitaMes.honorario)} · Intermediação ${formatBRL(receitaMes.intermediacao)} · Comissão ${formatBRL(receitaMes.comissao)}`
           }
         />
         <KpiCard
           title="Faturado do Mês (Competência)"
-          value={`${currSymbol} ${faturadoMes.toLocaleString(localeDate)}`}
+          value={formatBRL(faturadoMes)}
           icon={FileText}
           trendLabel="Por data de emissão/assinatura do contrato"
         />
         <KpiCard
           title="A Receber dos Clientes"
-          value={`${currSymbol} ${aReceberClientes.toLocaleString(localeDate)}`}
+          value={formatBRL(aReceberClientes)}
           icon={Wallet}
           to="/faturamento?status=aberto"
           trendLabel="Valor cheio (repasse + receita própria + caução)"
         />
         <KpiCard
           title="Sua Receita a Receber"
-          value={`${currSymbol} ${aReceberPropria.toLocaleString(localeDate)}`}
+          value={formatBRL(aReceberPropria)}
           icon={Wallet}
           trendLabel="Só honorário + intermediação + comissão"
         />
@@ -385,7 +384,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
         <KpiCard
           title="Em Atraso"
-          value={`${currSymbol} ${atrasoTotal.toLocaleString(localeDate)}`}
+          value={formatBRL(atrasoTotal)}
           icon={AlertCircle}
           valueClassName="text-red-400"
           to="/faturamento?status=atrasado"
@@ -393,18 +392,18 @@ export default function Dashboard() {
         />
         <KpiCard
           title="Repasses em Custódia"
-          value={`${currSymbol} ${custodia.toLocaleString(localeDate)}`}
+          value={formatBRL(custodia)}
           icon={Wallet}
         />
         <KpiCard
           title="Caução em Custódia"
-          value={`${currSymbol} ${caucao.toLocaleString(localeDate)}`}
+          value={formatBRL(caucao)}
           icon={Wallet}
           to="/faturamento?tipo=caucao"
         />
         <KpiCard
           title="A Pagar a Fornecedores"
-          value={`${currSymbol} ${aPagarFornecedores.toLocaleString(localeDate)}`}
+          value={formatBRL(aPagarFornecedores)}
           icon={AlertCircle}
           valueClassName="text-red-400"
           trendLabel="Custos vinculados a contratos de clientes (repasse) — não é margem própria"

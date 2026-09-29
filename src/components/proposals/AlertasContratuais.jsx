@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Alertas operacionais/financeiros derivados de clausulas do contrato deste
 // evento (capacidade, checkout, restricoes de barulho, risco fiscal etc.) —
@@ -20,7 +21,7 @@ export default function AlertasContratuais({ alertas = [] }) {
               <p className="text-sm text-foreground">{a.titulo}</p>
               {a.valor_estimado > 0 && (
                 <span className="text-xs font-mono text-amber-400 flex-shrink-0">
-                  R$ {a.valor_estimado.toLocaleString("pt-BR")}
+                  {formatBRL(a.valor_estimado)}
                 </span>
               )}
             </div>

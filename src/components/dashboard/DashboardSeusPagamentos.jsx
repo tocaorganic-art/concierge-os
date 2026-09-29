@@ -1,5 +1,6 @@
 import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { formatBRL } from "@/lib/formatBRL";
 
 const PIE_COLORS = ["hsl(24 87% 56%)", "hsl(200 60% 50%)", "hsl(160 50% 45%)", "hsl(280 50% 55%)"];
 const tooltipStyle = {
@@ -36,7 +37,7 @@ export default function DashboardSeusPagamentos({ contrato, adicionais, caucao, 
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={3} dataKey="value">
                 {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => `R$ ${v.toLocaleString("pt-BR")}`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatBRL(v)} />
               <Legend formatter={(val) => <span style={{ color: "hsl(220 10% 70%)", fontSize: 11 }}>{val}</span>} />
             </PieChart>
           </ResponsiveContainer>
@@ -47,7 +48,7 @@ export default function DashboardSeusPagamentos({ contrato, adicionais, caucao, 
                   <span className="text-muted-foreground">
                     {new Date(r.data_recebimento + "T00:00:00").toLocaleDateString("pt-BR")}{r.metodo ? ` · ${r.metodo}` : ""}
                   </span>
-                  <span className="font-mono font-semibold text-emerald-400">R$ {r.valor.toLocaleString("pt-BR")}</span>
+                  <span className="font-mono font-semibold text-emerald-400">{formatBRL(r.valor)}</span>
                 </div>
               ))}
             </div>

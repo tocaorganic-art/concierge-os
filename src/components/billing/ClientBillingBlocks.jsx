@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Paperclip, Camera, ChevronDown, Send, Pencil } from "lucide-react";
 import { statusDerivado, comprovantesDoBilling } from "@/lib/finance";
 import { useUserProfile } from "@/lib/useUserProfile";
+import { formatBRL } from "@/lib/formatBRL";
 
 const EDITAVEL_MINUTOS = 5;
 
@@ -82,7 +83,7 @@ export function AnexarComprovante({ billing, onUploaded }) {
       {error && <p className="text-[10px] text-red-400 mt-0.5">{error}</p>}
       {divergencia && (
         <p className="text-[10px] text-amber-400 mt-0.5">
-          O comprovante mostra R$ {divergencia.lido.toLocaleString("pt-BR")}, mas essa cobrança é de R$ {divergencia.esperado.toLocaleString("pt-BR")} — enviado mesmo assim, a equipe vai conferir.
+          O comprovante mostra {formatBRL(divergencia.lido)}, mas essa cobrança é de {formatBRL(divergencia.esperado)} — enviado mesmo assim, a equipe vai conferir.
         </p>
       )}
     </div>
@@ -231,7 +232,7 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
           {billing.tipo_despesa === "variavel" && (
             <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-warning/30 bg-warning/10 text-warning">Variável</span>
           )}
-          <span className="font-display font-semibold text-primary">R$ {(billing.valor || 0).toLocaleString("pt-BR")}</span>
+          <span className="font-display font-semibold text-primary">{formatBRL(billing.valor || 0)}</span>
           <span className={`inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${meta.className}`}>{meta.label}</span>
           <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
         </div>
@@ -246,7 +247,7 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
                 <span className={r.valor < 0 ? "text-red-400" : "text-muted-foreground"}>
                   {r.estorno_de_id ? "Estorno" : "Recebido"} em {formatDate(r.data_recebimento)}{r.metodo ? ` · ${r.metodo}` : ""}
                 </span>
-                <span className={r.valor < 0 ? "text-red-400 font-mono" : "text-emerald-400 font-mono"}>R$ {r.valor.toLocaleString("pt-BR")}</span>
+                <span className={r.valor < 0 ? "text-red-400 font-mono" : "text-emerald-400 font-mono"}>{formatBRL(r.valor)}</span>
               </div>
             ))
           )}

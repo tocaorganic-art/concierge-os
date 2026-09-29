@@ -3,6 +3,7 @@ import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
+import { formatBRL } from "@/lib/formatBRL";
 
 export default function ProposalPdfButton({ proposal, variant = "ghost", size = "sm" }) {
   const [loading, setLoading] = useState(false);
@@ -176,7 +177,7 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
         doc.setTextColor(...dark);
-        doc.text(`${t("currency_symbol")} ${proposal.valor.toLocaleString(t("locale_date"))}`, W / 2, y + 20, { align: "center" });
+        doc.text(formatBRL(proposal.valor), W / 2, y + 20, { align: "center" });
         y += 36;
       }
 

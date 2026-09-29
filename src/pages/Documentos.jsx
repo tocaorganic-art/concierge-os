@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { FolderOpen, FileText, Loader2, ExternalLink, Receipt, PenLine } from "lucide-react";
 import ChatAnexo from "@/components/chat/ChatAnexo";
+import { formatBRL } from "@/lib/formatBRL";
 
 function DocLinha({ nome, sub, href }) {
   return (
@@ -123,7 +124,7 @@ export default function Documentos() {
                   <p className="text-[11px] text-muted-foreground">
                     Comprovante · {c.enviado_em ? new Date(c.enviado_em).toLocaleDateString("pt-BR") : new Date(c.created_date || Date.now()).toLocaleDateString("pt-BR")}
                     {c.enviado_por && ` · enviado por ${c.enviado_por}`}
-                    {c.billing_valor != null && ` · R$ ${Number(c.billing_valor).toLocaleString("pt-BR")}`}
+                    {c.billing_valor != null && ` · ${formatBRL(c.billing_valor)}`}
                   </p>
                 </div>
                 <DocLink url={c.url} />

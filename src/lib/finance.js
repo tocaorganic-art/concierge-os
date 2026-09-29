@@ -7,6 +7,8 @@
 // imutável de pagamentos recebidos contra uma cobrança — nunca editado,
 // correção = novo registro com valor negativo (estorno).
 
+import { formatBRL } from "@/lib/formatBRL";
+
 export function roundCents(value) {
   return Math.round((Number(value) || 0) * 100) / 100;
 }
@@ -89,7 +91,7 @@ export function validarNovoRecebimento(billing, recebimentos, novoValor, novaDat
   if (novaData && new Date(novaData) > new Date()) return "A data de recebimento não pode ser futura.";
   const saldoAtual = saldoDevedor(billing, recebimentos);
   if (roundCents(novoValor) > saldoAtual + 0.009) {
-    return `Esse recebimento (R$ ${roundCents(novoValor).toLocaleString("pt-BR")}) ultrapassa o saldo devedor (R$ ${saldoAtual.toLocaleString("pt-BR")}) desta cobrança.`;
+    return `Esse recebimento (${formatBRL(roundCents(novoValor))}) ultrapassa o saldo devedor (${formatBRL(saldoAtual)}) desta cobrança.`;
   }
   return null;
 }

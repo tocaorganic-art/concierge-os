@@ -2,6 +2,7 @@ import React from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useLanguage } from "@/lib/i18n";
 import { serieReceitaFaturado6Meses } from "@/lib/finance";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Receita (caixa, honorário recebido) x Faturado (competência, honorário
 // emitido) dos últimos 6 meses — mesma fonte que os KPIs 1 e 2 do
@@ -25,7 +26,7 @@ export default function DashboardRevenueChart({ billings = [], recebimentos = []
             <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
             <Tooltip
               contentStyle={{ background: "hsl(220 14% 11%)", border: "1px solid hsl(220 12% 18%)", borderRadius: "8px", fontSize: "12px", fontFamily: "JetBrains Mono" }}
-              formatter={(value, name) => [`${t("currency_symbol")} ${value.toLocaleString(t("locale_date"))}`, name]}
+              formatter={(value, name) => [formatBRL(value), name]}
             />
             <Legend wrapperStyle={{ fontSize: 11, fontFamily: "JetBrains Mono" }} />
             <Bar dataKey="receita" name="Receita (caixa)" fill="hsl(24 87% 56%)" radius={[4, 4, 0, 0]} />

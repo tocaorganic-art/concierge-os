@@ -13,6 +13,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
 import ExpenseFormDialog from "@/components/expenses/ExpenseFormDialog";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { formatBRL } from "@/lib/formatBRL";
 
 function normalizeCat(str) {
   return (str || "")
@@ -114,13 +115,13 @@ export default function Despesas() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-        <KpiCard title="Total de Custos" value={`R$ ${totalGeral.toLocaleString("pt-BR")}`} icon={Wallet} />
+        <KpiCard title="Total de Custos" value={formatBRL(totalGeral)} icon={Wallet} />
         {categoriasOrdenadas.slice(0, isAdmin ? 2 : 3).map(([cat, total]) => {
           const Icon = getCategoryMeta(cat).icon;
-          return <KpiCard key={cat} title={translateCategoria(cat, lang)} value={`R$ ${total.toLocaleString("pt-BR")}`} icon={Icon} />;
+          return <KpiCard key={cat} title={translateCategoria(cat, lang)} value={formatBRL(total)} icon={Icon} />;
         })}
         {isAdmin && (
-          <KpiCard title="Minha Margem (Admin)" value={`R$ ${totalMargemAdmin.toLocaleString("pt-BR")}`} icon={Sparkles} />
+          <KpiCard title="Minha Margem (Admin)" value={formatBRL(totalMargemAdmin)} icon={Sparkles} />
         )}
       </div>
 
@@ -198,7 +199,7 @@ export default function Despesas() {
                         {e.data_despesa ? new Date(e.data_despesa).toLocaleDateString("pt-BR") : "—"}
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <p className="font-display font-semibold text-sm text-primary">R$ {(e.valor || 0).toLocaleString("pt-BR")}</p>
+                        <p className="font-display font-semibold text-sm text-primary">{formatBRL(e.valor || 0)}</p>
                         <span className={`inline-block mt-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${e.status === "pendente" ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"}`}>
                           {e.status === "pendente" ? "Pendente" : "Pago"}
                         </span>
@@ -238,7 +239,7 @@ export default function Despesas() {
                       {e.data_despesa ? new Date(e.data_despesa).toLocaleDateString("pt-BR") : "—"}
                     </p>
                     <div className="text-right">
-                      <p className="font-display font-bold text-primary text-lg">R$ {(e.valor || 0).toLocaleString("pt-BR")}</p>
+                      <p className="font-display font-bold text-primary text-lg">{formatBRL(e.valor || 0)}</p>
                       <span className={`inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${e.status === "pendente" ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"}`}>
                         {e.status === "pendente" ? "Pendente" : "Pago"}
                       </span>

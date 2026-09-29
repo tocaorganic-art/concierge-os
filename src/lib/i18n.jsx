@@ -268,8 +268,6 @@ const translations = {
     tut_s6_title: "Pronto para operar no próximo nível?",
     tut_s6_cta: "Começar agora",
 
-    // Currency
-    currency_symbol: "R$",
     locale_date: "pt-BR",
   },
 
@@ -525,7 +523,6 @@ const translations = {
     tut_s6_title: "Ready to operate at the next level?",
     tut_s6_cta: "Get started",
 
-    currency_symbol: "$",
     locale_date: "en-US",
   },
 
@@ -781,7 +778,6 @@ const translations = {
     tut_s6_title: "¿Listo para operar al siguiente nivel?",
     tut_s6_cta: "Empezar ahora",
 
-    currency_symbol: "€",
     locale_date: "es-ES",
   },
 };

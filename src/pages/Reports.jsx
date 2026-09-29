@@ -15,6 +15,7 @@ import {
   AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { taxaConversao, valorRecebido, saldoDevedor, emAtrasoTotal, agruparBillingsCliente, roundCents } from "@/lib/finance";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Relatórios de uma conta "cliente" — painel analítico do EVENTO dele (nunca
 // despesas internas, lucro, ranking de outros clientes — esses conceitos não
@@ -23,8 +24,7 @@ import { taxaConversao, valorRecebido, saldoDevedor, emAtrasoTotal, agruparBilli
 // Documentos/Faturamento; esta tela só resume os números que já vêm de lá.
 function ReportsCliente({ recebimentos, billings, t }) {
   const localeDate = t("locale_date");
-  const currSymbol = t("currency_symbol");
-  const fmt = (v) => `${currSymbol} ${v.toLocaleString(localeDate)}`;
+  const fmt = (v) => formatBRL(v);
 
   const ativos = billings.filter((b) => b.status !== "cancelado");
 
@@ -298,9 +298,9 @@ export default function Reports() {
           { label: t("reports_total_proposals"), value: totalProposals || "—" },
           { label: t("reports_conversion_rate"), value: conversionRate !== null ? `${conversionRate}%` : "—" },
           { label: t("reports_active_clients"), value: clients.length || "—" },
-          { label: t("reports_total_revenue"), value: totalRevenue > 0 ? `${t("currency_symbol")} ${totalRevenue.toLocaleString(t("locale_date"))}` : "—" },
-          { label: "Despesas Totais", value: totalExpenses > 0 ? `${t("currency_symbol")} ${totalExpenses.toLocaleString(t("locale_date"))}` : "—" },
-          { label: "Lucro Total", value: totalRevenue > 0 || totalExpenses > 0 ? `${t("currency_symbol")} ${totalProfit.toLocaleString(t("locale_date"))}` : "—" },
+          { label: t("reports_total_revenue"), value: totalRevenue > 0 ? formatBRL(totalRevenue) : "—" },
+          { label: "Despesas Totais", value: totalExpenses > 0 ? formatBRL(totalExpenses) : "—" },
+          { label: "Lucro Total", value: totalRevenue > 0 || totalExpenses > 0 ? formatBRL(totalProfit) : "—" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-card border border-border rounded-xl p-4">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{kpi.label}</p>
@@ -356,7 +356,7 @@ export default function Reports() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" horizontal={false} />
                 <XAxis type="number" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="name" width={70} tick={{ fill: "hsl(220 10% 70%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`R$ ${v.toLocaleString("pt-BR")}`, "Valor"]} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [formatBRL(v), "Valor"]} />
                 <Bar dataKey="valor" fill="hsl(24 87% 56%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>

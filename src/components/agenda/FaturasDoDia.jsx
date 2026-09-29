@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { DollarSign } from "lucide-react";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Faturas (Billing) com vencimento em um dia específico — listadas dentro da
 // Agenda, junto das tarefas. Cada chip leva ao Financeiro.
@@ -28,7 +29,7 @@ export default function FaturasDoDia({ billings, dateStr }) {
             {b.descricao && <p className="text-[10px] text-muted-foreground truncate">{b.descricao}</p>}
           </div>
           <span className="font-mono text-xs text-primary flex-shrink-0">
-            R$ {(b.valor || 0).toLocaleString("pt-BR")}
+            {formatBRL(b.valor || 0)}
           </span>
         </Link>
       ))}
