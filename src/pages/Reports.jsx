@@ -29,7 +29,7 @@ function ReportsCliente({ recebimentos, billings, t }) {
   const ativos = billings.filter((b) => b.status !== "cancelado");
 
   if (billings.length === 0) {
-    return <p className="text-sm text-muted-foreground text-center py-12">Nenhum lançamento financeiro ainda.</p>;
+    return <p className="text-sm text-muted-foreground text-center py-12">{t("reports_empty_client")}</p>;
   }
 
   const totalContratado = roundCents(ativos.reduce((s, b) => s + (b.valor || 0), 0));
@@ -44,7 +44,7 @@ function ReportsCliente({ recebimentos, billings, t }) {
 
   const porCategoria = {};
   adicionais.forEach((b) => {
-    const k = b.categoria?.trim() || "Outros";
+    const k = b.categoria?.trim() || t("common_categoria_outros");
     porCategoria[k] = roundCents((porCategoria[k] || 0) + (b.valor || 0));
   });
   const categoriaData = Object.entries(porCategoria).map(([name, value]) => ({ name, value }));
@@ -63,7 +63,7 @@ function ReportsCliente({ recebimentos, billings, t }) {
   const evolucaoData = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
     const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
-    return { name: `${monthNames[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`, pago: pagoPorMes[key] || 0 };
+    return { name: `${t(monthKeyToI18nKey(d.getMonth()))}/${String(d.getFullYear()).slice(2)}`, pago: pagoPorMes[key] || 0 };
   });
 
   const proximosVencimentos = ativos
@@ -74,24 +74,24 @@ function ReportsCliente({ recebimentos, billings, t }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-        <KpiCard title="Total Contratado" value={fmt(totalContratado)} icon={FileText} to="/faturamento" />
-        <KpiCard title="Total Pago" value={fmt(totalPago)} icon={CheckCircle2} valueClassName="text-emerald-400" to="/faturamento?status=recebido" />
-        <KpiCard title="A Pagar" value={fmt(totalAPagar)} icon={Wallet} to="/faturamento?status=aberto" />
-        <KpiCard title="Caução" value={fmt(caucaoContratada)} icon={Wallet} to="/faturamento?tipo=caucao" />
+        <KpiCard title={t("dash_kpi_total_contratado")} value={fmt(totalContratado)} icon={FileText} to="/faturamento" />
+        <KpiCard title={t("reports_kpi_total_pago")} value={fmt(totalPago)} icon={CheckCircle2} valueClassName="text-emerald-400" to="/faturamento?status=recebido" />
+        <KpiCard title={t("dash_kpi_a_pagar")} value={fmt(totalAPagar)} icon={Wallet} to="/faturamento?status=aberto" />
+        <KpiCard title={t("dash_kpi_caucao")} value={fmt(caucaoContratada)} icon={Wallet} to="/faturamento?tipo=caucao" />
         <KpiCard
-          title="Em Atraso"
+          title={t("dash_kpi_em_atraso")}
           value={fmt(emAtrasoValor)}
           icon={AlertCircle}
           valueClassName={emAtrasoQtd > 0 ? "text-red-400" : undefined}
           to="/faturamento?status=atrasado"
-          trendLabel={emAtrasoQtd > 0 ? `${emAtrasoQtd} cobrança${emAtrasoQtd > 1 ? "s" : ""}` : "nenhuma"}
+          trendLabel={emAtrasoQtd > 0 ? `${emAtrasoQtd} ${emAtrasoQtd > 1 ? t("common_cobranca_plural") : t("common_cobranca_singular")}` : t("common_nenhuma")}
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <ChartCard title="Despesas Fixas x Variáveis">
+        <ChartCard title={t("reports_chart_fixed_vs_variable_title")}>
           {despesasFixas === 0 && despesasVariaveis === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-12">Sem despesas adicionais lançadas</p>
+            <p className="text-sm text-muted-foreground text-center py-12">{t("reports_empty_no_expenses")}</p>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={[{ name: "Despesas", fixa: despesasFixas, variavel: despesasVariaveis }]} layout="vertical">
@@ -100,16 +100,16 @@ function ReportsCliente({ recebimentos, billings, t }) {
                 <YAxis type="category" dataKey="name" width={0} tick={false} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(v), ""]} />
                 <Legend wrapperStyle={{ fontSize: 11, fontFamily: "JetBrains Mono" }} />
-                <Bar dataKey="fixa" name="Fixas" fill="hsl(24 87% 56%)" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="variavel" name="Variáveis" fill="hsl(200 60% 50%)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="fixa" name={t("reports_chart_fixed")} fill="hsl(24 87% 56%)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="variavel" name={t("reports_chart_variable")} fill="hsl(200 60% 50%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
 
-        <ChartCard title="Despesas por Categoria">
+        <ChartCard title={t("reports_chart_by_category_title")}>
           {categoriaData.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-12">Sem despesas adicionais lançadas</p>
+            <p className="text-sm text-muted-foreground text-center py-12">{t("reports_empty_no_expenses")}</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -123,7 +123,7 @@ function ReportsCliente({ recebimentos, billings, t }) {
           )}
         </ChartCard>
 
-        <ChartCard title="Evolução dos Pagamentos">
+        <ChartCard title={t("reports_chart_payment_evolution_title")}>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={evolucaoData}>
               <defs>
@@ -135,21 +135,21 @@ function ReportsCliente({ recebimentos, billings, t }) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 12% 18%)" vertical={false} />
               <XAxis dataKey="name" tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "hsl(220 10% 50%)", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(v), "Pago"]} />
-              <Area type="monotone" dataKey="pago" stroke="hsl(24 87% 56%)" fill="url(#gradPagoCliente)" strokeWidth={2} name="Pago" />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(v), t("reports_chart_paid")]} />
+              <Area type="monotone" dataKey="pago" stroke="hsl(24 87% 56%)" fill="url(#gradPagoCliente)" strokeWidth={2} name={t("reports_chart_paid")} />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Próximos Vencimentos">
+        <ChartCard title={t("reports_chart_upcoming_due_title")}>
           {proximosVencimentos.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-12">Nenhum vencimento em aberto</p>
+            <p className="text-sm text-muted-foreground text-center py-12">{t("reports_empty_no_due")}</p>
           ) : (
             <div className="divide-y divide-border">
               {proximosVencimentos.map((b) => (
                 <div key={b.id} className="flex items-center justify-between py-2.5">
                   <div className="min-w-0">
-                    <p className="text-sm text-foreground truncate">{b.descricao || "Cobrança"}</p>
+                    <p className="text-sm text-foreground truncate">{b.descricao || t("common_cobranca_fallback")}</p>
                     <p className="text-[11px] text-muted-foreground">{new Date(b.data_vencimento).toLocaleDateString(localeDate)}</p>
                   </div>
                   <span className="font-display font-semibold text-foreground flex-shrink-0">{fmt(Math.max(0, saldoDevedor(b, recebimentos)))}</span>
@@ -164,6 +164,12 @@ function ReportsCliente({ recebimentos, billings, t }) {
 }
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const MONTH_I18N_KEYS = [
+  "common_month_short_1", "common_month_short_2", "common_month_short_3", "common_month_short_4",
+  "common_month_short_5", "common_month_short_6", "common_month_short_7", "common_month_short_8",
+  "common_month_short_9", "common_month_short_10", "common_month_short_11", "common_month_short_12",
+];
+const monthKeyToI18nKey = (monthIndex) => MONTH_I18N_KEYS[monthIndex];
 const tooltipStyle = {
   background: "hsl(220 14% 11%)",
   border: "1px solid hsl(220 12% 18%)",

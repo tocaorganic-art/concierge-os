@@ -26,33 +26,43 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useLanguage } from "@/lib/i18n";
 
-const TIPOS_NOVO_PEDIDO = [
-  { id: "experiencia", Icon: Palmtree, label: "Experiência", sub: "Roteiros, passeios e aventuras" },
-  { id: "reserva", Icon: UtensilsCrossed, label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
-  { id: "exclusivo", Icon: Gem, label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
-  { id: "ajuda", Icon: LifeBuoy, label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
-];
+function getTiposNovoPedido(t) {
+  return [
+    { id: "experiencia", Icon: Palmtree, label: t("request_type_experiencia_label"), sub: t("request_type_experiencia_sub") },
+    { id: "reserva", Icon: UtensilsCrossed, label: t("request_type_reserva_label"), sub: t("request_type_reserva_sub") },
+    { id: "exclusivo", Icon: Gem, label: t("request_type_exclusivo_label"), sub: t("request_type_exclusivo_sub") },
+    { id: "ajuda", Icon: LifeBuoy, label: t("request_type_ajuda_label"), sub: t("request_type_ajuda_sub") },
+  ];
+}
 
-const TIPOS = {
-  experiencia: { label: "Experiência", Icon: Palmtree,        color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  reserva:     { label: "Reserva",     Icon: UtensilsCrossed,  color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  exclusivo:   { label: "Exclusivo",   Icon: Gem,              color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
-  ajuda:       { label: "Urgente",     Icon: LifeBuoy,         color: "bg-red-500/10 text-red-400 border-red-500/20" },
-};
+function getTipos(t) {
+  return {
+    experiencia: { label: t("request_type_experiencia_label"), Icon: Palmtree, color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    reserva: { label: t("request_tipo_badge_reserva"), Icon: UtensilsCrossed, color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    exclusivo: { label: t("request_type_exclusivo_label"), Icon: Gem, color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+    ajuda: { label: t("request_tipo_badge_ajuda"), Icon: LifeBuoy, color: "bg-red-500/10 text-red-400 border-red-500/20" },
+  };
+}
 
-const STATUS = {
-  novo:         { label: "Novo",         icon: Clock,        color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-  em_andamento: { label: "Em andamento", icon: Sparkles,     color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  resolvido:    { label: "Resolvido",    icon: CheckCircle2, color: "bg-green-500/10 text-green-400 border-green-500/20" },
-  cancelado:    { label: "Cancelado",    icon: XCircle,      color: "bg-muted text-muted-foreground border-border" },
-};
+function getStatusMap(t) {
+  return {
+    novo: { label: t("request_status_novo"), icon: Clock, color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
+    em_andamento: { label: t("request_status_em_andamento"), icon: Sparkles, color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    resolvido: { label: t("request_status_resolvido"), icon: CheckCircle2, color: "bg-green-500/10 text-green-400 border-green-500/20" },
+    cancelado: { label: t("status_cancelado"), icon: XCircle, color: "bg-muted text-muted-foreground border-border" },
+  };
+}
 
 function RequestCard({ req, onReply, onStatusChange, isClient }) {
+  const { t } = useLanguage();
   const [showReply, setShowReply] = useState(false);
   const [reply, setReply] = useState(req.resposta_concierge || "");
   const [loadingAI, setLoadingAI] = useState(false);
 
+  const TIPOS = getTipos(t);
+  const STATUS = getStatusMap(t);
   const tipo = TIPOS[req.tipo] || TIPOS.ajuda;
   const status = STATUS[req.status] || STATUS.novo;
   const StatusIcon = status.icon;
@@ -118,7 +128,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
 
       {req.resposta_concierge && !showReply && (
         <div className="mt-3 ml-9 bg-secondary/50 rounded-xl p-3 text-xs text-foreground/70 border border-border">
-          <span className="inline-flex items-center gap-1 text-primary font-mono text-[10px] uppercase tracking-wider mb-1"><Sparkles className="w-2.5 h-2.5" /> Resposta enviada</span>
+          <span className="inline-flex items-center gap-1 text-primary font-mono text-[10px] uppercase tracking-wider mb-1"><Sparkles className="w-2.5 h-2.5" /> {t("requests_reply_sent_label")}</span>
           {req.resposta_concierge}
         </div>
       )}
@@ -165,6 +175,7 @@ function RequestCard({ req, onReply, onStatusChange, isClient }) {
 }
 
 export default function Solicitacoes() {
+  const { t } = useLanguage();
   const { isClientMode: isClient, effectiveClientId } = useEffectiveRole();
   const { user } = useUserProfile();
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -209,29 +220,33 @@ export default function Solicitacoes() {
     em_andamento: requests.filter((r) => r.status === "em_andamento").length,
   };
 
+  const TIPOS_NOVO_PEDIDO = getTiposNovoPedido(t);
+  const STATUS = getStatusMap(t);
+  const TIPOS = getTipos(t);
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">{isClient ? "Meus Pedidos" : "Solicitações"}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{isClient ? "Peça algo ao seu concierge" : "Pedidos dos seus clientes concierge"}</p>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">{isClient ? t("requests_title_client") : t("requests_title_admin")}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{isClient ? t("requests_subtitle_client") : t("requests_subtitle_admin")}</p>
         </div>
         <div className="flex items-center gap-2">
           {isClient ? (
             <Button size="sm" onClick={() => setNovoTipo(TIPOS_NOVO_PEDIDO[0])} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-3.5 h-3.5" /> Novo Pedido
+              <Plus className="w-3.5 h-3.5" /> {t("requests_new_button")}
             </Button>
           ) : (
             <>
               {counts.novo > 0 && (
                 <span className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/20 text-xs font-mono px-2.5 py-1 rounded-full">
-                  {counts.novo} novo{counts.novo > 1 ? "s" : ""}
+                  {counts.novo} {counts.novo > 1 ? t("requests_novos_plural") : t("requests_novo_singular")}
                 </span>
               )}
               {counts.em_andamento > 0 && (
                 <span className="bg-blue-500/15 text-blue-400 border border-blue-500/20 text-xs font-mono px-2.5 py-1 rounded-full">
-                  {counts.em_andamento} em andamento
+                  {counts.em_andamento} {t("request_status_em_andamento")}
                 </span>
               )}
             </>
@@ -263,20 +278,20 @@ export default function Solicitacoes() {
               onClick={() => setFiltroStatus(s)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${filtroStatus === s ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
             >
-              {s === "todos" ? "Todos" : STATUS[s]?.label}
+              {s === "todos" ? t("common_all") : STATUS[s]?.label}
             </button>
           ))}
         </div>
         <div className="flex gap-1 bg-secondary/50 border border-border rounded-xl p-1">
-          {["todos", "experiencia", "reserva", "exclusivo", "ajuda"].map((t) => {
-            const TipoIcon = TIPOS[t]?.Icon;
+          {["todos", "experiencia", "reserva", "exclusivo", "ajuda"].map((tipoKey) => {
+            const TipoIcon = TIPOS[tipoKey]?.Icon;
             return (
               <button
-                key={t}
-                onClick={() => setFiltroTipo(t)}
-                className={`px-2 py-1 rounded-lg text-xs transition-all ${filtroTipo === t ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
+                key={tipoKey}
+                onClick={() => setFiltroTipo(tipoKey)}
+                className={`px-2 py-1 rounded-lg text-xs transition-all ${filtroTipo === tipoKey ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
               >
-                {t === "todos" ? "Todos" : <TipoIcon className="w-4 h-4" />}
+                {tipoKey === "todos" ? t("common_all") : <TipoIcon className="w-4 h-4" />}
               </button>
             );
           })}
@@ -291,8 +306,8 @@ export default function Solicitacoes() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           <Inbox className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-          <p className="text-sm">Nenhuma solicitação encontrada</p>
-          <p className="text-xs mt-1 opacity-60">Quando seus clientes fizerem pedidos, eles aparecerão aqui</p>
+          <p className="text-sm">{t("requests_empty_title")}</p>
+          <p className="text-xs mt-1 opacity-60">{t("requests_empty_desc")}</p>
         </div>
       ) : (
         <div className="space-y-3">

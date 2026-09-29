@@ -3,14 +3,17 @@ import { Sparkles, Send, User, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/lib/i18n";
 
-const SUGGESTIONS = [
-  "Como aumentar minha taxa de conversão de leads?",
-  "Escreva uma proposta para viagem de lua de mel em Paris",
-  "Quais perguntas fazer na primeira reunião com um cliente VIP?",
-  "Como estruturar um follow-up após 7 dias sem resposta?",
-  "Dicas para fechar mais propostas de alto valor",
-];
+function getSuggestions(t) {
+  return [
+    t("tria_suggestion_1"),
+    t("tria_suggestion_2"),
+    t("tria_suggestion_3"),
+    t("tria_suggestion_4"),
+    t("tria_suggestion_5"),
+  ];
+}
 
 function ChatMessage({ msg }) {
   const isUser = msg.role === "user";
@@ -27,10 +30,12 @@ function ChatMessage({ msg }) {
 }
 
 export default function TocaTrIA() {
+  const { t } = useLanguage();
+  const SUGGESTIONS = getSuggestions(t);
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Olá! Sou a Toca TrIA ✦\n\nSou sua assistente de IA especializada em concierge e turismo de luxo. Posso ajudar com propostas, estratégias de vendas, follow-up de clientes, gestão de agenda e muito mais.\n\nComo posso te ajudar hoje?",
+      content: t("tria_welcome_message"),
     },
   ]);
   const [input, setInput] = useState("");
@@ -80,7 +85,7 @@ export default function TocaTrIA() {
   const clearChat = () => {
     setMessages([{
       role: "assistant",
-      content: "Chat reiniciado ✦\n\nComo posso te ajudar?",
+      content: t("tria_cleared_message"),
     }]);
   };
 
@@ -92,14 +97,14 @@ export default function TocaTrIA() {
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="font-heading text-xl font-bold text-foreground">Toca TrIA</h1>
+            <h1 className="font-heading text-xl font-bold text-foreground">{t("tria_title")}</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-              Assistente IA · Concierge OS
+              {t("tria_subtitle")}
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={clearChat} title="Limpar conversa">
+        <Button variant="ghost" size="icon" onClick={clearChat} title={t("tria_clear_title")}>
           <Trash2 className="w-4 h-4 text-muted-foreground" />
         </Button>
       </div>
@@ -117,7 +122,7 @@ export default function TocaTrIA() {
             </div>
             <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
               <Loader2 className="w-4 h-4 text-primary animate-spin" />
-              <span className="text-sm text-muted-foreground">Pensando...</span>
+              <span className="text-sm text-muted-foreground">{t("common_thinking")}</span>
             </div>
           </div>
         )}
@@ -125,7 +130,7 @@ export default function TocaTrIA() {
         {/* Suggestions (only when 1 message) */}
         {messages.length === 1 && !loading && (
           <div className="space-y-2 pt-2">
-            <p className="text-xs text-muted-foreground pl-11">Sugestões para começar:</p>
+            <p className="text-xs text-muted-foreground pl-11">{t("tria_suggestions_label")}</p>
             <div className="flex flex-wrap gap-2 pl-11">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -150,7 +155,7 @@ export default function TocaTrIA() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Pergunte qualquer coisa sobre concierge, propostas, clientes..."
+            placeholder={t("tria_input_placeholder")}
             className="flex-1 min-h-[44px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none text-sm p-1"
             rows={1}
           />
@@ -163,7 +168,7 @@ export default function TocaTrIA() {
             <Send className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-[10px] text-muted-foreground text-center mt-1.5">Enter para enviar · Shift+Enter para nova linha</p>
+        <p className="text-[10px] text-muted-foreground text-center mt-1.5">{t("tria_keyboard_hint")}</p>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { Loader2, Paperclip, Camera, ChevronDown, Send, Pencil } from "lucide-re
 import { statusDerivado, comprovantesDoBilling } from "@/lib/finance";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { formatBRL } from "@/lib/formatBRL";
+import { useLanguage } from "@/lib/i18n";
 
 const EDITAVEL_MINUTOS = 5;
 
@@ -17,14 +18,16 @@ export function formatDate(d) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
 }
 
-export const STATUS_LABEL = {
-  pendente: { label: "Pendente", className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  aguardando_confirmacao: { label: "Aguardando confirmação", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  parcialmente_recebido: { label: "Parcial", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  recebido: { label: "Pago", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  atrasado: { label: "Atrasado", className: "bg-red-500/10 text-red-400 border-red-500/20" },
-  cancelado: { label: "Cancelado", className: "bg-muted text-muted-foreground border-border" },
-};
+export function getStatusLabel(t) {
+  return {
+    pendente: { label: t("billing_status_pendente"), className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    aguardando_confirmacao: { label: t("billing_status_aguardando_confirmacao"), className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    parcialmente_recebido: { label: t("billing_status_parcial"), className: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    recebido: { label: t("billing_status_pago"), className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+    atrasado: { label: t("billing_status_atrasado"), className: "bg-red-500/10 text-red-400 border-red-500/20" },
+    cancelado: { label: t("billing_status_cancelado"), className: "bg-muted text-muted-foreground border-border" },
+  };
+}
 
 // Permite ao cliente anexar seu próprio comprovante de pagamento a uma
 // parcela pendente/parcial — grava em 'comprovantes' (histórico, RLS de
@@ -33,6 +36,7 @@ export const STATUS_LABEL = {
 // pra permitir corrigir um anexo errado sem perder o que já tinha sido
 // mandado (achado real: cliente só conseguia anexar 1x, sem como corrigir).
 export function AnexarComprovante({ billing, onUploaded }) {
+  const { t } = useLanguage();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -66,7 +70,7 @@ export function AnexarComprovante({ billing, onUploaded }) {
       }
       onUploaded();
     } catch {
-      setError("Não consegui enviar. Tente novamente.");
+      setError(t("billing_upload_error"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -78,12 +82,12 @@ export function AnexarComprovante({ billing, onUploaded }) {
       <input ref={fileInputRef} type="file" accept="image/*,.pdf" capture="environment" className="hidden" onChange={handleFileSelected} />
       <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-60">
         {uploading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Camera className="w-2.5 h-2.5" />}
-        {uploading ? "Lendo com IA..." : jaTemComprovante ? "Reenviar comprovante" : "Anexar comprovante de pagamento"}
+        {uploading ? t("billing_ai_reading") : jaTemComprovante ? t("billing_resend_proof") : t("billing_attach_proof")}
       </button>
       {error && <p className="text-[10px] text-red-400 mt-0.5">{error}</p>}
       {divergencia && (
         <p className="text-[10px] text-amber-400 mt-0.5">
-          O comprovante mostra {formatBRL(divergencia.lido)}, mas essa cobrança é de {formatBRL(divergencia.esperado)} — enviado mesmo assim, a equipe vai conferir.
+          {t("billing_proof_mismatch", { lido: formatBRL(divergencia.lido), esperado: formatBRL(divergencia.esperado) })}
         </p>
       )}
     </div>
@@ -94,6 +98,7 @@ export function AnexarComprovante({ billing, onUploaded }) {
 // linha (Comentario.billing_id). Editável por 5 minutos após criado,
 // depois imutável (checado no cliente, não é uma trava de RLS).
 function ComentariosThread({ billingId, clientId }) {
+  const { t } = useLanguage();
   const { user, isClient } = useUserProfile();
   const queryClient = useQueryClient();
   const [texto, setTexto] = useState("");
@@ -157,12 +162,12 @@ function ComentariosThread({ billingId, clientId }) {
 
   return (
     <div className="mt-3 pt-3 border-t border-border/60">
-      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">Comentários</p>
+      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">{t("billing_comments_title")}</p>
       <div ref={listRef} className="space-y-2 mb-2 max-h-56 overflow-y-auto pr-1 chat-scroll">
         {comentarios.map((c) => (
           <div key={c.id} className={`text-[11px] rounded-lg px-2.5 py-2 ${c.autor_tipo === "cliente" ? "bg-secondary/60" : "bg-primary/5"}`}>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-foreground">{c.autor_nome || (c.autor_tipo === "cliente" ? "Cliente" : "Equipe")}</span>
+              <span className="font-medium text-foreground">{c.autor_nome || (c.autor_tipo === "cliente" ? t("common_cliente_label") : t("common_equipe_label"))}</span>
               <span className="text-muted-foreground">{new Date(c.created_date).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
             </div>
             {editandoId === c.id ? (
@@ -172,7 +177,7 @@ function ComentariosThread({ billingId, clientId }) {
                   onChange={(e) => setTextoEdicao(e.target.value)}
                   className="flex-1 bg-background border border-border rounded px-2 py-1 text-[11px]"
                 />
-                <button onClick={() => updateMutation.mutate({ id: c.id, data: { texto: textoEdicao } })} className="text-primary text-[11px]">Salvar</button>
+                <button onClick={() => updateMutation.mutate({ id: c.id, data: { texto: textoEdicao } })} className="text-primary text-[11px]">{t("btn_save")}</button>
               </div>
             ) : (
               <p className="text-muted-foreground mt-0.5">{c.texto}</p>
@@ -182,18 +187,18 @@ function ComentariosThread({ billingId, clientId }) {
                 onClick={() => { setEditandoId(c.id); setTextoEdicao(c.texto); }}
                 className="mt-1 inline-flex items-center gap-1 text-muted-foreground hover:text-primary"
               >
-                <Pencil className="w-2.5 h-2.5" /> editar
+                <Pencil className="w-2.5 h-2.5" /> {t("common_edit")}
               </button>
             )}
           </div>
         ))}
-        {comentarios.length === 0 && <p className="text-[11px] text-muted-foreground">Nenhum comentário ainda.</p>}
+        {comentarios.length === 0 && <p className="text-[11px] text-muted-foreground">{t("billing_comments_empty")}</p>}
       </div>
       <div className="flex gap-1.5">
         <input
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder="Escreva um comentário..."
+          placeholder={t("billing_comment_placeholder")}
           className="flex-1 bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-[11px]"
           onKeyDown={(e) => { if (e.key === "Enter") handleEnviar(); }}
         />
@@ -209,9 +214,11 @@ function ComentariosThread({ billingId, clientId }) {
 // recebimentos e comprovantes daquela cobrança específica, mais um fio de
 // comentários entre cliente e equipe.
 export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaultAberto = false }) {
+  const { t } = useLanguage();
   const [aberto, setAberto] = useState(defaultAberto);
   const recebimentosDaParcela = recebimentos.filter((r) => r.billing_id === billing.id);
   const status = statusDerivado(billing, recebimentos);
+  const STATUS_LABEL = getStatusLabel(t);
   const meta = STATUS_LABEL[status] || STATUS_LABEL.pendente;
   const podeAnexar = status !== "recebido" && status !== "cancelado";
   const comprovantes = comprovantesDoBilling(billing);
@@ -221,16 +228,16 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
       <button type="button" onClick={() => setAberto((a) => !a)} className="w-full flex items-start justify-between gap-2 text-left">
         <div className="min-w-0">
           <p className="text-sm text-foreground">
-            {billing.numero_parcela && billing.total_parcelas ? `Parcela ${billing.numero_parcela}/${billing.total_parcelas}` : billing.descricao || "Cobrança"}
+            {billing.numero_parcela && billing.total_parcelas ? t("common_parcela_label", { n: billing.numero_parcela, total: billing.total_parcelas }) : billing.descricao || t("common_cobranca_fallback")}
           </p>
-          <p className="text-[11px] text-muted-foreground">Venc. {formatDate(billing.data_vencimento)}</p>
+          <p className="text-[11px] text-muted-foreground">{t("common_venc_label")} {formatDate(billing.data_vencimento)}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {billing.tipo_despesa === "fixa" && (
-            <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-info/30 bg-info/10 text-info">Fixa</span>
+            <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-info/30 bg-info/10 text-info">{t("billing_tipo_fixa")}</span>
           )}
           {billing.tipo_despesa === "variavel" && (
-            <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-warning/30 bg-warning/10 text-warning">Variável</span>
+            <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-warning/30 bg-warning/10 text-warning">{t("billing_tipo_variavel")}</span>
           )}
           <span className="font-display font-semibold text-primary">{formatBRL(billing.valor || 0)}</span>
           <span className={`inline-flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${meta.className}`}>{meta.label}</span>
@@ -240,12 +247,12 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
       {aberto && (
         <div className="mt-2 pl-1 space-y-1.5">
           {recebimentosDaParcela.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground">Nenhum recebimento lançado ainda.</p>
+            <p className="text-[11px] text-muted-foreground">{t("billing_no_recebimentos")}</p>
           ) : (
             recebimentosDaParcela.map((r) => (
               <div key={r.id} className="flex items-center justify-between text-[11px]">
                 <span className={r.valor < 0 ? "text-red-400" : "text-muted-foreground"}>
-                  {r.estorno_de_id ? "Estorno" : "Recebido"} em {formatDate(r.data_recebimento)}{r.metodo ? ` · ${r.metodo}` : ""}
+                  {r.estorno_de_id ? t("billing_estorno_label") : t("billing_recebido_label")} {t("common_em_lowercase")} {formatDate(r.data_recebimento)}{r.metodo ? ` · ${r.metodo}` : ""}
                 </span>
                 <span className={r.valor < 0 ? "text-red-400 font-mono" : "text-emerald-400 font-mono"}>{formatBRL(r.valor)}</span>
               </div>
@@ -256,9 +263,9 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
               {comprovantes.map((c, i) => (
                 <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
                   <Paperclip className="w-2.5 h-2.5" />
-                  {comprovantes.length > 1 ? `Comprovante ${i + 1}` : "Ver comprovante"}
+                  {comprovantes.length > 1 ? t("billing_comprovante_n", { n: i + 1 }) : t("billing_ver_comprovante")}
                   {c.enviado_em && ` · ${formatDate(c.enviado_em.slice(0, 10))}`}
-                  {c.enviado_por && ` · enviado por ${c.enviado_por === "cliente" ? "você" : "equipe"}`}
+                  {c.enviado_por && ` · ${t("billing_enviado_por", { quem: c.enviado_por === "cliente" ? t("common_voce") : t("common_equipe_label") })}`}
                 </a>
               ))}
             </div>
@@ -269,7 +276,7 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
               onClick={() => onEdit(billing)}
               className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
             >
-              <Pencil className="w-2.5 h-2.5" /> Editar cobrança
+              <Pencil className="w-2.5 h-2.5" /> {t("billing_edit_charge")}
             </button>
           )}
           {podeAnexar && <AnexarComprovante billing={billing} onUploaded={onUploaded} />}

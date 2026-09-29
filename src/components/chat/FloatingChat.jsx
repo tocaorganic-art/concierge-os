@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import ChatGeral from "@/components/client/ChatGeral";
+import { useLanguage } from "@/lib/i18n";
 
 // Evento global para abrir o chat de qualquer lugar (menu lateral, mobile
 // drawer etc.) sem sair da página atual — o widget é fixo na tela durante
@@ -13,6 +14,7 @@ export const OPEN_CHAT_EVENT = "toca:abrir-chat";
 export const abrirChatFlutuante = () => window.dispatchEvent(new Event(OPEN_CHAT_EVENT));
 
 export default function FloatingChat() {
+  const { t } = useLanguage();
   const { isClient } = useUserProfile();
   const { isImpersonating, effectiveClientId } = useEffectiveRole();
   const [aberto, setAberto] = useState(false);
@@ -57,7 +59,7 @@ export default function FloatingChat() {
         <button
           onClick={() => setAberto(true)}
           className="fixed z-40 right-4 bottom-24 md:bottom-6 md:right-6 w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-          aria-label="Abrir chat"
+          aria-label={t("chat_open")}
         >
           <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
           {totalNaoLidos > 0 && (
@@ -75,16 +77,16 @@ export default function FloatingChat() {
               <button
                 onClick={() => setClientId(null)}
                 className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                aria-label="Voltar"
+                aria-label={t("common_back")}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
             ) : <span />}
-            <p className="text-sm font-semibold text-foreground">Chat</p>
+            <p className="text-sm font-semibold text-foreground">{t("chat_title")}</p>
             <button
               onClick={() => setAberto(false)}
               className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-              aria-label="Fechar chat"
+              aria-label={t("chat_close")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -93,7 +95,7 @@ export default function FloatingChat() {
           {!isClient && !clientId ? (
             <div className="flex-1 overflow-y-auto p-2">
               {clients.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">Nenhum cliente cadastrado ainda.</p>
+                <p className="text-xs text-muted-foreground text-center py-8">{t("chat_no_clients")}</p>
               ) : (
                 clients.map((c) => {
                   const n = naoLidos.filter((m) => m.client_id === c.id).length;

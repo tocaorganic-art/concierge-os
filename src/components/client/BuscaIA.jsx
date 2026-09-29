@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles, Send, Loader2, AlertCircle } from "lucide-react";
 import { agruparBillingsCliente, saldoDevedor } from "@/lib/finance";
 import { formatBRL } from "@/lib/formatBRL";
+import { useLanguage } from "@/lib/i18n";
 
 // Busca com IA sobre os PRÓPRIOS dados do cliente (item 10 do roadmap) —
 // monta o contexto só com queries já filtradas por client_id (mesmo padrão
@@ -11,6 +12,7 @@ import { formatBRL } from "@/lib/formatBRL";
 // etc.), nunca lê nada de outro cliente. A IA (generateWithAI
 // "global_search") só pode responder com o que estiver nesse contexto.
 export default function BuscaIA({ clientId }) {
+  const { t } = useLanguage();
   const [pergunta, setPergunta] = useState("");
   const [historico, setHistorico] = useState([]);
   const [carregando, setCarregando] = useState(false);
@@ -101,7 +103,7 @@ export default function BuscaIA({ clientId }) {
       });
       setHistorico((h) => [...h, { pergunta: texto, resposta: res?.data?.result || "" }]);
     } catch {
-      setErro("Não consegui responder agora. Tente novamente.");
+      setErro(t("common_ai_answer_error"));
     } finally {
       setCarregando(false);
     }
@@ -113,7 +115,7 @@ export default function BuscaIA({ clientId }) {
         {historico.length === 0 && (
           <p className="text-[12px] text-muted-foreground flex items-start gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" />
-            Pergunte sobre seu contrato, financeiro, pedidos, grupo ou agenda — respondo com base nos seus dados reais.
+            {t("client_ai_hint")}
           </p>
         )}
         <div className="space-y-3">
@@ -130,7 +132,7 @@ export default function BuscaIA({ clientId }) {
         <input
           value={pergunta}
           onChange={(e) => setPergunta(e.target.value)}
-          placeholder="Ex: Quanto falta pagar?"
+          placeholder={t("client_ai_placeholder")}
           disabled={carregando}
           className="flex-1 bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-[12px]"
         />

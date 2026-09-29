@@ -6,23 +6,31 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Crown, Sparkles, Loader2, CheckCircle2, Wine, Plane } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
-const VIAJA_COM = [
-  { v: "sozinho", l: "Sozinho" },
-  { v: "casal", l: "Casal" },
-  { v: "familia_filhos", l: "Família com filhos" },
-  { v: "grupo_amigos", l: "Grupo de amigos" },
-  { v: "corporativo", l: "Corporativo" },
-];
-const HOSPEDAGEM = [
-  { v: "hotel_luxo", l: "Hotel de luxo" },
-  { v: "villa_privada", l: "Villa privada" },
-  { v: "pousada", l: "Pousada boutique" },
-  { v: "resort", l: "Resort all-inclusive" },
-  { v: "airbnb", l: "Airbnb / Casa alugada" },
-];
+function getViajaCom(t) {
+  return [
+    { v: "sozinho", l: t("profile_viaja_sozinho") },
+    { v: "casal", l: t("profile_viaja_casal") },
+    { v: "familia_filhos", l: t("profile_viaja_familia_filhos") },
+    { v: "grupo_amigos", l: t("profile_viaja_grupo_amigos") },
+    { v: "corporativo", l: t("profile_viaja_corporativo") },
+  ];
+}
+function getHospedagem(t) {
+  return [
+    { v: "hotel_luxo", l: t("profile_hospedagem_hotel_luxo") },
+    { v: "villa_privada", l: t("profile_hospedagem_villa_privada") },
+    { v: "pousada", l: t("profile_hospedagem_pousada") },
+    { v: "resort", l: t("profile_hospedagem_resort") },
+    { v: "airbnb", l: t("profile_hospedagem_airbnb") },
+  ];
+}
 
 export default function ClientProfile() {
+  const { t } = useLanguage();
+  const VIAJA_COM = getViajaCom(t);
+  const HOSPEDAGEM = getHospedagem(t);
   const [user, setUser] = useState(null);
   const [memory, setMemory] = useState(null);
   const [form, setForm] = useState({});
@@ -71,78 +79,78 @@ export default function ClientProfile() {
     <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary text-xs font-mono px-3 py-1 rounded-full mb-3">
-          <Crown className="w-3 h-3" /> Perfil Concierge
+          <Crown className="w-3 h-3" /> {t("profile_badge")}
         </div>
         <h1 className="font-heading text-2xl font-bold text-foreground">
-          {user?.full_name?.split(" ")[0] || "Meu perfil"}
+          {user?.full_name?.split(" ")[0] || t("profile_fallback_name")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Suas preferências ajudam o concierge a personalizar cada experiência
+          {t("profile_subtitle")}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Wine className="w-4 h-4 text-primary" /> Preferências de consumo
+            <Wine className="w-4 h-4 text-primary" /> {t("profile_section_consumo")}
           </h2>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Bebidas preferidas</label>
-            <Input value={form.preferencias_bebida || ""} onChange={(e) => set("preferencias_bebida", e.target.value)} placeholder="Ex: vinho tinto, gin, água com gás..." />
+            <label className="text-xs text-muted-foreground mb-1 block">{t("profile_field_bebidas")}</label>
+            <Input value={form.preferencias_bebida || ""} onChange={(e) => set("preferencias_bebida", e.target.value)} placeholder={t("profile_placeholder_bebidas")} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Restrições alimentares</label>
-            <Input value={form.restricoes_alimentares || ""} onChange={(e) => set("restricoes_alimentares", e.target.value)} placeholder="Ex: vegetariano, sem glúten, alergia a frutos do mar..." />
+            <label className="text-xs text-muted-foreground mb-1 block">{t("profile_field_restricoes")}</label>
+            <Input value={form.restricoes_alimentares || ""} onChange={(e) => set("restricoes_alimentares", e.target.value)} placeholder={t("profile_placeholder_restricoes")} />
           </div>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Plane className="w-4 h-4 text-primary" /> Perfil de viagem
+            <Plane className="w-4 h-4 text-primary" /> {t("profile_section_viagem")}
           </h2>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Viajo com</label>
+            <label className="text-xs text-muted-foreground mb-1 block">{t("profile_field_viaja_com")}</label>
             <Select value={form.viaja_com || ""} onValueChange={(v) => set("viaja_com", v)}>
-              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("profile_select_placeholder")} /></SelectTrigger>
               <SelectContent>
                 {VIAJA_COM.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Hospedagem preferida</label>
+            <label className="text-xs text-muted-foreground mb-1 block">{t("profile_field_hospedagem")}</label>
             <Select value={form.tipo_hospedagem || ""} onValueChange={(v) => set("tipo_hospedagem", v)}>
-              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("profile_select_placeholder")} /></SelectTrigger>
               <SelectContent>
                 {HOSPEDAGEM.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Destinos favoritos</label>
-            <Input value={form.destinos_favoritos || ""} onChange={(e) => set("destinos_favoritos", e.target.value)} placeholder="Ex: Noronha, Trancoso, Maldivas..." />
+            <label className="text-xs text-muted-foreground mb-1 block">{t("profile_field_destinos")}</label>
+            <Input value={form.destinos_favoritos || ""} onChange={(e) => set("destinos_favoritos", e.target.value)} placeholder={t("profile_placeholder_destinos")} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Estilo de viagem</label>
-            <Input value={form.estilos || ""} onChange={(e) => set("estilos", e.target.value)} placeholder="Ex: beach club, gastronomia, aventura, relax..." />
+            <label className="text-xs text-muted-foreground mb-1 block">{t("profile_field_estilo")}</label>
+            <Input value={form.estilos || ""} onChange={(e) => set("estilos", e.target.value)} placeholder={t("profile_placeholder_estilo")} />
           </div>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" /> Para o concierge saber
+            <Sparkles className="w-4 h-4 text-primary" /> {t("profile_section_concierge")}
           </h2>
           <Textarea
             value={form.observacoes || ""}
             onChange={(e) => set("observacoes", e.target.value)}
-            placeholder="Outras preferências ou informações importantes para seu concierge pessoal..."
+            placeholder={t("profile_placeholder_observacoes")}
             className="min-h-[80px] resize-none"
           />
         </div>
 
         <Button type="submit" className="w-full gap-2" disabled={mutation.isPending}>
           {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Sparkles className="w-4 h-4" />}
-          {mutation.isPending ? "Salvando..." : saved ? "Preferências salvas!" : "Salvar preferências"}
+          {mutation.isPending ? t("profile_saving") : saved ? t("profile_saved") : t("profile_save")}
         </Button>
       </form>
     </div>

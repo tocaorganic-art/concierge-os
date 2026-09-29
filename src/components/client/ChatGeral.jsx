@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send, Pencil, Paperclip, X } from "lucide-react";
 import { useUserProfile } from "@/lib/useUserProfile";
 import ChatAnexo from "@/components/chat/ChatAnexo";
+import { useLanguage } from "@/lib/i18n";
 
 const EDITAVEL_MINUTOS = 5;
 
@@ -14,6 +15,7 @@ const EDITAVEL_MINUTOS = 5;
 // client_id, não por billing_id, então nenhuma regra de acesso nova foi
 // necessária — só billing_id virou opcional no schema.
 export default function ChatGeral({ clientId }) {
+  const { t } = useLanguage();
   const { user, isClient } = useUserProfile();
   const queryClient = useQueryClient();
   const [texto, setTexto] = useState("");
@@ -83,7 +85,7 @@ export default function ChatGeral({ clientId }) {
         {comentarios.map((c) => (
           <div key={c.id} className={`text-[12px] rounded-lg px-2.5 py-2 ${c.autor_tipo === "cliente" ? "bg-secondary/60" : "bg-primary/5"}`}>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-foreground">{c.autor_nome || (c.autor_tipo === "cliente" ? "Você" : "Equipe")}</span>
+              <span className="font-semibold text-foreground">{c.autor_nome || (c.autor_tipo === "cliente" ? t("chat_you_label") : t("chat_team_label"))}</span>
               <span className="text-muted-foreground">{new Date(c.created_date).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
             </div>
             {editandoId === c.id ? (
@@ -93,7 +95,7 @@ export default function ChatGeral({ clientId }) {
                   onChange={(e) => setTextoEdicao(e.target.value)}
                   className="flex-1 bg-background border border-border rounded px-2 py-1 text-[12px] font-heading"
                 />
-                <button onClick={() => updateMutation.mutate({ id: c.id, data: { texto: textoEdicao } })} className="text-primary text-[12px]">Salvar</button>
+                <button onClick={() => updateMutation.mutate({ id: c.id, data: { texto: textoEdicao } })} className="text-primary text-[12px]">{t("btn_save")}</button>
               </div>
             ) : (
               <p className="text-primary mt-0.5">{c.texto}</p>
@@ -109,25 +111,25 @@ export default function ChatGeral({ clientId }) {
             )}
           </div>
         ))}
-        {comentarios.length === 0 && <p className="text-[12px] text-muted-foreground">Nenhuma mensagem ainda. Diga oi!</p>}
+        {comentarios.length === 0 && <p className="text-[12px] text-muted-foreground">{t("chat_empty")}</p>}
       </div>
       {anexo && (
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1 flex-shrink-0">
           <Paperclip className="w-3 h-3" /> {anexo.name}
-          <button onClick={() => setAnexo(null)} className="hover:text-foreground" aria-label="Remover anexo">
+          <button onClick={() => setAnexo(null)} className="hover:text-foreground" aria-label={t("chat_remove_attachment")}>
             <X className="w-3 h-3" />
           </button>
         </div>
       )}
       <div className="flex gap-1.5 flex-shrink-0">
-        <label className="flex items-center flex-shrink-0 cursor-pointer text-primary hover:text-primary/80" title="Anexar arquivo">
+        <label className="flex items-center flex-shrink-0 cursor-pointer text-primary hover:text-primary/80" title={t("chat_attach_file_title")}>
           <Paperclip className="w-4 h-4" />
           <input type="file" className="hidden" onChange={(e) => setAnexo(e.target.files?.[0] || null)} />
         </label>
         <input
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder="Escreva uma mensagem..."
+          placeholder={t("chat_message_placeholder")}
           className="flex-1 bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-[12px] font-heading"
           onKeyDown={(e) => { if (e.key === "Enter") handleEnviar(); }}
         />

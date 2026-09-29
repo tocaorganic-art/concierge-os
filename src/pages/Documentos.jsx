@@ -5,6 +5,7 @@ import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { FolderOpen, FileText, Loader2, ExternalLink, Receipt, PenLine } from "lucide-react";
 import ChatAnexo from "@/components/chat/ChatAnexo";
 import { formatBRL } from "@/lib/formatBRL";
+import { useLanguage } from "@/lib/i18n";
 
 function DocLinha({ nome, sub, href }) {
   return (
@@ -30,6 +31,7 @@ function DocLinha({ nome, sub, href }) {
 // Proposal.documentos_admin fica admin-only e nunca chega aqui mesmo que o
 // componente tentasse ler. Nunca contrato de fornecedor.
 export default function Documentos() {
+  const { t } = useLanguage();
   const { effectiveClientId } = useEffectiveRole();
 
   const { data: proposals = [], isLoading } = useQuery({
@@ -79,23 +81,23 @@ export default function Documentos() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center gap-2 mb-4">
         <FolderOpen className="w-5 h-5 text-primary" />
-        <h1 className="font-heading text-2xl font-bold text-foreground">Documentos</h1>
+        <h1 className="font-heading text-2xl font-bold text-foreground">{t("docs_title")}</h1>
       </div>
 
       {vazio && (
-        <p className="text-sm text-muted-foreground text-center py-12">Nenhum documento disponível ainda.</p>
+        <p className="text-sm text-muted-foreground text-center py-12">{t("docs_empty")}</p>
       )}
 
       {(contrato || documentosProposta.length > 0) && (
         <div className="mb-8">
           <p className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
-            <PenLine className="w-3.5 h-3.5" /> Contrato e Documentos
+            <PenLine className="w-3.5 h-3.5" /> {t("docs_section_contrato")}
           </p>
           <div className="space-y-2">
             {contrato && (
               <DocLinha
-                nome="Contrato Assinado"
-                sub="Contrato da sua viagem"
+                nome={t("docs_signed_contract")}
+                sub={t("docs_signed_contract_sub")}
                 href={contrato}
               />
             )}
@@ -114,7 +116,7 @@ export default function Documentos() {
       {comprovantes.length > 0 && (
         <div className="mb-8">
           <p className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
-            <Receipt className="w-3.5 h-3.5" /> Comprovantes Financeiros
+            <Receipt className="w-3.5 h-3.5" /> {t("docs_section_comprovantes")}
           </p>
           <div className="space-y-2">
             {comprovantes.map((c) => (
@@ -122,7 +124,7 @@ export default function Documentos() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground truncate">{c.billing_nome}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    Comprovante · {c.enviado_em ? new Date(c.enviado_em).toLocaleDateString("pt-BR") : new Date(c.created_date || Date.now()).toLocaleDateString("pt-BR")}
+                    {t("docs_comprovante_label")} · {c.enviado_em ? new Date(c.enviado_em).toLocaleDateString("pt-BR") : new Date(c.created_date || Date.now()).toLocaleDateString("pt-BR")}
                     {c.enviado_por && ` · enviado por ${c.enviado_por}`}
                     {c.billing_valor != null && ` · ${formatBRL(c.billing_valor)}`}
                   </p>
@@ -136,13 +138,13 @@ export default function Documentos() {
 
       {anexosChat.length > 0 && (
         <div>
-          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">Do Chat</p>
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">{t("docs_section_chat")}</p>
           <div className="space-y-2">
             {anexosChat.map((c) => (
               <div key={c.id} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{c.texto?.trim() || "Anexo da conversa"}</p>
-                  <p className="text-[11px] text-muted-foreground">Chat · {new Date(c.created_date).toLocaleDateString("pt-BR")}</p>
+                  <p className="text-sm text-foreground truncate">{c.texto?.trim() || t("docs_chat_attachment_fallback")}</p>
+                  <p className="text-[11px] text-muted-foreground">{t("docs_chat_date_label")} · {new Date(c.created_date).toLocaleDateString("pt-BR")}</p>
                 </div>
                 <ChatAnexo anexoUrl={c.anexo_url} />
               </div>
@@ -155,8 +157,9 @@ export default function Documentos() {
 }
 
 function DocLink({ url }) {
+  const { t } = useLanguage();
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" title="Abrir comprovante" className="flex-shrink-0">
+    <a href={url} target="_blank" rel="noopener noreferrer" title={t("docs_open_title")} className="flex-shrink-0">
       <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
     </a>
   );

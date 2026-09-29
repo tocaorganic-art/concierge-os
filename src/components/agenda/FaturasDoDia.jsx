@@ -2,10 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { DollarSign } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
+import { useLanguage } from "@/lib/i18n";
 
 // Faturas (Billing) com vencimento em um dia específico — listadas dentro da
 // Agenda, junto das tarefas. Cada chip leva ao Financeiro.
 export default function FaturasDoDia({ billings, dateStr }) {
+  const { t } = useLanguage();
   const faturas = (billings || [])
     .filter((b) => b.data_vencimento === dateStr && b.status !== "cancelado")
     .sort((a, b) => (b.valor || 0) - (a.valor || 0));
@@ -15,7 +17,7 @@ export default function FaturasDoDia({ billings, dateStr }) {
   return (
     <div className="space-y-1.5">
       <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-1 pt-2">
-        Faturas com vencimento
+        {t("agenda_billings_due")}
       </p>
       {faturas.map((b) => (
         <Link

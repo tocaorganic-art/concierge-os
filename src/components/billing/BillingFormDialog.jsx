@@ -32,6 +32,10 @@ function addMonths(dateStr, months) {
   return d.toISOString().slice(0, 10);
 }
 
+// Valores canônicos (sempre em português — é o que fica salvo no banco em
+// Billing.categoria; translateCategoria() só traduz a EXIBIÇÃO, nunca o
+// valor armazenado, para não quebrar comparações como `categoria === "Reserva Financeira"`
+// nem o agrupamento em src/lib/finance.js).
 const CATEGORIAS_BASE = ["Pacote Principal", "Contas a Pagar", "Reserva Financeira"];
 const NEW_CATEGORY_VALUE = "__nova__";
 
@@ -159,7 +163,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
       onOpenChange(false);
     },
     onError: (err) => {
-      setFormError(`Não foi possível salvar${err?.message ? `: ${err.message}` : "."} Tente novamente.`);
+      setFormError(`${t("billing_form_save_error")}${err?.message ? `: ${err.message}` : "."} ${t("billing_form_save_error_retry")}`);
     },
   });
 
@@ -220,7 +224,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
         // extração falhou — comprovante já foi anexado, só não preencheu sozinho
       }
     } catch (err) {
-      setUploadError("Não consegui enviar o arquivo. Tente novamente.");
+      setUploadError(t("billing_form_upload_error"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -230,7 +234,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
   const handleSubmit = (e) => {
     e.preventDefault();
     if (form.status === "cancelado" && !form.motivo_cancelamento.trim()) {
-      setFormError("Informe o motivo do cancelamento.");
+      setFormError(t("billing_form_motivo_required"));
       return;
     }
     setFormError("");
@@ -250,8 +254,8 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
         setConfirmarDuplicata(true);
         setFormError(
           multiplas
-            ? `Já existe cobrança igual a "${duplicadas[0].descricao}" (mesmo cliente, valor e vencimento). Clique em Criar de novo para confirmar mesmo assim.`
-            : "Já existe uma cobrança igual (mesmo cliente, descrição, valor e vencimento) ativa. Clique em Criar de novo para confirmar mesmo assim."
+            ? t("billing_form_duplicate_multi", { descricao: duplicadas[0].descricao })
+            : t("billing_form_duplicate_single")
         );
         return;
       }
@@ -279,7 +283,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
       <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            {billing ? "Editar Cobrança" : "Nova Cobrança"}
+            {billing ? t("billing_form_edit_title") : t("billing_form_new_title")}
           </DialogTitle>
         </DialogHeader>
         <div className="rounded-xl border border-dashed border-border bg-secondary/50 p-4">
@@ -297,11 +301,11 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                 <ImageIcon className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground font-medium truncate">Comprovante anexado</p>
-                <a href={form.comprovante_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline">Ver arquivo</a>
+                <p className="text-sm text-foreground font-medium truncate">{t("billing_form_proof_attached")}</p>
+                <a href={form.comprovante_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline">{t("billing_form_view_file")}</a>
                 {aiFilled && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20 mt-1 ml-2">
-                    <Sparkles className="w-2.5 h-2.5" /> Lido por IA
+                    <Sparkles className="w-2.5 h-2.5" /> {t("billing_form_read_by_ai")}
                   </span>
                 )}
               </div>
@@ -312,7 +316,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
           ) : billing && comprovantesDoBilling(billing).length > 0 ? (
             <div className="space-y-1.5">
               <p className="text-[11px] text-muted-foreground">
-                {comprovantesDoBilling(billing).length} comprovante(s) já anexado(s) nesta cobrança.
+                {t("billing_form_proof_count", { count: comprovantesDoBilling(billing).length })}
               </p>
               <button
                 type="button"
@@ -320,7 +324,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                 disabled={uploading}
                 className="w-full flex items-center justify-center gap-2 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
-                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Lendo com IA...</> : <><Camera className="w-4 h-4" /> Anexar mais um comprovante</>}
+                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("billing_ai_reading")}</> : <><Camera className="w-4 h-4" /> {t("billing_form_attach_another_proof")}</>}
               </button>
             </div>
           ) : (
@@ -332,26 +336,26 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Lendo com IA...
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t("billing_ai_reading")}
                 </>
               ) : (
                 <>
-                  <Camera className="w-4 h-4" /> Anexar comprovante, nota fiscal ou orçamento
+                  <Camera className="w-4 h-4" /> {t("billing_form_attach_proof_full")}
                 </>
               )}
             </button>
           )}
           {uploadError && <p className="text-xs text-red-400 mt-2">{uploadError}</p>}
           {!form.comprovante_url && !uploading && (
-            <p className="text-[11px] text-muted-foreground text-center mt-1">A IA preenche descrição, valor, vencimento e categoria automaticamente</p>
+            <p className="text-[11px] text-muted-foreground text-center mt-1">{t("billing_form_ai_autofill_hint")}</p>
           )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {!(clientMode && fixedClient?.id) && (
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("field_client")}</Label>
               <Select value={form.client_id} onValueChange={handleClientChange}>
-                <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+                <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder={t("billing_form_select_client")} /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
@@ -361,9 +365,9 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
             </div>
           )}
           <div>
-            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Proposta vinculada (opcional)</Label>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("billing_form_linked_proposal")}</Label>
             <Select value={form.proposal_id || undefined} onValueChange={(v) => setForm((f) => ({ ...f, proposal_id: v }))}>
-              <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+              <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder={t("billing_form_none")} /></SelectTrigger>
               <SelectContent>
                 {proposals.filter((p) => !form.client_id || p.client_id === form.client_id).map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.destino || p.client_nome}</SelectItem>
@@ -380,19 +384,19 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                   onChange={(e) => { setMultiplas(e.target.checked); if (e.target.checked) setParcelar(false); }}
                   className="rounded border-border"
                 />
-                <ListPlus className="w-3.5 h-3.5 text-primary" /> Várias despesas nesta cobrança
+                <ListPlus className="w-3.5 h-3.5 text-primary" /> {t("billing_form_multiple_expenses")}
               </label>
               {multiplas && (
                 <div className="space-y-2">
                   <p className="text-[11px] text-muted-foreground">
-                    Cada linha vira um registro próprio — nunca junte despesas diferentes numa descrição só.
+                    {t("billing_form_multiple_expenses_hint")}
                   </p>
                   {despesasExtra.map((linha, i) => (
                     <div key={i} className="flex gap-2">
                       <Input
                         value={linha.descricao}
                         onChange={(e) => setDespesasExtra((prev) => prev.map((l, idx) => (idx === i ? { ...l, descricao: e.target.value } : l)))}
-                        placeholder="Ex: Aluguel de Som (AA Music)"
+                        placeholder={t("billing_form_expense_desc_placeholder")}
                         className="bg-secondary border-border flex-1"
                       />
                       <Input
@@ -410,10 +414,10 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                     </div>
                   ))}
                   <Button type="button" variant="outline" size="sm" onClick={() => setDespesasExtra((prev) => [...prev, { descricao: "", valor: "" }])} className="gap-1.5">
-                    <Plus className="w-3.5 h-3.5" /> Adicionar despesa
+                    <Plus className="w-3.5 h-3.5" /> {t("billing_form_add_expense")}
                   </Button>
                   <p className="text-[11px] text-muted-foreground">
-                    Total: {formatBRL(despesasExtra.reduce((s, l) => s + (Number(l.valor) || 0), 0))} · mesmo vencimento, categoria e cliente abaixo para todas.
+                    {t("billing_form_expenses_total", { total: formatBRL(despesasExtra.reduce((s, l) => s + (Number(l.valor) || 0), 0)) })}
                   </p>
                 </div>
               )}
@@ -421,19 +425,19 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
           )}
           {!multiplas && (
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Descrição</Label>
-              <Input value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} className="mt-1.5 bg-secondary border-border" placeholder="Pacote Maldivas, Transfer..." />
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("col_description")}</Label>
+              <Input value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} className="mt-1.5 bg-secondary border-border" placeholder={t("billing_form_desc_placeholder")} />
             </div>
           )}
           <div>
-            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Categoria</Label>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("billing_form_categoria_label")}</Label>
             {creatingCategoria ? (
               <div className="mt-1.5 flex gap-2">
                 <Input
                   autoFocus
                   value={novaCategoria}
                   onChange={(e) => setNovaCategoria(e.target.value)}
-                  placeholder="Ex: Reserva Financeira"
+                  placeholder={t("billing_form_new_categoria_placeholder")}
                   className="bg-secondary border-border"
                 />
                 <Button
@@ -445,17 +449,17 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                     setCreatingCategoria(false);
                   }}
                 >
-                  OK
+                  {t("billing_form_ok")}
                 </Button>
               </div>
             ) : (
               <Select value={form.categoria || undefined} onValueChange={handleCategoriaChange}>
-                <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
+                <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder={t("billing_form_select_categoria")} /></SelectTrigger>
                 <SelectContent>
                   {categoriasExistentes.map((c) => (
                     <SelectItem key={c} value={c}>{translateCategoria(c, lang)}</SelectItem>
                   ))}
-                  <SelectItem value={NEW_CATEGORY_VALUE}>+ Criar nova categoria</SelectItem>
+                  <SelectItem value={NEW_CATEGORY_VALUE}>{t("billing_form_create_categoria")}</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -467,12 +471,12 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
             )}
           </div>
           <div>
-            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Tipo de despesa</Label>
+            <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("billing_form_tipo_despesa")}</Label>
             <Select value={form.tipo_despesa} onValueChange={(v) => setForm((f) => ({ ...f, tipo_despesa: v }))}>
               <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="fixa">Fixa (recorrente/prevista em contrato)</SelectItem>
-                <SelectItem value="variavel">Variável (serviço adicional)</SelectItem>
+                <SelectItem value="fixa">{t("billing_form_tipo_fixa_full")}</SelectItem>
+                <SelectItem value="variavel">{t("billing_form_tipo_variavel_full")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -480,14 +484,14 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
             {!multiplas && (
               <div>
                 <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  {parcelar ? "Valor total (R$)" : "Valor (R$)"}
+                  {parcelar ? t("billing_form_valor_total") : t("billing_form_valor")}
                 </Label>
                 <Input type="number" value={form.valor} onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))} className="mt-1.5 bg-secondary border-border" required={!multiplas} />
               </div>
             )}
             <div className={multiplas ? "col-span-2" : ""}>
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                {parcelar ? "1º vencimento" : "Vencimento"}
+                {parcelar ? t("billing_form_primeiro_vencimento") : t("col_due_date")}
               </Label>
               <Input type="date" value={form.data_vencimento} onChange={(e) => setForm((f) => ({ ...f, data_vencimento: e.target.value }))} className="mt-1.5 bg-secondary border-border" />
             </div>
@@ -497,11 +501,11 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
             <div className="rounded-xl border border-border bg-secondary/40 p-3 space-y-3">
               <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                 <input type="checkbox" checked={parcelar} onChange={(e) => setParcelar(e.target.checked)} className="rounded border-border" />
-                <Layers className="w-3.5 h-3.5 text-primary" /> Dividir em parcelas
+                <Layers className="w-3.5 h-3.5 text-primary" /> {t("billing_form_dividir_parcelas")}
               </label>
               {parcelar && (
                 <div>
-                  <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Número de parcelas</Label>
+                  <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("billing_form_numero_parcelas")}</Label>
                   <Input
                     type="number"
                     min={2}
@@ -511,7 +515,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                     className="mt-1.5 bg-secondary border-border w-24"
                   />
                   <p className="text-[11px] text-muted-foreground mt-1.5">
-                    Cria {Math.max(2, Math.round(numeroParcelas) || 2)} cobranças vinculadas, com vencimento mensal a partir da data acima — cada uma marcada como "Parcela X de {Math.max(2, Math.round(numeroParcelas) || 2)}".
+                    {t("billing_form_parcelas_hint", { n: Math.max(2, Math.round(numeroParcelas) || 2) })}
                   </p>
                 </div>
               )}
@@ -520,14 +524,14 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
 
           {!multiplas && !clientMode && (
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Status</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("field_status")}</Label>
               <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
                 <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="recebido">Recebido</SelectItem>
-                  <SelectItem value="atrasado">Atrasado</SelectItem>
-                  {billing && <SelectItem value="cancelado">Cancelado</SelectItem>}
+                  <SelectItem value="pendente">{t("status_pendente")}</SelectItem>
+                  <SelectItem value="recebido">{t("status_recebido")}</SelectItem>
+                  <SelectItem value="atrasado">{t("status_atrasado")}</SelectItem>
+                  {billing && <SelectItem value="cancelado">{t("status_cancelado")}</SelectItem>}
                 </SelectContent>
               </Select>
               {form.status === "cancelado" && (
@@ -535,7 +539,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                   value={form.motivo_cancelamento}
                   onChange={(e) => setForm((f) => ({ ...f, motivo_cancelamento: e.target.value }))}
                   className="mt-2 bg-secondary border-border"
-                  placeholder="Motivo do cancelamento (obrigatório) — ex: substituída por registros individuais"
+                  placeholder={t("billing_form_motivo_cancelamento_placeholder")}
                   rows={2}
                 />
               )}
@@ -543,16 +547,16 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
           )}
           {formError && <p className="text-xs text-red-400">{formError}</p>}
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("btn_cancel")}</Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={mutation.isPending}>
               {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               {billing
-                ? "Salvar"
+                ? t("btn_save")
                 : multiplas
-                ? `Criar ${despesasExtra.filter((l) => l.descricao.trim() && Number(l.valor) > 0).length} Cobranças`
+                ? t("billing_form_criar_cobrancas", { n: despesasExtra.filter((l) => l.descricao.trim() && Number(l.valor) > 0).length })
                 : parcelar
-                ? `Criar ${Math.max(2, Math.round(numeroParcelas) || 2)} Parcelas`
-                : "Criar Cobrança"}
+                ? t("billing_form_criar_parcelas", { n: Math.max(2, Math.round(numeroParcelas) || 2) })
+                : t("billing_form_criar_cobranca")}
             </Button>
           </div>
         </form>

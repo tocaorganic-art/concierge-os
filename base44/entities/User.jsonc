@@ -22,6 +22,15 @@
     "client_id": {
       "type": "string",
       "description": "Quando account_type = cliente: ID do registro Client ao qual este login est\u00e1 vinculado"
+    },
+    "preferred_language": {
+      "type": "string",
+      "enum": [
+        "pt-BR",
+        "en",
+        "es"
+      ],
+      "description": "Idioma preferido do usu\u00e1rio, salvo ao trocar o idioma no app. Serve de fallback entre dispositivos/sess\u00f5es, complementando o localStorage (que \u00e9 por navegador)."
     }
   },
   "required": [
