@@ -10,6 +10,8 @@ import TaskFormDialog from "@/components/agenda/TaskFormDialog";
 import TaskReminderBanner from "@/components/agenda/TaskReminderBanner";
 import FaturasDoDia from "@/components/agenda/FaturasDoDia";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
+import EventModal from "@/components/events/EventModal";
+import EventStatusBadge from "@/components/events/EventStatusBadge";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
 import { useLanguage } from "@/lib/i18n";
@@ -35,6 +37,7 @@ export default function Agenda() {
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [whatsappTask, setWhatsappTask] = useState(null);
+  const [selectedEventId, setSelectedEventId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading, isError } = useQuery({
@@ -49,6 +52,12 @@ export default function Agenda() {
     queryFn: () => base44.entities.Billing.list("-data_vencimento", 200),
     enabled: !isClient,
   });
+
+  // Busca sempre a versão mais recente da task selecionada na lista já
+  // carregada — assim o EventModal reflete na hora fotos/checklist/status
+  // atualizados pela própria mutation (invalidateQueries refaz o fetch de
+  // "tasks", e este find pega o objeto novo no próximo render).
+  const selectedEvent = tasks.find((tk) => tk.id === selectedEventId) || null;
 
   const toggleTask = useMutation({
     mutationFn: (task) =>
@@ -89,10 +98,13 @@ export default function Agenda() {
       }
     };
     return (
-      <div className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
-        task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
-      }`}>
-        <button onClick={() => !isClient && toggleTask.mutate(task)} disabled={isClient} className={`mt-0.5 flex-shrink-0 ${isClient ? "cursor-default" : ""}`}>
+      <div
+        onClick={() => !isClient && setSelectedEventId(task.id)}
+        className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
+          task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
+        } ${!isClient ? "cursor-pointer" : ""}`}
+      >
+        <button onClick={(e) => { e.stopPropagation(); if (!isClient) toggleTask.mutate(task); }} disabled={isClient} className={`mt-0.5 flex-shrink-0 ${isClient ? "cursor-default" : ""}`}>
           {task.status === "concluido" ? (
             <CheckCircle2 className="w-5 h-5 text-green-400" />
           ) : (
@@ -127,6 +139,7 @@ export default function Agenda() {
           </div>
           <div className="flex items-center gap-2 flex-wrap mt-1">
             {task.tipo && <StatusBadge status={task.tipo} />}
+            {task.status === "em_progresso" && <EventStatusBadge status="em_progresso" />}
             {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
             {task.lembrete_antecedencia && (
               <span className="inline-flex items-center gap-1 font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full"><Bell className="w-2.5 h-2.5" /> {task.lembrete_antecedencia}</span>
@@ -295,6 +308,10 @@ export default function Agenda() {
       )}
 
       <TaskFormDialog open={showForm} onOpenChange={setShowForm} defaultDate={selectedDate} />
+
+      {!isClient && (
+        <EventModal task={selectedEvent} onClose={() => setSelectedEventId(null)} />
+      )}
 
       {whatsappTask && (
         <WhatsAppModal

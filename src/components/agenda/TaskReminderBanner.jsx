@@ -15,7 +15,7 @@ export default function TaskReminderBanner({ tasks }) {
   const urgentTasks = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     return tasks
-      .filter((t) => t.status === "pendente" && t.data === today && t.horario)
+      .filter((t) => t.status !== "concluido" && t.data === today && t.horario)
       .map((t) => ({ ...t, minutesLeft: getMinutesUntilTask(t) }))
       .filter((t) => t.minutesLeft !== null && t.minutesLeft >= 0 && t.minutesLeft <= 30)
       .sort((a, b) => a.minutesLeft - b.minutesLeft);
