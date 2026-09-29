@@ -34,6 +34,7 @@ export default function Settings() {
   const [profile, setProfile] = useState(null);
   const [businessName, setBusinessName] = useState("");
   const [specialty, setSpecialty] = useState("");
+  const [whatsappConcierge, setWhatsappConcierge] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteType, setInviteType] = useState("equipe");
   const [inviteClientId, setInviteClientId] = useState("");
@@ -56,6 +57,7 @@ export default function Settings() {
           setProfile(p);
           setBusinessName(p.business_name || "");
           setSpecialty(p.specialty || "");
+          setWhatsappConcierge(p.whatsapp_concierge || "");
         }
       });
     });
@@ -64,7 +66,7 @@ export default function Settings() {
   const saveOperation = async () => {
     if (!currentUser) return;
     if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { business_name: businessName, specialty });
+      await base44.entities.UserProfile.update(profile.id, { business_name: businessName, specialty, whatsapp_concierge: whatsappConcierge });
     } else {
       await base44.entities.UserProfile.create({
         user_id: currentUser.id,
@@ -72,6 +74,7 @@ export default function Settings() {
         trial_start_date: new Date().toISOString().split("T")[0],
         business_name: businessName,
         specialty,
+        whatsapp_concierge: whatsappConcierge,
       });
     }
     setSaved(true);
@@ -113,6 +116,18 @@ export default function Settings() {
               <option value="corporativo">Eventos corporativos</option>
               <option value="multiplos">Múltiplos segmentos</option>
             </select>
+          </div>
+          <div>
+            <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">WhatsApp do concierge</Label>
+            <Input
+              value={whatsappConcierge}
+              onChange={(e) => setWhatsappConcierge(e.target.value)}
+              placeholder="Ex: +55 73 99999-9999"
+              className="mt-1.5 bg-secondary border-border"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Mostrado ao cliente no Portal e no email de boas-vindas como contato direto.
+            </p>
           </div>
           <Button onClick={saveOperation} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2" size="sm">
             {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />} {saved ? "Salvo!" : "Salvar"}
@@ -221,8 +236,19 @@ export default function Settings() {
                     account_type: inviteType,
                     client_id: inviteType === "cliente" ? inviteClientId : "",
                   });
+                  if (inviteType === "cliente" && inviteClientId) {
+                    await base44.entities.Client.update(inviteClientId, {
+                      invited_at: new Date().toISOString(),
+                      invited_by: currentUser?.email || "",
+                    });
+                    try {
+                      await base44.functions.invoke("sendWelcomeEmail", { client_id: inviteClientId });
+                    } catch {
+                      // convite (acesso) já foi enviado; boas-vindas pode ser reenviada depois na ficha do cliente
+                    }
+                  }
                   setInviteStatus(inviteType === "cliente"
-                    ? `Convite enviado — ${client?.nome || inviteEmail} vai cair direto no Portal do Cliente ao aceitar.`
+                    ? `Convite enviado — ${client?.nome || inviteEmail} vai cair direto no Portal do Cliente ao aceitar, e recebeu o email de boas-vindas.`
                     : "Convite de equipe enviado.");
                   setInviteEmail("");
                   setInviteClientId("");

@@ -44,6 +44,10 @@
       "type": "string",
       "description": "URL do logo white-label"
     },
+    "whatsapp_concierge": {
+      "type": "string",
+      "description": "Numero de WhatsApp do concierge (com DDI), mostrado ao cliente no Portal e no email de boas-vindas como contato direto. Ex.: +55 73 99999-9999."
+    },
     "primary_color": {
       "type": "string",
       "description": "Cor prim\u00e1ria white-label"
