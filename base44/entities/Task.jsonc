@@ -41,10 +41,11 @@
       "type": "string",
       "enum": [
         "pendente",
+        "em_progresso",
         "concluido"
       ],
       "default": "pendente",
-      "description": "Status da tarefa"
+      "description": "Status da tarefa. 'em_progresso' foi adicionado para o modal de eventos (Agenda) — 'pendente' e 'concluido' continuam com o mesmo significado de antes."
     },
     "prioridade": {
       "type": "string",
@@ -86,6 +87,84 @@
       "rls": {
         "read": {
           "user_condition": { "role": "admin" }
+        }
+      }
+    },
+    "fotos": {
+      "type": "array",
+      "default": [],
+      "description": "Evidencias fotograficas do evento/operacao (ex.: foto do relogio de energia na vistoria). Cada item: {url, legenda, timestamp}.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "legenda": { "type": "string" },
+          "timestamp": { "type": "string" }
+        }
+      }
+    },
+    "comentarios": {
+      "type": "array",
+      "default": [],
+      "description": "Thread de comentarios internos da equipe sobre o evento. Cada item: {autor_id, autor_nome, texto, timestamp}.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "autor_id": { "type": "string" },
+          "autor_nome": { "type": "string" },
+          "texto": { "type": "string" },
+          "timestamp": { "type": "string" }
+        }
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "default": [],
+      "description": "Sub-tarefas do evento (ex.: vistoria = tirar foto do medidor, anotar leitura, assinar termo). Cada item: {id, titulo, concluido, timestamp}.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "titulo": { "type": "string" },
+          "concluido": { "type": "boolean" },
+          "timestamp": { "type": "string" }
+        }
+      }
+    },
+    "responsavel_id": {
+      "type": "string",
+      "description": "ID do usuario da equipe responsavel por executar este evento/operacao. Default: quem criou a tarefa."
+    },
+    "responsavel_nome": {
+      "type": "string",
+      "description": "Nome do responsavel, guardado junto para nao precisar de join ao listar."
+    },
+    "editado_em": {
+      "type": "string",
+      "description": "Timestamp ISO da ultima edicao do evento (qualquer campo do modal de eventos)."
+    },
+    "editado_por_id": {
+      "type": "string",
+      "description": "ID do usuario que fez a ultima edicao."
+    },
+    "editado_por_nome": {
+      "type": "string",
+      "description": "Nome do usuario que fez a ultima edicao."
+    },
+    "historico": {
+      "type": "array",
+      "default": [],
+      "description": "Timeline de mudancas do evento. Cada item: {tipo, campo, valor_anterior, valor_novo, usuario_id, usuario_nome, timestamp}.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": { "type": "string" },
+          "campo": { "type": "string" },
+          "valor_anterior": { "type": "string" },
+          "valor_novo": { "type": "string" },
+          "usuario_id": { "type": "string" },
+          "usuario_nome": { "type": "string" },
+          "timestamp": { "type": "string" }
         }
       }
     }

@@ -42,8 +42,9 @@ export default async function (req) {
 
     const hoje = hojeBahia();
 
-    const [tarefas, leads, propostasAtivas, confirmadas] = await Promise.all([
+    const [tarefasPendentes, tarefasEmProgresso, leads, propostasAtivas, confirmadas] = await Promise.all([
       base44.asServiceRole.entities.Task.filter({ status: 'pendente' }),
+      base44.asServiceRole.entities.Task.filter({ status: 'em_progresso' }),
       base44.asServiceRole.entities.Proposal.filter({ status: 'lead' }),
       base44.asServiceRole.entities.Proposal.filter({ status: 'proposta' }),
       base44.asServiceRole.entities.Proposal.filter({ status: 'confirmado' })
@@ -51,7 +52,7 @@ export default async function (req) {
 
     const alertas = [];
 
-    for (const t of tarefas) {
+    for (const t of [...tarefasPendentes, ...tarefasEmProgresso]) {
       if (!t.data) continue;
       const dias = diasAte(t.data, hoje);
       if (dias > TASK_JANELA_DIAS) continue;
