@@ -34,6 +34,7 @@ import {
 // Caução (nunca contratos/custos de fornecedor — RLS já bloqueia isso na
 // origem, não é só UI escondendo).
 function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusStatus, focusTipo }) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editBilling, setEditBilling] = useState(null);
@@ -86,7 +87,7 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
         {/* Total da categoria — soma dos valores das cobranças deste bloco */}
         <div className="flex items-center justify-between gap-2 pt-3 mt-1 border-t border-border/60">
           <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-            Total ({itens.length} {itens.length === 1 ? "lançamento" : "lançamentos"})
+            {t("billing_block_total_label")} ({itens.length} {itens.length === 1 ? t("common_lancamento_singular") : t("common_lancamento_plural")})
           </span>
           <span className="font-display font-semibold text-primary text-lg">
             {formatBRL(itens.reduce((sum, b) => sum + (b.valor || 0), 0))}
@@ -101,18 +102,18 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
     <div className="max-w-2xl">
       <div className="flex items-center justify-between gap-3 mb-3">
         <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-          Casa = despesa fixa · Extras = despesa variável
+          {t("billing_client_legend")}
         </p>
         <Button size="sm" onClick={() => { setEditBilling(null); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5">
-          <Plus className="w-3.5 h-3.5" /> Nova cobrança
+          <Plus className="w-3.5 h-3.5" /> {t("billing_new_charge_client")}
         </Button>
       </div>
-      <Bloco titulo="Seu Contrato" itens={contrato} subtitulo="Despesa fixa — o que está previsto no contrato da casa" />
-      <Bloco titulo="Serviços Adicionais" itens={adicionais} subtitulo="Despesa variável — serviços e custos extras fora do pacote" />
-      <Bloco titulo="Caução (devolvível)" itens={caucao} destacar={focusTipo === "caucao"} />
+      <Bloco titulo={t("billing_block_contrato_title")} itens={contrato} subtitulo={t("billing_block_contrato_sub")} />
+      <Bloco titulo={t("billing_block_adicionais_title")} itens={adicionais} subtitulo={t("billing_block_adicionais_sub")} />
+      <Bloco titulo={t("billing_block_caucao_title")} itens={caucao} destacar={focusTipo === "caucao"} />
       {temAdicionaisAberto && <PixPaymentCard formaPagamento={formaPagamento} chavePixContrato={chavePixContrato} />}
       {contrato.length === 0 && adicionais.length === 0 && caucao.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground py-12">Nenhum lançamento financeiro ainda.</p>
+        <p className="text-center text-sm text-muted-foreground py-12">{t("billing_empty_client")}</p>
       )}
       <BillingFormDialog
         open={showForm}

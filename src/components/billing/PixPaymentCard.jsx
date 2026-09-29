@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Copy, Check, QrCode, KeyRound } from "lucide-react";
 import { COMPANY_INFO, PIX_PAYMENT_METHODS } from "@/lib/paymentInfo";
+import { useLanguage } from "@/lib/i18n";
 
-function CopyButton({ value, label = "Copiar" }) {
+function CopyButton({ value, label }) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -23,7 +25,7 @@ function CopyButton({ value, label = "Copiar" }) {
       className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors border border-primary/30 rounded-lg px-2.5 py-1"
     >
       {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-      {copied ? "Copiado!" : label}
+      {copied ? t("pix_copied") : (label || t("pix_copy"))}
     </button>
   );
 }
@@ -40,25 +42,26 @@ function CopyButton({ value, label = "Copiar" }) {
 // ainda, mostra um aviso em vez de inventar ou deixar em branco sem
 // explicação.
 export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePixContrato = "" }) {
+  const { t } = useLanguage();
   const [tab, setTab] = useState("qrcode");
 
   if (formaPagamento === "pix_cpf_tony") {
     return (
       <div className="bg-card border border-border rounded-2xl p-5 mb-8">
         <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3">
-          <KeyRound className="w-3.5 h-3.5" /> Como pagar
+          <KeyRound className="w-3.5 h-3.5" /> {t("pix_how_to_pay")}
         </div>
         {chavePixContrato ? (
           <div className="flex items-center justify-between bg-secondary/60 border border-border rounded-lg px-3 py-2.5">
             <div className="min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Chave Pix</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t("pix_tab_chave")}</p>
               <p className="text-sm text-foreground font-mono truncate">{chavePixContrato}</p>
             </div>
             <CopyButton value={chavePixContrato} />
           </div>
         ) : (
           <p className="text-sm text-foreground">
-            Este contrato recebe por Pix pessoal, conforme combinado. O Tony vai te enviar a chave diretamente.
+            {t("pix_personal_notice")}
           </p>
         )}
       </div>
@@ -68,7 +71,7 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePi
   return (
     <div className="bg-card border border-border rounded-2xl p-5 mb-8">
       <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground mb-4">
-        <KeyRound className="w-3.5 h-3.5" /> Como pagar
+        <KeyRound className="w-3.5 h-3.5" /> {t("pix_how_to_pay")}
       </div>
 
       <div className="flex gap-2 mb-4">
@@ -81,7 +84,7 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePi
               : "bg-secondary border-border text-muted-foreground"
           }`}
         >
-          <QrCode className="w-3.5 h-3.5" /> QR Code
+          <QrCode className="w-3.5 h-3.5" /> {t("pix_tab_qrcode")}
         </button>
         <button
           type="button"
@@ -92,7 +95,7 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePi
               : "bg-secondary border-border text-muted-foreground"
           }`}
         >
-          <KeyRound className="w-3.5 h-3.5" /> Chave Pix
+          <KeyRound className="w-3.5 h-3.5" /> {t("pix_tab_chave")}
         </button>
       </div>
 
@@ -102,7 +105,7 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePi
             <QRCodeSVG value={PIX_PAYMENT_METHODS.qrCode.payload} size={200} level="M" />
           </div>
           <p className="text-[11px] text-muted-foreground text-center">
-            Abra o app do seu banco, escolha "Pagar com Pix" e escaneie o código.
+            {t("pix_qr_instructions")}
           </p>
         </div>
       ) : (
@@ -110,7 +113,7 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePi
           <div className="flex items-center justify-between bg-secondary/60 border border-border rounded-lg px-3 py-2.5">
             <div className="min-w-0">
               <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                Chave Pix ({PIX_PAYMENT_METHODS.chavePix.tipo})
+                {t("pix_key_label", { tipo: PIX_PAYMENT_METHODS.chavePix.tipo })}
               </p>
               <p className="text-sm text-foreground font-mono truncate">
                 {PIX_PAYMENT_METHODS.chavePix.valorFormatado}
@@ -119,7 +122,7 @@ export default function PixPaymentCard({ formaPagamento = "pix_pj_cora", chavePi
             <CopyButton value={PIX_PAYMENT_METHODS.chavePix.valor} />
           </div>
           <p className="text-[11px] text-muted-foreground text-center">
-            Copie a chave e faça a transferência via Pix pelo app do seu banco.
+            {t("pix_key_instructions")}
           </p>
         </div>
       )}

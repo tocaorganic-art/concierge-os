@@ -29,12 +29,14 @@ import {
 } from "@/lib/finance";
 import { formatBRL } from "@/lib/formatBRL";
 
-const TIPOS_PEDIDO = [
-  { id: "experiencia", Icon: Palmtree, label: "Experiência", sub: "Roteiros, passeios e aventuras" },
-  { id: "reserva", Icon: UtensilsCrossed, label: "Reservar", sub: "Restaurantes, hotéis, transfers" },
-  { id: "exclusivo", Icon: Gem, label: "Exclusivo", sub: "Yacht, helicóptero, chef privado" },
-  { id: "ajuda", Icon: LifeBuoy, label: "Preciso de ajuda", sub: "Suporte emergencial agora" },
-];
+function getTiposPedido(t) {
+  return [
+    { id: "experiencia", Icon: Palmtree, label: t("request_type_experiencia_label"), sub: t("request_type_experiencia_sub") },
+    { id: "reserva", Icon: UtensilsCrossed, label: t("request_type_reserva_label"), sub: t("request_type_reserva_sub") },
+    { id: "exclusivo", Icon: Gem, label: t("request_type_exclusivo_label"), sub: t("request_type_exclusivo_sub") },
+    { id: "ajuda", Icon: LifeBuoy, label: t("request_type_ajuda_label"), sub: t("request_type_ajuda_sub") },
+  ];
+}
 
 // Visão Geral de uma conta "cliente" (real ou "ver como cliente" do admin) —
 // MESMO layout/componentes da Visão Geral do admin (grade 2x2 de KpiCard,
@@ -47,6 +49,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
   const proposta = proposals.find((p) => p.id === proposalIdSelecionado) || proposals[0];
 
   const localeDate = t("locale_date");
+  const TIPOS_PEDIDO = getTiposPedido(t);
 
   const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
   const servicos = [...contrato, ...adicionais];
@@ -84,7 +87,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
         <div className="mb-4 md:mb-6">
           <Select value={proposalIdSelecionado} onValueChange={setProposalIdSelecionado}>
             <SelectTrigger className="w-full md:w-72 bg-secondary border-border">
-              <SelectValue placeholder="Minha viagem" />
+              <SelectValue placeholder={t("dash_my_trip_placeholder")} />
             </SelectTrigger>
             <SelectContent>
               {proposals.map((p) => (
@@ -100,14 +103,14 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
         <KpiCard
-          title="Total Contratado"
+          title={t("dash_kpi_total_contratado")}
           value={formatBRL(totalContratado)}
           icon={FileText}
           to="/faturamento"
-          trendLabel={`Contrato ${formatBRL(contrato.reduce((s, b) => s + (b.valor || 0), 0))} · Adicionais ${formatBRL(adicionais.reduce((s, b) => s + (b.valor || 0), 0))}`}
+          trendLabel={`${t("common_contrato_label")} ${formatBRL(contrato.reduce((s, b) => s + (b.valor || 0), 0))} · ${t("common_adicionais_label")} ${formatBRL(adicionais.reduce((s, b) => s + (b.valor || 0), 0))}`}
         />
         <KpiCard
-          title="Pago"
+          title={t("dash_kpi_pago")}
           value={formatBRL(totalPago)}
           icon={DollarSign}
           valueClassName="text-emerald-400"
@@ -115,35 +118,35 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           trendLabel={dataUltimoPagamento ? `${pagosResumo.length} Pix · ${new Date(dataUltimoPagamento + "T00:00:00").toLocaleDateString(localeDate)}` : undefined}
         />
         <KpiCard
-          title="A Pagar"
+          title={t("dash_kpi_a_pagar")}
           value={formatBRL(totalAPagar)}
           icon={Wallet}
           valueClassName={totalAPagar > 0 ? "text-amber-400" : "text-emerald-400"}
           to="/faturamento?status=aberto"
-          trendLabel={proximoVencimento ? `Próx. venc. ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${formatBRL(proximoVencimentoValor || 0)}` : undefined}
+          trendLabel={proximoVencimento ? `${t("common_prox_venc_label")} ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${formatBRL(proximoVencimentoValor || 0)}` : undefined}
         />
         <KpiCard
-          title="Caução"
+          title={t("dash_kpi_caucao")}
           value={formatBRL(totalCaucao)}
           icon={Wallet}
           to="/faturamento?tipo=caucao"
-          trendLabel="Devolvível em 48h após vistoria"
+          trendLabel={t("dash_caucao_trend")}
         />
       </div>
       {emAtrasoQtd > 0 && (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-1">
           <KpiCard
-            title="Em Atraso"
+            title={t("dash_kpi_em_atraso")}
             value={formatBRL(emAtrasoValor)}
             icon={AlertCircle}
             valueClassName="text-red-400"
             to="/faturamento?status=atrasado"
-            trendLabel={`${emAtrasoQtd} cobrança${emAtrasoQtd > 1 ? "s" : ""}`}
+            trendLabel={`${emAtrasoQtd} ${emAtrasoQtd > 1 ? t("common_cobranca_plural") : t("common_cobranca_singular")}`}
           />
         </div>
       )}
       <p className="text-[11px] text-muted-foreground mb-6 md:mb-8">
-        Atualizado às {new Date().toLocaleTimeString(localeDate, { hour: "2-digit", minute: "2-digit" })}
+        {t("dash_updated_at")} {new Date().toLocaleTimeString(localeDate, { hour: "2-digit", minute: "2-digit" })}
       </p>
 
       <div className="mb-4 md:mb-6">
@@ -152,8 +155,8 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
 
       <div className="bg-card border border-border rounded-xl p-5 gold-border-hover mb-4 md:mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading text-lg font-semibold text-foreground">Pedir ao concierge</h3>
-          <a href="tel:" className="text-xs font-mono uppercase tracking-wider text-red-400 border border-red-500/30 rounded-full px-2.5 py-1">SOS</a>
+          <h3 className="font-heading text-lg font-semibold text-foreground">{t("dash_ask_concierge")}</h3>
+          <a href="tel:" className="text-xs font-mono uppercase tracking-wider text-red-400 border border-red-500/30 rounded-full px-2.5 py-1">{t("dash_sos")}</a>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {TIPOS_PEDIDO.map((tipo) => (

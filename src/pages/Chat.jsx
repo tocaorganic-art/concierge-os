@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import ChatGeral from "@/components/client/ChatGeral";
+import { useLanguage } from "@/lib/i18n";
 
 // Página /chat — mesmo chat do widget flutuante (ChatGeral, thread
 // Comentario.escopo="geral" por client_id). Cliente cai direto na própria
@@ -12,6 +13,7 @@ import ChatGeral from "@/components/client/ChatGeral";
 // por conversa). RLS de Comentario garante que cada usuário só vê as
 // conversas autorizadas.
 export default function Chat() {
+  const { t } = useLanguage();
   const { isClient } = useUserProfile();
   const { effectiveClientId } = useEffectiveRole();
 
@@ -20,7 +22,7 @@ export default function Chat() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-2 mb-4">
           <MessagesSquare className="w-5 h-5 text-primary" />
-          <h1 className="font-heading text-2xl font-bold text-foreground">Chat</h1>
+          <h1 className="font-heading text-2xl font-bold text-foreground">{t("chat_title")}</h1>
         </div>
         <div className="bg-card border border-border rounded-2xl p-4 h-[70vh]">
           <ChatGeral clientId={effectiveClientId} />
@@ -33,6 +35,7 @@ export default function Chat() {
 }
 
 function ChatAdmin() {
+  const { t } = useLanguage();
   const [clientId, setClientId] = useState(null);
 
   const { data: clients = [] } = useQuery({
@@ -54,11 +57,11 @@ function ChatAdmin() {
           <button
             onClick={() => setClientId(null)}
             className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-            aria-label="Voltar"
+            aria-label={t("common_back")}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <h1 className="font-heading text-xl font-bold text-foreground truncate">{cliente?.nome || "Chat"}</h1>
+          <h1 className="font-heading text-xl font-bold text-foreground truncate">{cliente?.nome || t("chat_title")}</h1>
         </div>
         <div className="bg-card border border-border rounded-2xl p-4 h-[70vh]">
           <ChatGeral clientId={clientId} />
@@ -71,10 +74,10 @@ function ChatAdmin() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center gap-2 mb-4">
         <MessagesSquare className="w-5 h-5 text-primary" />
-        <h1 className="font-heading text-2xl font-bold text-foreground">Chat</h1>
+        <h1 className="font-heading text-2xl font-bold text-foreground">{t("chat_title")}</h1>
       </div>
       {clients.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">Nenhum cliente cadastrado ainda.</p>
+        <p className="text-sm text-muted-foreground text-center py-12">{t("chat_no_clients")}</p>
       ) : (
         <div className="space-y-2">
           {clients.map((c) => {

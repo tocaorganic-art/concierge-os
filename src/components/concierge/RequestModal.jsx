@@ -3,18 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Loader2, MapPin, Sparkles } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitting }) {
+  const { t } = useLanguage();
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [destino, setDestino] = useState("");
   const [dataDesejada, setDataDesejada] = useState("");
 
   const placeholders = {
-    experiencia: { titulo: "Ex: Passeio de barco ao pôr do sol em Noronha", descricao: "Conte mais detalhes: grupo, preferências, orçamento..." },
-    reserva:     { titulo: "Ex: Jantar romântico em restaurante à beira-mar",  descricao: "Número de pessoas, restrições alimentares, horário preferido..." },
-    exclusivo:   { titulo: "Ex: Helicóptero do Rio para Angra dos Reis",        descricao: "Data, número de passageiros, necessidades especiais..." },
-    ajuda:       { titulo: "Ex: Passei mal e preciso de auxílio médico",        descricao: "Descreva a situação e onde você está..." },
+    experiencia: { titulo: t("request_modal_placeholder_titulo_experiencia"), descricao: t("request_modal_placeholder_descricao_experiencia") },
+    reserva: { titulo: t("request_modal_placeholder_titulo_reserva"), descricao: t("request_modal_placeholder_descricao_reserva") },
+    exclusivo: { titulo: t("request_modal_placeholder_titulo_exclusivo"), descricao: t("request_modal_placeholder_descricao_exclusivo") },
+    ajuda: { titulo: t("request_modal_placeholder_titulo_ajuda"), descricao: t("request_modal_placeholder_descricao_ajuda") },
   };
 
   const ph = placeholders[tipo.id] || placeholders.experiencia;
@@ -75,7 +77,7 @@ export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitti
               <Input
                 value={destino}
                 onChange={(e) => setDestino(e.target.value)}
-                placeholder="Destino / Local"
+                placeholder={t("request_modal_destino_placeholder")}
                 className="pl-9"
               />
             </div>
@@ -90,7 +92,7 @@ export default function RequestModal({ tipo, user, onClose, onSubmit, isSubmitti
           </div>
           <Button type="submit" className="w-full gap-2" disabled={isSubmitting || !titulo.trim()}>
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {isSubmitting ? "Enviando..." : "Enviar pedido"}
+            {isSubmitting ? t("request_modal_sending") : t("request_modal_submit")}
           </Button>
         </form>
       </div>

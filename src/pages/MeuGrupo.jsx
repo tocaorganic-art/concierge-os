@@ -8,6 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Users, AlertTriangle, CheckCircle2, Plane, Sparkles } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const CAPACIDADE_PERNOITE = 15;
 
@@ -16,6 +17,7 @@ const CAPACIDADE_PERNOITE = 15;
 // bloqueia leitura para quem não é admin — o campo aqui é sempre um input vazio,
 // nunca pré-preenchido, mesmo que já tenha sido salvo antes).
 function HospedeRow({ hospede, onSaved }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState({
     voo_chegada: hospede.voo_chegada || "",
     horario_chegada: hospede.horario_chegada || "",
@@ -93,7 +95,7 @@ function HospedeRow({ hospede, onSaved }) {
       }));
       setLidoPorIA(true);
     } catch {
-      setErroLeitura("Não consegui ler o comprovante. Preencha manualmente ou tente outro arquivo.");
+      setErroLeitura(t("meugrupo_read_error"));
     } finally {
       setLendoVoo(false);
       e.target.value = "";
@@ -107,44 +109,45 @@ function HospedeRow({ hospede, onSaved }) {
         <label className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline cursor-pointer flex-shrink-0">
           <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleComprovanteVoo} disabled={lendoVoo} />
           {lendoVoo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plane className="w-3 h-3" />}
-          {lendoVoo ? "Lendo..." : "Anexar comprovante de voo"}
+          {lendoVoo ? t("common_loading_dots") : t("meugrupo_attach_flight_proof")}
         </label>
       </div>
       {erroLeitura && <p className="text-[11px] text-red-400">{erroLeitura}</p>}
       {lidoPorIA && (
         <p className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20">
-          <Sparkles className="w-2.5 h-2.5" /> Lido por IA — revise os dados antes de salvar
+          <Sparkles className="w-2.5 h-2.5" /> {t("meugrupo_ai_read_hint")}
         </p>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <Input placeholder="Voo de chegada" value={form.voo_chegada} onChange={(e) => setForm((f) => ({ ...f, voo_chegada: e.target.value }))} className="bg-secondary border-border text-sm" />
-        <Input placeholder="Horário chegada" value={form.horario_chegada} onChange={(e) => setForm((f) => ({ ...f, horario_chegada: e.target.value }))} className="bg-secondary border-border text-sm" />
-        <Input type="date" placeholder="Data chegada" value={form.data_chegada} onChange={(e) => setForm((f) => ({ ...f, data_chegada: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
-        <Input placeholder="Companhia aérea (chegada)" value={form.aerolinea_chegada} onChange={(e) => setForm((f) => ({ ...f, aerolinea_chegada: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
-        <Input placeholder="Voo de saída" value={form.voo_saida} onChange={(e) => setForm((f) => ({ ...f, voo_saida: e.target.value }))} className="bg-secondary border-border text-sm" />
-        <Input placeholder="Horário saída" value={form.horario_saida} onChange={(e) => setForm((f) => ({ ...f, horario_saida: e.target.value }))} className="bg-secondary border-border text-sm" />
-        <Input type="date" placeholder="Data saída" value={form.data_saida} onChange={(e) => setForm((f) => ({ ...f, data_saida: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
-        <Input placeholder="Companhia aérea (saída)" value={form.aerolinea_saida} onChange={(e) => setForm((f) => ({ ...f, aerolinea_saida: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
-        <Input type="password" placeholder="Documento (DNI/CPF/passaporte)" value={form.documento} onChange={(e) => setForm((f) => ({ ...f, documento: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
+        <Input placeholder={t("meugrupo_field_voo_chegada")} value={form.voo_chegada} onChange={(e) => setForm((f) => ({ ...f, voo_chegada: e.target.value }))} className="bg-secondary border-border text-sm" />
+        <Input placeholder={t("meugrupo_field_horario_chegada")} value={form.horario_chegada} onChange={(e) => setForm((f) => ({ ...f, horario_chegada: e.target.value }))} className="bg-secondary border-border text-sm" />
+        <Input type="date" placeholder={t("meugrupo_field_data_chegada")} value={form.data_chegada} onChange={(e) => setForm((f) => ({ ...f, data_chegada: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
+        <Input placeholder={t("meugrupo_field_companhia_chegada")} value={form.aerolinea_chegada} onChange={(e) => setForm((f) => ({ ...f, aerolinea_chegada: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
+        <Input placeholder={t("meugrupo_field_voo_saida")} value={form.voo_saida} onChange={(e) => setForm((f) => ({ ...f, voo_saida: e.target.value }))} className="bg-secondary border-border text-sm" />
+        <Input placeholder={t("meugrupo_field_horario_saida")} value={form.horario_saida} onChange={(e) => setForm((f) => ({ ...f, horario_saida: e.target.value }))} className="bg-secondary border-border text-sm" />
+        <Input type="date" placeholder={t("meugrupo_field_data_saida")} value={form.data_saida} onChange={(e) => setForm((f) => ({ ...f, data_saida: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
+        <Input placeholder={t("meugrupo_field_companhia_saida")} value={form.aerolinea_saida} onChange={(e) => setForm((f) => ({ ...f, aerolinea_saida: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
+        <Input type="password" placeholder={t("meugrupo_field_documento")} value={form.documento} onChange={(e) => setForm((f) => ({ ...f, documento: e.target.value }))} className="bg-secondary border-border text-sm col-span-2" />
         <div className="col-span-2">
           <Select value={form.pernoita_em} onValueChange={(v) => setForm((f) => ({ ...f, pernoita_em: v }))}>
             <SelectTrigger className="bg-secondary border-border text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="casa">Dorme na casa</SelectItem>
-              <SelectItem value="apartamento">Dorme no apartamento adicional</SelectItem>
+              <SelectItem value="casa">{t("meugrupo_option_casa")}</SelectItem>
+              <SelectItem value="apartamento">{t("meugrupo_option_apartamento")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       <Button size="sm" onClick={handleSave} disabled={mutation.isPending} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
         {mutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : saved ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
-        {saved ? "Salvo!" : "Salvar"}
+        {saved ? t("common_saved") : t("btn_save")}
       </Button>
     </div>
   );
 }
 
 export default function MeuGrupo() {
+  const { t } = useLanguage();
   const { effectiveClientId } = useEffectiveRole();
   const queryClient = useQueryClient();
 
@@ -200,12 +203,12 @@ export default function MeuGrupo() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center gap-2 mb-1">
         <Users className="w-5 h-5 text-primary" />
-        <h1 className="font-heading text-2xl font-bold text-foreground">Meu Grupo</h1>
+        <h1 className="font-heading text-2xl font-bold text-foreground">{t("meugrupo_title")}</h1>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
-        {hospedes.length} cadastrados · máx. {CAPACIDADE_PERNOITE} pernoitando
+        {t("meugrupo_summary", { count: hospedes.length, max: CAPACIDADE_PERNOITE })}
         {(semVoo > 0 || semDocumento > 0) && (
-          <span className="text-amber-400"> · {semVoo > 0 ? `${semVoo} sem voo` : ""}{semVoo > 0 && semDocumento > 0 ? ", " : ""}{semDocumento > 0 ? `${semDocumento} sem documento` : ""}</span>
+          <span className="text-amber-400"> · {semVoo > 0 ? t("meugrupo_missing_flight", { count: semVoo }) : ""}{semVoo > 0 && semDocumento > 0 ? ", " : ""}{semDocumento > 0 ? t("meugrupo_missing_doc", { count: semDocumento }) : ""}</span>
         )}
       </p>
 
@@ -213,13 +216,13 @@ export default function MeuGrupo() {
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex gap-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-200">
-            O grupo tem {excedente} pessoa(s) além do limite de {CAPACIDADE_PERNOITE} pernoitando na casa. Indique abaixo quem fica no apartamento adicional.
+            {t("meugrupo_excedente_warning", { count: excedente, max: CAPACIDADE_PERNOITE })}
           </p>
         </div>
       )}
 
       {hospedes.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">Nenhum hóspede cadastrado ainda.</p>
+        <p className="text-sm text-muted-foreground text-center py-12">{t("meugrupo_empty")}</p>
       ) : (
         <div className="space-y-3">
           {hospedesOrdenados.map((h) => (

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Bell } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/lib/i18n";
 
 function getMinutesUntilTask(task) {
   if (!task.data || !task.horario) return null;
@@ -12,12 +13,13 @@ function getMinutesUntilTask(task) {
 }
 
 export default function TaskReminderBanner({ tasks }) {
+  const { t } = useLanguage();
   const urgentTasks = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     return tasks
-      .filter((t) => t.status !== "concluido" && t.data === today && t.horario)
-      .map((t) => ({ ...t, minutesLeft: getMinutesUntilTask(t) }))
-      .filter((t) => t.minutesLeft !== null && t.minutesLeft >= 0 && t.minutesLeft <= 30)
+      .filter((tk) => tk.status !== "concluido" && tk.data === today && tk.horario)
+      .map((tk) => ({ ...tk, minutesLeft: getMinutesUntilTask(tk) }))
+      .filter((tk) => tk.minutesLeft !== null && tk.minutesLeft >= 0 && tk.minutesLeft <= 30)
       .sort((a, b) => a.minutesLeft - b.minutesLeft);
   }, [tasks]);
 
@@ -31,7 +33,7 @@ export default function TaskReminderBanner({ tasks }) {
       <Bell className="w-4 h-4 text-amber-400 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <span className="text-sm font-medium text-amber-300">
-          {mins === 0 ? "Agora!" : `Em ${mins} min`}
+          {mins === 0 ? t("agenda_reminder_now") : t("agenda_reminder_in_min", { mins })}
         </span>
         <span className="text-sm text-amber-200/80 ml-2 truncate">{task.titulo}</span>
         {task.client_nome && <span className="text-xs text-amber-200/60 ml-2">— {task.client_nome}</span>}
