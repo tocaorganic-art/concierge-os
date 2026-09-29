@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles, Send, Loader2, AlertCircle } from "lucide-react";
 import { agruparBillingsCliente, saldoDevedor } from "@/lib/finance";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Busca com IA sobre os PRÓPRIOS dados do cliente (item 10 do roadmap) —
 // monta o contexto só com queries já filtradas por client_id (mesmo padrão
@@ -64,7 +65,7 @@ export default function BuscaIA({ clientId }) {
     linhas.push("\n== FINANCEIRO / FATURAMENTO ==");
     [...contrato, ...adicionais, ...caucao].forEach((b) => {
       const saldo = Math.max(0, saldoDevedor(b, recebimentos));
-      linhas.push(`- ${b.descricao || "Cobrança"}: R$ ${(b.valor || 0).toLocaleString("pt-BR")}, status ${b.status}, saldo em aberto R$ ${saldo.toLocaleString("pt-BR")}, vencimento ${b.data_vencimento || "—"}`);
+      linhas.push(`- ${b.descricao || "Cobrança"}: ${formatBRL(b.valor || 0)}, status ${b.status}, saldo em aberto ${formatBRL(saldo)}, vencimento ${b.data_vencimento || "—"}`);
     });
 
     linhas.push("\n== PEDIDOS ==");

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Receipt, DollarSign, AlertCircle, CheckCircle2, Wallet, Paperclip, TrendingUp, FileSpreadsheet } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { formatBRL } from "@/lib/formatBRL";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,7 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
             Total ({itens.length} {itens.length === 1 ? "lançamento" : "lançamentos"})
           </span>
           <span className="font-display font-semibold text-primary text-lg">
-            R$ {itens.reduce((sum, b) => sum + (b.valor || 0), 0).toLocaleString("pt-BR")}
+            {formatBRL(itens.reduce((sum, b) => sum + (b.valor || 0), 0))}
           </span>
         </div>
       </div>
@@ -256,17 +257,17 @@ export default function Billing() {
 
       {/* KPIs (fórmulas em src/lib/finance.js — mesma fonte do Dashboard e Relatórios) */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
-        <KpiCard title={t("billing_received_month")} value={`${t("currency_symbol")} ${thisMonthReceived.toLocaleString(t("locale_date"))}`} icon={CheckCircle2} />
-        <KpiCard title={t("billing_pending")} value={`${t("currency_symbol")} ${pendingTotal.toLocaleString(t("locale_date"))}`} icon={DollarSign} />
+        <KpiCard title={t("billing_received_month")} value={formatBRL(thisMonthReceived)} icon={CheckCircle2} />
+        <KpiCard title={t("billing_pending")} value={formatBRL(pendingTotal)} icon={DollarSign} />
         <KpiCard
           title={t("billing_overdue")}
-          value={`${t("currency_symbol")} ${overdueTotal.toLocaleString(t("locale_date"))}`}
+          value={formatBRL(overdueTotal)}
           icon={AlertCircle}
           trendLabel={overdueCount > 0 ? `${overdueCount} cobrança${overdueCount > 1 ? "s" : ""}` : undefined}
         />
         <KpiCard title="Índice de Recebimento" value={indice === null ? "—" : `${indice}%`} icon={TrendingUp} />
         {categoriasDisponiveis.some((c) => c.trim().toLowerCase() === "reserva financeira") && (
-          <KpiCard title={translateCategoria("Reserva Financeira", lang)} value={`R$ ${reservaFinanceira.toLocaleString("pt-BR")}`} icon={Wallet} />
+          <KpiCard title={translateCategoria("Reserva Financeira", lang)} value={formatBRL(reservaFinanceira)} icon={Wallet} />
         )}
       </div>
 
@@ -375,10 +376,10 @@ export default function Billing() {
                         </td>
                         <td className="px-5 py-3.5"><StatusBadge status={b.statusCalc} /></td>
                         <td className="px-5 py-3.5 text-right font-mono text-sm text-muted-foreground">
-                          R$ {b.saldo.toLocaleString("pt-BR")}
+                          {formatBRL(b.saldo)}
                         </td>
                         <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
-                          R$ {(b.valor || 0).toLocaleString("pt-BR")}
+                          {formatBRL(b.valor || 0)}
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1 flex-wrap justify-end">
@@ -410,7 +411,7 @@ export default function Billing() {
                                     </span>
                                     <div className="flex items-center gap-2">
                                       <span className={`font-mono font-semibold ${r.valor < 0 ? "text-red-400" : "text-green-400"}`}>
-                                        R$ {r.valor.toLocaleString("pt-BR")}
+                                        {formatBRL(r.valor)}
                                       </span>
                                       {r.valor > 0 && !recebimentosDaCobranca.some((x) => x.estorno_de_id === r.id) && (
                                         <button onClick={() => setEstornoAlvo(r)} className="text-muted-foreground hover:text-red-400 underline">
@@ -457,11 +458,11 @@ export default function Billing() {
                   <div>
                     <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-wider">Saldo / Vencimento</p>
                     <p className="text-sm text-foreground font-mono">
-                      R$ {b.saldo.toLocaleString("pt-BR")} · {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
+                      {formatBRL(b.saldo)} · {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}
                     </p>
                   </div>
                   <p className="font-display font-bold text-primary text-lg">
-                    R$ {(b.valor || 0).toLocaleString("pt-BR")}
+                    {formatBRL(b.valor || 0)}
                   </p>
                 </div>
                 <div className="flex gap-2 mt-3">

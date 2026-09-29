@@ -78,12 +78,12 @@ export default function ChatGeral({ clientId }) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full font-heading">
       <div ref={listRef} className="flex-1 space-y-2 mb-2 overflow-y-auto pr-1 chat-scroll">
         {comentarios.map((c) => (
           <div key={c.id} className={`text-[12px] rounded-lg px-2.5 py-2 ${c.autor_tipo === "cliente" ? "bg-secondary/60" : "bg-primary/5"}`}>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-foreground">{c.autor_nome || (c.autor_tipo === "cliente" ? "Você" : "Equipe")}</span>
+              <span className="font-semibold text-foreground">{c.autor_nome || (c.autor_tipo === "cliente" ? "Você" : "Equipe")}</span>
               <span className="text-muted-foreground">{new Date(c.created_date).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
             </div>
             {editandoId === c.id ? (
@@ -91,12 +91,12 @@ export default function ChatGeral({ clientId }) {
                 <input
                   value={textoEdicao}
                   onChange={(e) => setTextoEdicao(e.target.value)}
-                  className="flex-1 bg-background border border-border rounded px-2 py-1 text-[12px]"
+                  className="flex-1 bg-background border border-border rounded px-2 py-1 text-[12px] font-heading"
                 />
                 <button onClick={() => updateMutation.mutate({ id: c.id, data: { texto: textoEdicao } })} className="text-primary text-[12px]">Salvar</button>
               </div>
             ) : (
-              <p className="text-muted-foreground mt-0.5">{c.texto}</p>
+              <p className="text-primary mt-0.5">{c.texto}</p>
             )}
             {c.anexo_url && <ChatAnexo anexoUrl={c.anexo_url} />}
             {podeEditar(c) && editandoId !== c.id && (
@@ -128,7 +128,7 @@ export default function ChatGeral({ clientId }) {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder="Escreva uma mensagem..."
-          className="flex-1 bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-[12px]"
+          className="flex-1 bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-[12px] font-heading"
           onKeyDown={(e) => { if (e.key === "Enter") handleEnviar(); }}
         />
         <button onClick={handleEnviar} disabled={createMutation.isPending} className="text-primary hover:text-primary/80 disabled:opacity-50">

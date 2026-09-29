@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import DashboardBannerHeader from "@/components/dashboard/DashboardBannerHeader";
 import ProposalFormDialog from "@/components/proposals/ProposalFormDialog";
 import { isProposalExpired } from "@/lib/proposalUtils";
+import { formatBRL } from "@/lib/formatBRL";
 
 const stages = [
   { key: "lead", label: "Lead", dotColor: "bg-blue-400" },
@@ -53,7 +54,7 @@ function ProposalCard({ p, provided, snapshot, onMoveLeft, onMoveRight, stageIdx
       )}
       {p.valor > 0 && (
         <p className="font-display text-base font-bold text-primary">
-          R$ {p.valor?.toLocaleString("pt-BR")}
+          {formatBRL(p.valor)}
         </p>
       )}
       {/* Mobile move buttons */}
@@ -159,7 +160,7 @@ export default function Pipeline() {
                   </div>
                   {colTotal > 0 && (
                     <p className="font-display text-xs text-primary mb-3">
-                      R$ {colTotal.toLocaleString("pt-BR")}
+                      {formatBRL(colTotal)}
                     </p>
                   )}
                   <Droppable droppableId={stage.key}>
@@ -224,7 +225,7 @@ export default function Pipeline() {
           <span className="font-mono text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">{mobileItems.length}</span>
           {mobileItems.length > 0 && (
             <span className="ml-auto font-display text-xs text-primary">
-              R$ {mobileItems.reduce((s, p) => s + (p.valor || 0), 0).toLocaleString("pt-BR")}
+              {formatBRL(mobileItems.reduce((s, p) => s + (p.valor || 0), 0))}
             </span>
           )}
         </div>

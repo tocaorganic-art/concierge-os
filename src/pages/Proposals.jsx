@@ -8,6 +8,7 @@ import AlertasContratuais from "@/components/proposals/AlertasContratuais";
 import { useLanguage } from "@/lib/i18n";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { isProposalExpired } from "@/lib/proposalUtils";
+import { formatBRL } from "@/lib/formatBRL";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -80,7 +81,7 @@ export default function Proposals() {
       `📍 *${p.destino}*`,
       p.data_chegada ? `📅 ${new Date(p.data_chegada).toLocaleDateString("pt-BR")}${p.data_saida ? ` a ${new Date(p.data_saida).toLocaleDateString("pt-BR")}` : ""}` : "",
       p.num_pax ? `👥 ${p.num_pax} pessoa${p.num_pax > 1 ? "s" : ""}` : "",
-      p.valor ? `💰 Investimento: R$ ${p.valor.toLocaleString("pt-BR")}` : "",
+      p.valor ? `💰 Investimento: ${formatBRL(p.valor)}` : "",
       ``,
       `Qualquer dúvida, estou à disposição! ✨`,
     ].filter(Boolean);
@@ -158,7 +159,7 @@ export default function Proposals() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {p.valor > 0 && (
                       <p className="font-display text-lg font-bold text-primary">
-                        {t("currency_symbol")} {p.valor.toLocaleString(t("locale_date"))}
+                        {formatBRL(p.valor)}
                       </p>
                     )}
                     {!isClient && (

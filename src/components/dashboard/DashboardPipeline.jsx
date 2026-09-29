@@ -1,6 +1,7 @@
 import React from "react";
 import { MapPin } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { formatBRL } from "@/lib/formatBRL";
 
 const stageKeys = [
   { key: "lead", labelKey: "status_lead", color: "bg-blue-500" },
@@ -39,7 +40,7 @@ export default function DashboardPipeline({ proposals }) {
                     </div>
                     {p.valor > 0 && (
                       <p className="font-mono text-primary text-[11px] mt-1">
-                        {t("currency_symbol")} {p.valor?.toLocaleString(t("locale_date"))}
+                        {formatBRL(p.valor)}
                       </p>
                     )}
                   </div>

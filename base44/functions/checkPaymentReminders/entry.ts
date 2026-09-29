@@ -24,14 +24,21 @@ export default async function (req) {
       return Response.json({ status: 'sem_alertas_hoje' });
     }
 
+    // Blindagem (regra 0.4): só admin/equipe interna recebe este alerta.
+    // Nunca uma conta cliente — mesmo que, por engano, tenha role='admin'.
     const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-    const destinatarios = [...new Set(admins.map((u) => u.email).filter(Boolean))];
+    const destinatarios = [...new Set(
+      admins
+        .filter((u) => u.account_type !== 'cliente')
+        .map((u) => u.email)
+        .filter(Boolean)
+    )];
 
     let enviados = 0;
     for (const b of alvos) {
       const urgencia = b._dias === 0 ? 'VENCE HOJE' : `vence em ${b._dias} dia${b._dias > 1 ? 's' : ''}`;
-      const assunto = `[Concierge OS] Pagamento pendente — ${b.client_nome} — ${urgencia}`;
-      const linkDashboard = 'https://tocaconciergeos.base44.app/portal';
+      const assunto = `[INTERNO] Pagamento pendente — ${b.client_nome} — ${urgencia}`;
+      const linkDashboard = 'https://tocaconciergeos.base44.app/faturamento';
       const corpo = [
         `Cliente: ${b.client_nome}`,
         `Descrição: ${b.descricao || '—'}`,
@@ -39,9 +46,9 @@ export default async function (req) {
         `Vencimento: ${b.data_vencimento}`,
         `Status: ${urgencia}`,
         '',
-        `Link do dashboard do cliente (envie para o cliente cobrar/lembrar): ${linkDashboard}`,
+        `Link do Faturamento (uso interno — não envie este link/e-mail ao cliente): ${linkDashboard}`,
         '',
-        'Este alerta é gerado automaticamente pelo Concierge OS (2 dias antes até o dia do vencimento).',
+        'Este alerta é interno e gerado automaticamente pelo Concierge OS (2 dias antes até o dia do vencimento). Clientes nunca recebem este e-mail.',
       ].join('\n');
 
       for (const to of destinatarios) {
@@ -49,7 +56,7 @@ export default async function (req) {
           to,
           subject: assunto,
           body: corpo,
-          from_name: 'Toca Concierge OS',
+          from_name: 'Toca Concierge OS — Alerta interno',
         });
         enviados += 1;
       }

@@ -13,6 +13,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClientProfileSheet from "@/components/clients/ClientProfileSheet";
 import UpgradeModal from "@/components/monetization/UpgradeModal";
+import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
@@ -142,7 +143,7 @@ export default function Clients() {
                     </td>
                     <td className="px-5 py-3.5">{client.tipo ? <StatusBadge status={client.tipo} /> : "—"}</td>
                     <td className="px-5 py-3.5 text-right font-display font-semibold text-sm text-primary">
-                      {client.valor_total ? `${t("currency_symbol")} ${client.valor_total.toLocaleString(t("locale_date"))}` : "—"}
+                      {client.valor_total ? formatBRL(client.valor_total) : "—"}
                     </td>
                   </tr>
                 ))}
@@ -175,7 +176,7 @@ export default function Clients() {
                   <span className="text-muted-foreground font-mono text-xs">{client.telefone || "—"}</span>
                   <div className="flex items-center gap-2">
                     {client.valor_total > 0 && (
-                      <span className="font-display font-bold text-primary">{t("currency_symbol")} {client.valor_total.toLocaleString(t("locale_date"))}</span>
+                      <span className="font-display font-bold text-primary">{formatBRL(client.valor_total)}</span>
                     )}
                     {client.telefone && (
                       <button onClick={(e) => { e.stopPropagation(); setWhatsappClient(client); }} className="text-green-400 hover:text-green-300 transition-colors">

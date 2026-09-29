@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { formatBRL } from "@/lib/formatBRL";
 import {
   Select,
   SelectContent,
@@ -412,7 +413,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                     <Plus className="w-3.5 h-3.5" /> Adicionar despesa
                   </Button>
                   <p className="text-[11px] text-muted-foreground">
-                    Total: R$ {despesasExtra.reduce((s, l) => s + (Number(l.valor) || 0), 0).toLocaleString("pt-BR")} · mesmo vencimento, categoria e cliente abaixo para todas.
+                    Total: {formatBRL(despesasExtra.reduce((s, l) => s + (Number(l.valor) || 0), 0))} · mesmo vencimento, categoria e cliente abaixo para todas.
                   </p>
                 </div>
               )}

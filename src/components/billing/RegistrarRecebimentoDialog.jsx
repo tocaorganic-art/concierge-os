@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { saldoDevedor, validarNovoRecebimento, possivelDuplicata, roundCents } from "@/lib/finance";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Registra um Recebimento contra uma cobrança (Billing) — ledger imutável
 // (regra R3): nunca edita/apaga um Recebimento existente, só cria novos.
@@ -73,7 +74,7 @@ export default function RegistrarRecebimentoDialog({ open, onOpenChange, billing
           <DialogTitle className="font-display text-xl">Registrar Recebimento</DialogTitle>
         </DialogHeader>
         <div className="text-sm text-muted-foreground -mt-2">
-          {billing.descricao || billing.client_nome} — saldo devedor <span className="text-primary font-semibold">R$ {saldo.toLocaleString("pt-BR")}</span>
+          {billing.descricao || billing.client_nome} — saldo devedor <span className="text-primary font-semibold">{formatBRL(saldo)}</span>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -150,7 +151,7 @@ export function EstornarRecebimentoDialog({ open, onOpenChange, recebimento }) {
           <DialogTitle className="font-display text-xl">Estornar Recebimento</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground -mt-2">
-          Isso lança um estorno de R$ {roundCents(recebimento.valor).toLocaleString("pt-BR")} — o recebimento original não é apagado, fica no histórico junto com o estorno.
+          Isso lança um estorno de {formatBRL(roundCents(recebimento.valor))} — o recebimento original não é apagado, fica no histórico junto com o estorno.
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

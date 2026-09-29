@@ -88,8 +88,15 @@ export default async function (req) {
     alertas.sort((a, b) => a.dias - b.dias);
 
     if (notify && alertas.length > 0) {
+      // Blindagem (regra 0.4): só admin/equipe interna recebe este alerta.
+      // Nunca uma conta cliente — mesmo que, por engano, tenha role='admin'.
       const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-      const destinatarios = [...new Set(admins.map((u) => u.email).filter(Boolean))];
+      const destinatarios = [...new Set(
+        admins
+          .filter((u) => u.account_type !== 'cliente')
+          .map((u) => u.email)
+          .filter(Boolean)
+      )];
       const corpo = [
         `${alertas.length} item(ns) perto do prazo:`,
         '',
@@ -102,9 +109,9 @@ export default async function (req) {
       for (const to of destinatarios) {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to,
-          subject: `[Toca OS] Alerta de prazo — ${alertas.length} item(ns) exigem atenção`,
+          subject: `[INTERNO] Alerta de prazo — ${alertas.length} item(ns) exigem atenção`,
           body: corpo,
-          from_name: 'Toca Concierge OS'
+          from_name: 'Toca Concierge OS — Alerta interno'
         });
         enviados += 1;
       }

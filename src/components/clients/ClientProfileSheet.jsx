@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Pencil, Mail, Phone, MapPin, Calendar } from "lucide-react";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { formatBRL } from "@/lib/formatBRL";
 
 export default function ClientProfileSheet({ client, onClose, onEdit }) {
   const { data: proposals = [] } = useQuery({
@@ -66,7 +67,7 @@ export default function ClientProfileSheet({ client, onClose, onEdit }) {
           <div className="bg-secondary/50 rounded-lg p-4 border border-border">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Valor Total</p>
             <p className="font-display text-xl font-bold text-primary mt-1">
-              R$ {(client.valor_total || 0).toLocaleString("pt-BR")}
+              {formatBRL(client.valor_total || 0)}
             </p>
           </div>
           <div className="bg-secondary/50 rounded-lg p-4 border border-border">
@@ -109,7 +110,7 @@ export default function ClientProfileSheet({ client, onClose, onEdit }) {
                   <StatusBadge status={p.status} />
                   {p.valor > 0 && (
                     <p className="font-mono text-xs text-primary mt-1">
-                      R$ {p.valor.toLocaleString("pt-BR")}
+                      {formatBRL(p.valor)}
                     </p>
                   )}
                 </div>

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { agruparBillingsCliente } from "@/lib/finance";
 import { FileText, Loader2, Download, ExternalLink, Sparkles, Send, AlertCircle } from "lucide-react";
+import { formatBRL } from "@/lib/formatBRL";
 
 // Busca com IA sobre o contrato assinado — extrai o texto do PDF/imagem UMA
 // vez por sessão (ExtractDataFromUploadedFile, mesmo padrão de leitura já
@@ -162,14 +163,14 @@ export default function MeuContrato() {
               <div key={i} className="flex items-center justify-between text-sm">
                 <span className="text-foreground">{item.nome}</span>
                 <span className={item.incluido ? "text-muted-foreground" : "font-mono text-foreground"}>
-                  {item.incluido ? "Incluído" : `R$ ${(item.valor || 0).toLocaleString("pt-BR")}`}
+                  {item.incluido ? "Incluído" : formatBRL(item.valor || 0)}
                 </span>
               </div>
             ))}
           </div>
           <div className="pt-3 border-t border-border flex items-center justify-between">
             <span className="font-medium text-foreground">Total</span>
-            <span className="font-display font-bold text-lg text-primary">R$ {total.toLocaleString("pt-BR")}</span>
+            <span className="font-display font-bold text-lg text-primary">{formatBRL(total)}</span>
           </div>
         </div>
       )}
@@ -184,7 +185,7 @@ export default function MeuContrato() {
               </p>
               <p className="text-[11px] text-muted-foreground">Venc. {b.data_vencimento ? new Date(b.data_vencimento).toLocaleDateString("pt-BR") : "—"}</p>
             </div>
-            <span className="font-display font-semibold text-primary">R$ {(b.valor || 0).toLocaleString("pt-BR")}</span>
+            <span className="font-display font-semibold text-primary">{formatBRL(b.valor || 0)}</span>
           </div>
         ))}
       </div>
