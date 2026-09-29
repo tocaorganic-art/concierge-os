@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, safeLocaleDate } from "@/lib/i18n";
 import { formatBRL } from "@/lib/formatBRL";
 
 export default function ProposalPdfButton({ proposal, variant = "ghost", size = "sm" }) {
@@ -103,11 +103,11 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
 
       // Chegada
       labelStyle(); doc.text(t("pdf_checkin"), col1, infoY);
-      valueStyle(); doc.text(proposal.data_chegada ? new Date(proposal.data_chegada).toLocaleDateString(t("locale_date")) : "—", col1, infoY + 5);
+      valueStyle(); doc.text(proposal.data_chegada ? new Date(proposal.data_chegada).toLocaleDateString(safeLocaleDate(t)) : "—", col1, infoY + 5);
 
       // Saída
       labelStyle(); doc.text(t("pdf_checkout"), col2, infoY);
-      valueStyle(); doc.text(proposal.data_saida ? new Date(proposal.data_saida).toLocaleDateString(t("locale_date")) : "—", col2, infoY + 5);
+      valueStyle(); doc.text(proposal.data_saida ? new Date(proposal.data_saida).toLocaleDateString(safeLocaleDate(t)) : "—", col2, infoY + 5);
 
       infoY += 18;
 
@@ -191,7 +191,7 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
       doc.setTextColor(...dimmed);
-      const today = new Date().toLocaleDateString(t("locale_date"), { day: "numeric", month: "long", year: "numeric" });
+      const today = new Date().toLocaleDateString(safeLocaleDate(t), { day: "numeric", month: "long", year: "numeric" });
       doc.text(`${t("pdf_generated_on")} ${today} · Concierge OS`, W / 2, H - 9, { align: "center" });
 
       // Bottom gold bar

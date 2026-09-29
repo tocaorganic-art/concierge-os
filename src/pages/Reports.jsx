@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/shared/PageHeader";
 import KpiCard from "@/components/shared/KpiCard";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, safeLocaleDate } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import PlanGate from "@/components/monetization/PlanGate";
@@ -23,7 +23,7 @@ import { formatBRL } from "@/lib/formatBRL";
 // pra esse papel). Não guarda nem lista comprovantes aqui — isso continua em
 // Documentos/Faturamento; esta tela só resume os números que já vêm de lá.
 function ReportsCliente({ recebimentos, billings, t }) {
-  const localeDate = t("locale_date");
+  const localeDate = safeLocaleDate(t);
   const fmt = (v) => formatBRL(v);
 
   const ativos = billings.filter((b) => b.status !== "cancelado");

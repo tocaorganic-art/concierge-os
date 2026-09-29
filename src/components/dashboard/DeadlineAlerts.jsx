@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CalendarClock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, safeLocaleDate } from "@/lib/i18n";
 
 // Painel de alertas de prazo: tarefas pendentes atrasadas/próximas e propostas
 // com chegada da viagem se aproximando. Some sozinho quando não há nada urgente.
@@ -29,7 +29,7 @@ export default function DeadlineAlerts() {
   };
 
   const prazoDate = (a) =>
-    new Date(`${a.prazo}T12:00:00`).toLocaleDateString(t("locale_date"), {
+    new Date(`${a.prazo}T12:00:00`).toLocaleDateString(safeLocaleDate(t), {
       day: "2-digit",
       month: "short",
     });
