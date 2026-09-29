@@ -64,8 +64,12 @@ function AppLayoutInner() {
       if (!u) return;
       setUser(u);
 
-      // Onboarding
-      if (u.first_login !== false) setShowOnboarding(true);
+      // Onboarding — assistente de configuração da operação (nome do
+      // negócio, primeiro cliente, primeira proposta). Faz sentido só para
+      // quem opera o Toca OS (admin/equipe); uma conta cliente nunca tem
+      // permissão para criar Client/Proposal (RLS), então mostrar isto a
+      // ela só gera erro de permissão no meio do primeiro acesso.
+      if (u.first_login !== false && u.account_type !== "cliente") setShowOnboarding(true);
 
     }).catch(() => {});
   }, []);

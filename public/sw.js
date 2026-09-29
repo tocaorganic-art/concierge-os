@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'toca-concierge-v7';
+const CACHE_VERSION = 'toca-concierge-v8';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -67,8 +67,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first for navigation requests, fallback to cache
+  // Network-first for navigation requests, fallback to cache.
+  // Nunca cacheia uma navegação que carregue token/credencial na query string
+  // (retorno do login: ?access_token=...&clear_access_token=...) — cada login
+  // gera uma URL diferente, então isso acumulava uma entrada nova de cache por
+  // login, para sempre, sem nunca ser limpo (só CACHE_VERSION antigo é
+  // purgado). Com uso normal ao longo do tempo esse cache incha até o
+  // navegador ficar sem memória ao processar o Service Worker (Out of
+  // Memory) — sempre visto ao entrar recém-convidado, exatamente quando o
+  // token chega na URL pela primeira vez. Buscar da rede sem gravar no cache
+  // resolve; a página final já não tem o token (removido do histórico pelo
+  // app-params.js antes de qualquer navegação subsequente).
+  const hasAuthParams = url.searchParams.has('access_token') || url.searchParams.has('clear_access_token');
   if (request.mode === 'navigate') {
+    if (hasAuthParams) {
+      event.respondWith(fetch(request).catch(() => caches.match('/index.html')));
+      return;
+    }
     event.respondWith(
       fetch(request)
         .then((response) => {
