@@ -23,10 +23,17 @@ export default function ClientProfileSheet({ client, onClose, onEdit }) {
   return (
     <Sheet open={!!client} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="bg-card border-border w-[420px] overflow-y-auto">
-        <SheetHeader className="mb-6">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="font-display text-xl">{client.nome}</SheetTitle>
-            <Button variant="ghost" size="icon" onClick={() => onEdit(client)}>
+        <SheetHeader className="mb-6 pr-8">
+          <div className="flex items-center justify-between gap-2">
+            <SheetTitle className="font-display text-xl truncate">{client.nome}</SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(client)}
+              aria-label="Editar cliente"
+              title="Editar cliente"
+              className="shrink-0"
+            >
               <Pencil className="w-4 h-4" />
             </Button>
           </div>
