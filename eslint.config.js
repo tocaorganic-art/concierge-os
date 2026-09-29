@@ -3,6 +3,7 @@ import pluginJs from "@eslint/js";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
+import pluginI18next from "eslint-plugin-i18next";
 
 export default [
   {
@@ -55,6 +56,41 @@ export default [
         { ignore: ["cmdk-input-wrapper", "toast-close"] },
       ],
       "react-hooks/rules-of-hooks": "error",
+    },
+  },
+  {
+    // Guarda-corpo só para as áreas já migradas pra i18next (Portal do
+    // Cliente + Chat + TrIA). Nível "warn" (não "error") de propósito: não
+    // pode quebrar `pnpm lint` no resto do app, que ainda tem strings PT
+    // hardcoded por design (fora do escopo da Fase 3 — ver docs/I18N.md).
+    files: [
+      "src/pages/Dashboard.jsx",
+      "src/pages/Billing.jsx",
+      "src/pages/Reports.jsx",
+      "src/pages/Solicitacoes.jsx",
+      "src/pages/MeuGrupo.jsx",
+      "src/pages/MeuContrato.jsx",
+      "src/pages/Documentos.jsx",
+      "src/pages/ClientProfile.jsx",
+      "src/pages/Chat.jsx",
+      "src/pages/TocaTrIA.jsx",
+      "src/components/client/**/*.{js,jsx}",
+      "src/components/chat/**/*.{js,jsx}",
+      "src/components/billing/**/*.{js,jsx}",
+      "src/components/concierge/**/*.{js,jsx}",
+      "src/components/shared/**/*.{js,jsx}",
+    ],
+    plugins: {
+      i18next: pluginI18next,
+    },
+    rules: {
+      "i18next/no-literal-string": [
+        "warn",
+        {
+          markupOnly: true,
+          ignoreAttribute: ["data-testid", "className", "class", "to", "href", "id", "name", "type", "key"],
+        },
+      ],
     },
   },
 ];
