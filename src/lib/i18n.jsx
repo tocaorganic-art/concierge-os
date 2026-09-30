@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import i18next from "i18next";
 import { initReactI18next, I18nextProvider, useTranslation } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
@@ -105,6 +105,33 @@ function LanguageProviderInner({ children }) {
 }
 
 export function LanguageProvider({ children }) {
+  // i18next.init() com LanguageDetector resolve de forma assíncrona (mesmo
+  // com `resources` já em memória), então o primeiro render do app pode
+  // acontecer antes de isInitialized virar true. Componentes que chamam
+  // t(key) nesse instante (ex.: o menu lateral, que não depende de nenhum
+  // fetch e por isso é o primeiro a renderizar) recebem a própria chave de
+  // volta em vez do texto traduzido. Por isso seguramos a renderização do
+  // app até o i18next avisar que terminou, em vez de arriscar esse flash.
+  const [ready, setReady] = useState(i18next.isInitialized);
+
+  useEffect(() => {
+    if (ready) return;
+    const onInitialized = () => setReady(true);
+    i18next.on("initialized", onInitialized);
+    // Cobre o caso raro de isInitialized já ter virado true entre o
+    // useState inicial e este effect (evita ficar preso no loading).
+    if (i18next.isInitialized) setReady(true);
+    return () => i18next.off("initialized", onInitialized);
+  }, [ready]);
+
+  if (!ready) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <I18nextProvider i18n={i18next}>
       <LanguageProviderInner>{children}</LanguageProviderInner>
