@@ -21,7 +21,6 @@ import Proposals from "@/pages/Proposals";
 import Reports from "@/pages/Reports";
 import Billing from "@/pages/Billing";
 import Despesas from "@/pages/Despesas";
-import Plans from "@/pages/Plans";
 import Settings from "@/pages/Settings";
 import TocaTrIA from "@/pages/TocaTrIA";
 import Solicitacoes from "@/pages/Solicitacoes";
@@ -72,7 +71,6 @@ const AuthenticatedApp = () => {
           <Route path="/relatorios" element={<Reports />} />
           <Route path="/faturamento" element={<Billing />} />
           <Route path="/despesas" element={<Despesas />} />
-          <Route path="/planos" element={<Plans />} />
           <Route path="/configuracoes" element={<Settings />} />
           <Route path="/toca-tria" element={<TocaTrIA />} />
           <Route path="/solicitacoes" element={<Solicitacoes />} />
@@ -84,6 +82,13 @@ const AuthenticatedApp = () => {
           <Route path="/meu-perfil" element={<ClientProfile />} />
           <Route path="/chat" element={<Chat />} />
         </Route>
+        {/* /planos mostrava planos de um produto diferente (consumidor final,
+            Essencial/Premium/Black) com checkout do Stripe apontando pra
+            outro app Base44 — sobra de template, nunca foi o sistema de
+            planos real deste app (usePlan.js já libera tudo sem trava).
+            Redireciona pra Configurações em vez de manter a rota acessível
+            e clicável. Decisão de negócio pendente antes de reativar. */}
+        <Route path="/planos" element={<Navigate to="/configuracoes" replace />} />
         {/* Portal antigo removido — rotas antigas caem na Visão Geral ("/"),
             que já se adapta por papel (admin/cliente). */}
         <Route path="/portal" element={<Navigate to="/" replace />} />
