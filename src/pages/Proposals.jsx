@@ -5,7 +5,7 @@ import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, Aler
 import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
 import ImportarDocumentosDialog from "@/components/proposals/ImportarDocumentosDialog";
 import AlertasContratuais from "@/components/proposals/AlertasContratuais";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, safeLocaleDate } from "@/lib/i18n";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { isProposalExpired } from "@/lib/proposalUtils";
 import { formatBRL } from "@/lib/formatBRL";
@@ -193,8 +193,8 @@ export default function Proposals() {
                   {p.data_chegada && (
                     <span className="flex items-center gap-1.5 text-xs">
                       <Calendar className="w-3.5 h-3.5" />
-                      {new Date(p.data_chegada).toLocaleDateString(t("locale_date"))}
-                      {p.data_saida && ` — ${new Date(p.data_saida).toLocaleDateString(t("locale_date"))}`}
+                      {new Date(p.data_chegada).toLocaleDateString(safeLocaleDate(t))}
+                      {p.data_saida && ` — ${new Date(p.data_saida).toLocaleDateString(safeLocaleDate(t))}`}
                     </span>
                   )}
                   {p.num_pax > 0 && <span className="font-mono text-xs">{p.num_pax} pax</span>}

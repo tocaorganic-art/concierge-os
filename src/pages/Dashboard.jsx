@@ -13,7 +13,7 @@ import DashboardProximosEventos from "@/components/dashboard/DashboardProximosEv
 import DashboardMeuGrupoResumo from "@/components/dashboard/DashboardMeuGrupoResumo";
 import DashboardSeusPagamentos from "@/components/dashboard/DashboardSeusPagamentos";
 import RequestModal from "@/components/concierge/RequestModal";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, safeLocaleDate } from "@/lib/i18n";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import TaskNotifications from "@/components/dashboard/TaskNotifications";
@@ -48,7 +48,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
   const [proposalIdSelecionado, setProposalIdSelecionado] = useState(proposals?.[0]?.id || "");
   const proposta = proposals.find((p) => p.id === proposalIdSelecionado) || proposals[0];
 
-  const localeDate = t("locale_date");
+  const localeDate = safeLocaleDate(t);
   const TIPOS_PEDIDO = getTiposPedido(t);
 
   const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
@@ -256,7 +256,7 @@ export default function Dashboard() {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
-  const localeDate = t("locale_date");
+  const localeDate = safeLocaleDate(t);
 
   if (isClientMode) {
     const billingsCliente = billings.filter((b) => b.client_id === effectiveClientId);

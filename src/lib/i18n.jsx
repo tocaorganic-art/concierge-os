@@ -118,6 +118,22 @@ export function useLanguage() {
   return ctx;
 }
 
+// Wrapper de segurança em volta de t("locale_date"): se o i18next ainda não
+// tiver terminado de inicializar (ou a chave não resolver por qualquer outro
+// motivo), t() devolve a própria chave ("locale_date"), que não é uma tag de
+// idioma válida — passar isso direto para toLocaleDateString/toLocaleTimeString
+// lança RangeError e derruba a árvore React inteira (sem ErrorBoundary), o que
+// na prática trava o app logo após o login. Aqui validamos a tag antes de usar.
+export function safeLocaleDate(t) {
+  const tag = t("locale_date");
+  try {
+    if (typeof tag === "string" && Intl.getCanonicalLocales(tag).length > 0) return tag;
+  } catch {
+    // tag inválida (ex.: a própria chave "locale_date" não traduzida)
+  }
+  return "pt-BR";
+}
+
 // Traduz um nome de categoria salvo (sempre em português no banco) para o idioma
 // ativo. Categorias fora do dicionário (novas/personalizadas) retornam como estão.
 export function translateCategoria(categoria, lang) {
