@@ -4,8 +4,33 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, MapPin, Phone, Percent, Pencil, Trash2, UtensilsCrossed, Palmtree, Car, Building2, Ticket, Sparkles, Handshake } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Search, MapPin, Phone, Percent, Pencil, Trash2, UtensilsCrossed, Palmtree, Car, Building2, Ticket, Sparkles, Handshake, Loader2 } from "lucide-react";
 import PartnerFormDialog from "@/components/partners/PartnerFormDialog";
+
+// Mesmo padrão de confirmação já usado em ações destrutivas do app (ex.:
+// EstornarRecebimentoDialog em Billing.jsx) — nunca deleta direto no clique.
+function DeletePartnerDialog({ partner, onCancel, onConfirm, isPending }) {
+  return (
+    <Dialog open={!!partner} onOpenChange={(v) => !v && onCancel()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="font-display">Excluir parceiro</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground -mt-2">
+          Tem certeza que quer excluir <strong className="text-foreground">{partner?.nome}</strong>? Essa ação não pode ser desfeita.
+        </p>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
+          <Button type="button" variant="destructive" disabled={isPending} onClick={onConfirm}>
+            {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+            Excluir
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const CATS = {
   restaurante: { Icon: UtensilsCrossed, label: "Restaurante" },
@@ -21,6 +46,7 @@ export default function Parceiros() {
   const [catFilter, setCatFilter] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: partners = [], isLoading } = useQuery({
@@ -30,7 +56,10 @@ export default function Parceiros() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Partner.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["partners"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["partners"] });
+      setDeleting(null);
+    },
   });
 
   const filtered = partners.filter((p) => {
@@ -95,7 +124,7 @@ export default function Parceiros() {
                     <button onClick={() => { setEditing(p); setDialogOpen(true); }} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => deleteMutation.mutate(p.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                    <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -114,6 +143,12 @@ export default function Parceiros() {
       )}
 
       <PartnerFormDialog open={dialogOpen} partner={editing} onClose={() => setDialogOpen(false)} />
+      <DeletePartnerDialog
+        partner={deleting}
+        isPending={deleteMutation.isPending}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => deleteMutation.mutate(deleting.id)}
+      />
     </div>
   );
 }
