@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/i18n";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
+import BuscaIA from "@/components/client/BuscaIA";
 
 function getSuggestions(t) {
   return [
@@ -29,7 +31,35 @@ function ChatMessage({ msg }) {
   );
 }
 
-export default function TocaTrIA() {
+// Portal do Cliente: mesma marca "Toca TrIA", mas outra IA por trás —
+// BuscaIA já é escopada por client_id (RLS: só os próprios dados), nunca
+// o chat administrativo geral de baixo (que fala do NEGÓCIO do Tony, não
+// faz sentido nem é seguro mostrar pro cliente). Existia pronta desde a
+// Fase 3b, só nunca tinha sido plugada em nenhuma tela.
+function TocaTrIACliente({ clientId }) {
+  const { t } = useLanguage();
+  return (
+    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-80px)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("nav_tria_cliente")}</h1>
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+            {t("client_ai_hint")}
+          </p>
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 bg-card border border-border rounded-xl p-4">
+        <BuscaIA clientId={clientId} />
+      </div>
+    </div>
+  );
+}
+
+function TocaTrIAAdmin() {
   const { t } = useLanguage();
   const SUGGESTIONS = getSuggestions(t);
   const [messages, setMessages] = useState([
@@ -172,4 +202,10 @@ export default function TocaTrIA() {
       </div>
     </div>
   );
+}
+
+export default function TocaTrIA() {
+  const { isClientMode, effectiveClientId } = useEffectiveRole();
+  if (isClientMode) return <TocaTrIACliente clientId={effectiveClientId} />;
+  return <TocaTrIAAdmin />;
 }

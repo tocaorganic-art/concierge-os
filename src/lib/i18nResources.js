@@ -21,6 +21,7 @@ export const translations = {
     nav_meu_contrato: "Meu Contrato",
     nav_documentos: "Documentos",
     nav_perfil: "Perfil",
+    nav_tria_cliente: "Toca TrIA",
 
     // Dashboard
     dash_monthly_revenue: "Receita do Mês",
@@ -581,6 +582,7 @@ export const translations = {
     nav_meu_contrato: "My Contract",
     nav_documentos: "Documents",
     nav_perfil: "Profile",
+    nav_tria_cliente: "Toca TrIA",
 
     dash_monthly_revenue: "Monthly Revenue",
     dash_active_proposals: "Active Proposals",
@@ -1130,6 +1132,7 @@ export const translations = {
     nav_meu_contrato: "Mi Contrato",
     nav_documentos: "Documentos",
     nav_perfil: "Perfil",
+    nav_tria_cliente: "Toca TrIA",
 
     dash_monthly_revenue: "Ingresos del Mes",
     dash_active_proposals: "Propuestas Activas",
