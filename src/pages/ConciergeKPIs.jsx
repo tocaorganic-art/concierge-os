@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Users, Star, MessageSquare, CheckCircle2, Zap, Sparkles, Crown } from "lucide-react";
+import { Users, Star, MessageSquare, CheckCircle2 } from "lucide-react";
 
 function KPI({ label, value, sub, icon: Icon, color }) {
   return (
@@ -122,22 +122,13 @@ export default function ConciergeKPIs() {
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-5">
-        <h2 className="text-sm font-semibold text-foreground mb-4">Distribuição por plano</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { id: "essencial", label: "Essencial", Icon: Zap,      color: "border-blue-500/20 bg-blue-500/5 text-blue-400" },
-            { id: "premium",   label: "Premium",   Icon: Sparkles, color: "border-primary/20 bg-primary/5 text-primary" },
-            { id: "black",     label: "Black",     Icon: Crown,    color: "border-foreground/10 bg-foreground/5 text-foreground" },
-          ].map((plan) => (
-            <div key={plan.id} className={`border rounded-xl p-4 text-center ${plan.color}`}>
-              <plan.Icon className="w-6 h-6 mx-auto mb-1" />
-              <p className="font-display text-xl font-bold text-foreground">{planCounts[plan.id]}</p>
-              <p className="text-xs text-muted-foreground">{plan.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* "Distribuição por plano" (Essencial/Premium/Black) escondida de
+          proposito — lia UserProfile.plan_id/subscription_status do mesmo
+          sistema de assinatura de consumidor final que /planos usava (sobra
+          de template, nunca foi o sistema real deste app), entao sempre
+          mostrava tudo zerado. Ver PR da Fase 2 / docs do achado na
+          auditoria. planCounts continua calculado acima caso isso volte a
+          fazer sentido depois da decisão de negócio pendente. */}
     </div>
   );
 }

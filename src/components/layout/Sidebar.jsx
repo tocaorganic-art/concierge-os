@@ -11,7 +11,6 @@ import {
   Wallet,
   Crown,
   LogOut,
-  Star,
   Settings,
   Lock,
   Sparkles,
@@ -39,7 +38,13 @@ const navKeys = [
   { key: "nav_reports", icon: BarChart3, path: "/relatorios", requiresPro: true },
   { key: "nav_billing", icon: Receipt, path: "/faturamento" },
   { key: "nav_expenses", icon: Wallet, path: "/despesas" },
-  { key: "nav_plans", icon: Star, path: "/planos" },
+  // nav_plans ("/planos") tirado do menu de proposito — pagina mostra planos
+  // de um produto diferente (consumidor final) com checkout do Stripe
+  // apontando pra outro app Base44. usePlan.js ja libera acesso total sem
+  // trava nenhuma, entao isso nunca foi o sistema de planos real deste app.
+  // Decisao de negocio pendente (vender como SaaS pra outros concierges ou
+  // nao) antes de reativar — ver PR da Fase 2.
+  // { key: "nav_plans", icon: Star, path: "/planos" },
   { key: "nav_settings", icon: Settings, path: "/configuracoes" },
 ];
 
