@@ -503,7 +503,7 @@ export default function Billing() {
       {/* FAB mobile */}
       <button
         onClick={() => { setEditBilling(null); setShowForm(true); }}
-        className="fixed bottom-6 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+        className="fixed bottom-20 right-6 z-30 md:hidden w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
         aria-label="Nova Cobrança"
       >
         <Plus className="w-6 h-6" />

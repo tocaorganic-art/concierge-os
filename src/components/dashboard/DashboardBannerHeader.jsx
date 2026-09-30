@@ -15,16 +15,19 @@ export default function DashboardBannerHeader({ data, bannerUrl = BANNER_URL, ba
   return (
     <div className="mb-5 md:mb-8">
       {bannerVideoUrl ? (
-        <video
-          src={bannerVideoUrl}
-          autoPlay={!reducedMotion}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-label={alt}
-          className="w-full rounded-xl border border-border object-cover"
-        />
+        <div className="relative w-full overflow-hidden rounded-xl border border-border bg-secondary aspect-video">
+          <video
+            src={bannerVideoUrl}
+            poster={bannerUrl}
+            autoPlay={!reducedMotion}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label={alt}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
       ) : (
         <img
           src={bannerUrl}
