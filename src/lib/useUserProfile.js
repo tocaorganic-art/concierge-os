@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 // Resolve quem está logado e qual o tipo de acesso dele:
@@ -15,52 +15,43 @@ import { base44 } from "@/api/base44Client";
 // convite de "cliente" pendente — a checagem antiga nunca disparava, e o vínculo falhava
 // silenciosamente (bug real encontrado em produção). Por isso sempre tentamos vincular; a
 // function em si já é barata e idempotente quando não há convite pendente.
-export function useUserProfile() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+//
+// useQuery (em vez de useState/useEffect manual) por um motivo especifico: este hook é chamado
+// de forma independente em 10+ componentes (AppLayout, Dashboard, FloatingChat, Sidebar...), e
+// SEM cache compartilhado cada um deles disparava sua PRÓPRIA cadeia auth.me() +
+// linkInvitedAccount + UserProfile.filter() em paralelo — 7+ chamadas simultâneas de
+// linkInvitedAccount num único carregamento, travando a tela ~20-30s (bug real visto em
+// produção). useQuery deduplica automaticamente chamadas simultâneas com a mesma queryKey (uma
+// única cadeia de rede, não N) e cacheia o resultado — staleTime alto porque vincular convite +
+// resolver o papel do usuário não precisa re-rodar a cada navegação entre páginas.
+async function loadUserAndProfile() {
+  let u = await base44.auth.me();
+  if (!u) return { user: null, profile: null };
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        let u = await base44.auth.me();
-        if (!u || cancelled) return;
-
-        if (u.email) {
-          try {
-            const result = await base44.functions.invoke("linkInvitedAccount", { user: { id: u.id, email: u.email } });
-            if (result?.status === "linked") {
-              u = await base44.auth.me();
-            }
-          } catch {
-            // sem convite pendente, ou falha ao vincular — segue como está
-          }
-        }
-
-        if (cancelled) return;
-        setUser(u);
-
-        const profiles = await base44.entities.UserProfile.filter({ user_id: u.id });
-        if (!cancelled) setProfile(profiles?.[0] || null);
-      } catch {
-        // silencioso
-      } finally {
-        // Sempre resolve isLoading, mesmo se o efeito foi cancelado por uma
-        // remontagem do componente pai (ex.: durante a navegação inicial do
-        // React Router) — do contrário isLoading pode ficar preso em `true`
-        // para sempre, e o gate de isClient em AppLayout.jsx nunca reavalia,
-        // deixando telas internas (Faturamento, Despesas, Clientes) acessíveis
-        // por navegação direta de URL para contas do tipo "cliente".
-        setIsLoading(false);
+  if (u.email) {
+    try {
+      const result = await base44.functions.invoke("linkInvitedAccount", { user: { id: u.id, email: u.email } });
+      if (result?.status === "linked") {
+        u = await base44.auth.me();
       }
+    } catch {
+      // sem convite pendente, ou falha ao vincular — segue como está
     }
+  }
 
-    load();
-    return () => { cancelled = true; };
-  }, []);
+  const profiles = await base44.entities.UserProfile.filter({ user_id: u.id });
+  return { user: u, profile: profiles?.[0] || null };
+}
 
+export function useUserProfile() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["user-profile-and-link"],
+    queryFn: loadUserAndProfile,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const user = data?.user || null;
+  const profile = data?.profile || null;
   const isAdmin = user?.role === "admin";
   const isClient = user?.account_type === "cliente";
   const isTeam = Boolean(user) && !isAdmin && !isClient;

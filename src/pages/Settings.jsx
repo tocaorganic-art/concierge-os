@@ -41,6 +41,7 @@ export default function Settings() {
   const [inviteStatus, setInviteStatus] = useState("");
   const [saved, setSaved] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [passwordResetStatus, setPasswordResetStatus] = useState("idle"); // idle | sending | sent
 
   const { data: clientsForInvite = [] } = useQuery({
     queryKey: ["clients"],
@@ -82,6 +83,19 @@ export default function Settings() {
   };
 
   const planLabel = { trial: "Trial (7 dias)", starter: "Starter", pro: "Pro", agency: "Agency" }[plan] || "—";
+
+  const handleChangePassword = async () => {
+    if (!currentUser?.email || passwordResetStatus === "sending") return;
+    setPasswordResetStatus("sending");
+    try {
+      await base44.auth.resetPasswordRequest(currentUser.email);
+    } catch {
+      // Mesmo padrão de ForgotPassword.jsx: nunca revela se o envio falhou
+      // por e-mail inválido — sempre mostra sucesso.
+    } finally {
+      setPasswordResetStatus("sent");
+    }
+  };
 
   const handlePortal = async () => {
     setPortalLoading(true);
@@ -272,19 +286,22 @@ export default function Settings() {
           title="Disponível no Plano Agency"
           description="Use seu próprio logo e cores nos PDFs e na interface."
         >
-          <div className="space-y-4">
+          <div className="space-y-4 opacity-60">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 rounded-full px-2.5 py-1 w-fit">
+              Em breve
+            </p>
             <div>
               <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Upload de Logo</Label>
-              <Input type="file" accept="image/*" className="mt-1.5 bg-secondary border-border" />
+              <Input type="file" accept="image/*" disabled className="mt-1.5 bg-secondary border-border cursor-not-allowed" />
             </div>
             <div>
               <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Cor Primária</Label>
               <div className="flex items-center gap-3 mt-1.5">
-                <input type="color" defaultValue="#F07A2E" className="h-9 w-16 rounded-md border border-border bg-secondary cursor-pointer" />
-                <Input placeholder="#F07A2E" className="bg-secondary border-border font-mono" />
+                <input type="color" defaultValue="#F07A2E" disabled className="h-9 w-16 rounded-md border border-border bg-secondary cursor-not-allowed" />
+                <Input placeholder="#F07A2E" disabled className="bg-secondary border-border font-mono cursor-not-allowed" />
               </div>
             </div>
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">Salvar White-label</Button>
+            <Button size="sm" disabled className="bg-primary text-primary-foreground cursor-not-allowed">Salvar White-label</Button>
           </div>
         </PlanGate>
       </Section>
@@ -316,13 +333,29 @@ export default function Settings() {
             <p className="text-sm text-foreground mt-1 font-mono">{currentUser?.email || "—"}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Lock className="w-3.5 h-3.5" /> Alterar senha
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={passwordResetStatus === "sending" || !currentUser?.email}
+              onClick={handleChangePassword}
+            >
+              {passwordResetStatus === "sending" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Lock className="w-3.5 h-3.5" />
+              )}
+              Alterar senha
             </Button>
-            <Button variant="outline" size="sm" className="gap-2 text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-400">
-              <Trash2 className="w-3.5 h-3.5" /> Excluir conta
+            <Button variant="outline" size="sm" disabled title="Em breve — por ora, fale com o suporte para excluir a conta" className="gap-2 text-red-400/60 border-red-500/20 cursor-not-allowed">
+              <Trash2 className="w-3.5 h-3.5" /> Excluir conta <span className="text-[10px] font-mono uppercase text-muted-foreground">(em breve)</span>
             </Button>
           </div>
+          {passwordResetStatus === "sent" && (
+            <p className="text-xs text-muted-foreground">
+              Se {currentUser?.email} tiver uma conta, você vai receber um link para redefinir a senha em instantes.
+            </p>
+          )}
         </div>
       </Section>
     </div>
