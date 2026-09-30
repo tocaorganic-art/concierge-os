@@ -108,7 +108,7 @@ export default function DashboardStatusViagem({ proposta, podeEditar }) {
   const atual = etapaDaJornada(proposta);
   const reduzir = useReducedMotion();
   const diasParaChegada = proposta?.data_chegada
-    ? Math.ceil((new Date(proposta.data_chegada) - new Date()) / 86400000)
+    ? Math.ceil((new Date(proposta.data_chegada + "T00:00:00") - new Date()) / 86400000)
     : null;
   const perto = diasParaChegada !== null && diasParaChegada >= 0 && diasParaChegada <= 7 && atual < 4;
   const concluido = atual === ETAPAS.length - 1;

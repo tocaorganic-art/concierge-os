@@ -103,11 +103,11 @@ export default function ProposalPdfButton({ proposal, variant = "ghost", size = 
 
       // Chegada
       labelStyle(); doc.text(t("pdf_checkin"), col1, infoY);
-      valueStyle(); doc.text(proposal.data_chegada ? new Date(proposal.data_chegada).toLocaleDateString(safeLocaleDate(t)) : "—", col1, infoY + 5);
+      valueStyle(); doc.text(proposal.data_chegada ? new Date(proposal.data_chegada + "T00:00:00").toLocaleDateString(safeLocaleDate(t)) : "—", col1, infoY + 5);
 
       // Saída
       labelStyle(); doc.text(t("pdf_checkout"), col2, infoY);
-      valueStyle(); doc.text(proposal.data_saida ? new Date(proposal.data_saida).toLocaleDateString(safeLocaleDate(t)) : "—", col2, infoY + 5);
+      valueStyle(); doc.text(proposal.data_saida ? new Date(proposal.data_saida + "T00:00:00").toLocaleDateString(safeLocaleDate(t)) : "—", col2, infoY + 5);
 
       infoY += 18;
 

@@ -79,7 +79,7 @@ export default function Proposals() {
       ``,
       `Segue o resumo da sua proposta:`,
       `📍 *${p.destino}*`,
-      p.data_chegada ? `📅 ${new Date(p.data_chegada).toLocaleDateString("pt-BR")}${p.data_saida ? ` a ${new Date(p.data_saida).toLocaleDateString("pt-BR")}` : ""}` : "",
+      p.data_chegada ? `📅 ${new Date(p.data_chegada + "T00:00:00").toLocaleDateString("pt-BR")}${p.data_saida ? ` a ${new Date(p.data_saida + "T00:00:00").toLocaleDateString("pt-BR")}` : ""}` : "",
       p.num_pax ? `👥 ${p.num_pax} pessoa${p.num_pax > 1 ? "s" : ""}` : "",
       p.valor ? `💰 Investimento: ${formatBRL(p.valor)}` : "",
       ``,
@@ -193,8 +193,8 @@ export default function Proposals() {
                   {p.data_chegada && (
                     <span className="flex items-center gap-1.5 text-xs">
                       <Calendar className="w-3.5 h-3.5" />
-                      {new Date(p.data_chegada).toLocaleDateString(safeLocaleDate(t))}
-                      {p.data_saida && ` — ${new Date(p.data_saida).toLocaleDateString(safeLocaleDate(t))}`}
+                      {new Date(p.data_chegada + "T00:00:00").toLocaleDateString(safeLocaleDate(t))}
+                      {p.data_saida && ` — ${new Date(p.data_saida + "T00:00:00").toLocaleDateString(safeLocaleDate(t))}`}
                     </span>
                   )}
                   {p.num_pax > 0 && <span className="font-mono text-xs">{p.num_pax} pax</span>}
