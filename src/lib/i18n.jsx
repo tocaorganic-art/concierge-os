@@ -14,6 +14,33 @@ const STORAGE_KEY = "concierge_lang";
 const hadStoredLangBeforeInit =
   typeof window !== "undefined" && !!window.localStorage.getItem(STORAGE_KEY);
 
+// Resolve o idioma inicial de forma SÍNCRONA (mesma prioridade do
+// LanguageDetector: localStorage > navegador > fallback) para passar como
+// `lng` explícito no init(), em vez de deixar só o plugin de detecção
+// decidir depois. Bug real visto em produção: com `lng` omitido, sempre
+// que o idioma resolvido calhava de ser igual ao fallbackLng ("pt-BR"),
+// i18next.isInitialized virava true e i18n.language já reportava "pt-BR"
+// corretamente, mas t() continuava devolvendo a própria chave — só um
+// changeLanguage() explícito para OUTRO idioma "destravava". Reproduzido
+// de forma consistente (clicar no seletor de idioma corrigia na hora;
+// clicar no mesmo "PT" já ativo, não). Passar `lng` direto no init() é o
+// jeito documentado de evitar essa dependência de timing do plugin.
+function resolveInitialLang() {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
+  } catch {
+    // localStorage indisponível (modo privado, etc.) — segue pro navegador
+  }
+  const navLangs = (typeof navigator !== "undefined" && navigator.languages) || [];
+  const nav = navLangs[0] || (typeof navigator !== "undefined" && navigator.language) || "";
+  const short = nav.toLowerCase();
+  if (short.startsWith("pt")) return "pt-BR";
+  if (short.startsWith("es")) return "es";
+  if (short.startsWith("en")) return "en";
+  return "pt-BR";
+}
+
 // Instância única do i18next para o app inteiro. Guardamos no objeto do
 // módulo (não em estado React) porque o i18next já é o "single source of
 // truth" do idioma atual — replicar isso em estado React duplicaria a
@@ -24,6 +51,7 @@ if (!i18next.isInitialized) {
     .use(initReactI18next)
     .init({
       resources,
+      lng: resolveInitialLang(),
       fallbackLng: "pt-BR",
       supportedLngs: SUPPORTED_LANGS,
       nonExplicitSupportedLngs: true,
@@ -104,24 +132,64 @@ function LanguageProviderInner({ children }) {
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
+// Prova real de que t() já resolve de verdade — NÃO confiamos só em
+// i18next.isInitialized. Bug visto ao vivo em produção (menu lateral e
+// telas inteiras com "nav_overview", "field_name" etc. na tela, em
+// português mesmo): isInitialized virava true e i18n.language já
+// reportava o idioma certo, mas t() continuava devolvendo a própria
+// chave — só um changeLanguage() para OUTRO idioma "destravava". Não foi
+// possível reproduzir isso isolando i18next+LanguageDetector fora do
+// React (testado à parte: nesses testes t() sempre funcionou), então em
+// vez de apostar em qual flag interna seria a certa, verificamos o
+// sintoma direto com uma chave sempre presente nos 3 idiomas.
+const PROBE_KEY = "nav_overview";
+function translatorReallyReady() {
+  try {
+    return i18next.isInitialized && i18next.t(PROBE_KEY) !== PROBE_KEY;
+  } catch {
+    return false;
+  }
+}
+
 export function LanguageProvider({ children }) {
-  // i18next.init() com LanguageDetector resolve de forma assíncrona (mesmo
-  // com `resources` já em memória), então o primeiro render do app pode
-  // acontecer antes de isInitialized virar true. Componentes que chamam
-  // t(key) nesse instante (ex.: o menu lateral, que não depende de nenhum
-  // fetch e por isso é o primeiro a renderizar) recebem a própria chave de
-  // volta em vez do texto traduzido. Por isso seguramos a renderização do
-  // app até o i18next avisar que terminou, em vez de arriscar esse flash.
-  const [ready, setReady] = useState(i18next.isInitialized);
+  const [ready, setReady] = useState(translatorReallyReady);
 
   useEffect(() => {
     if (ready) return;
-    const onInitialized = () => setReady(true);
-    i18next.on("initialized", onInitialized);
-    // Cobre o caso raro de isInitialized já ter virado true entre o
-    // useState inicial e este effect (evita ficar preso no loading).
-    if (i18next.isInitialized) setReady(true);
-    return () => i18next.off("initialized", onInitialized);
+    let cancelled = false;
+    let attempts = 0;
+    let timer = null;
+
+    const check = () => {
+      if (cancelled) return;
+      if (translatorReallyReady()) {
+        setReady(true);
+        return;
+      }
+      attempts += 1;
+      // Na 1ª tentativa que falhar mesmo com isInitialized=true, força uma
+      // resolução completa do idioma atual — é o que corrigia o bug ao
+      // trocar de idioma manualmente pela UI.
+      if (attempts === 1) {
+        i18next.changeLanguage(i18next.language || "pt-BR").catch(() => {});
+      }
+      // Nunca trava a UI pra sempre: ~2s de tentativas e libera do mesmo
+      // jeito (pior caso, volta ao comportamento anterior a este fix).
+      if (attempts > 100) {
+        setReady(true);
+        return;
+      }
+      timer = setTimeout(check, 20);
+    };
+
+    i18next.on("initialized", check);
+    check();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      i18next.off("initialized", check);
+    };
   }, [ready]);
 
   if (!ready) {

@@ -177,7 +177,7 @@ export default function TaskFormDialog({ open, onOpenChange, defaultDate, task }
             <Textarea value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} className="mt-1.5 bg-secondary border-border" rows={2} />
           </div>
 
-          <div className="flex items-center justify-between gap-3 pt-2">
+          <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex items-center justify-between gap-3 z-10">
             <div className="flex items-center gap-2">
               {gcalUrl && form.titulo && (
                 <a href={gcalUrl} target="_blank" rel="noopener noreferrer">

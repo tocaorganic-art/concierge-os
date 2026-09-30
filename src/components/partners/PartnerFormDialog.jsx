@@ -77,7 +77,7 @@ export default function PartnerFormDialog({ open, partner, onClose }) {
             <label htmlFor="ativo" className="text-sm text-muted-foreground">Parceiro ativo</label>
           </div>
 
-          <div className="flex gap-2 pt-1">
+          <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-3 mt-1 bg-background flex gap-2 z-10">
             <Button type="button" variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
             <Button type="submit" className="flex-1" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-1" />}

@@ -121,7 +121,7 @@ export default function ClientFormDialog({ open, onOpenChange, client }) {
               ))}
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex justify-end gap-3 z-10">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={mutation.isPending}>
               {client ? "Salvar" : "Criar Cliente"}
