@@ -157,12 +157,12 @@ const NATUREZAS_RECEITA_PROPRIA = ["honorario", "intermediacao", "comissao"];
 // valor. Quando `alocacao` está presente, essas funções somam só as partes
 // da natureza pedida; sem `alocacao`, tratam o billing.valor inteiro como
 // 100% de uma natureza só (comportamento anterior, preservado).
-function partesDaAlocacao(billing) {
+export function partesDaAlocacao(billing) {
   if (Array.isArray(billing.alocacao) && billing.alocacao.length > 0) return billing.alocacao;
   return billing.natureza ? [{ natureza: billing.natureza, valor: billing.valor || 0 }] : [];
 }
 
-function valorPorNatureza(billing, naturezas) {
+export function valorPorNatureza(billing, naturezas) {
   return roundCents(
     partesDaAlocacao(billing)
       .filter((a) => naturezas.includes(a.natureza))
