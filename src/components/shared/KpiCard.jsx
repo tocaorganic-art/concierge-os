@@ -9,7 +9,7 @@ export default function KpiCard({ title, value, icon: Icon, trend, trendLabel, v
   return (
     <Wrapper
       {...wrapperProps}
-      className={`bg-card border border-border rounded-xl p-5 gold-border-hover transition-all duration-300 block text-left ${to ? "cursor-pointer hover:border-primary/40" : ""}`}
+      className={`bg-card border border-border rounded-xl p-4 md:p-5 gold-border-hover transition-all duration-300 block text-left ${to ? "cursor-pointer hover:border-primary/40" : ""}`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center">
@@ -26,7 +26,7 @@ export default function KpiCard({ title, value, icon: Icon, trend, trendLabel, v
       <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
         {title}
       </p>
-      <p className={`font-display text-2xl font-bold ${valueClassName || "text-foreground"}`}>
+      <p className={`font-display text-xl md:text-2xl font-bold break-words ${valueClassName || "text-foreground"}`}>
         {value}
       </p>
       {trendLabel && (

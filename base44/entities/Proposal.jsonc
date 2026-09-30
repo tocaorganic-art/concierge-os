@@ -44,6 +44,11 @@
       "default": "lead",
       "description": "Status da proposta no pipeline"
     },
+    "etapa_jornada": {
+      "type": "number",
+      "default": 1,
+      "description": "Etapa atual da 'Jornada da viagem' (1=Proposta recebida, 2=Destino confirmado, 3=Preparativos, 4=Tudo pronto, 5=Viagem concluida). Definida EXCLUSIVAMENTE pelo admin no painel da Visao Geral \u2014 nunca e derivada de datas, pagamentos ou tempo. Ausente/invalido em registros antigos = etapa 1."
+    },
     "data_validade": {
       "type": "string",
       "format": "date",
@@ -59,9 +64,16 @@
       "items": {
         "type": "object",
         "properties": {
-          "nome": { "type": "string" },
-          "valor": { "type": "number" },
-          "incluido": { "type": "boolean", "description": "Se true, mostra 'incluido' em vez de um valor (ex.: Roteiro incluido no pacote)." }
+          "nome": {
+            "type": "string"
+          },
+          "valor": {
+            "type": "number"
+          },
+          "incluido": {
+            "type": "boolean",
+            "description": "Se true, mostra 'incluido' em vez de um valor (ex.: Roteiro incluido no pacote)."
+          }
         }
       }
     },
@@ -79,9 +91,15 @@
       "items": {
         "type": "object",
         "properties": {
-          "nome": { "type": "string" },
-          "url": { "type": "string" },
-          "categoria": { "type": "string" }
+          "nome": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string"
+          }
         }
       }
     },
@@ -91,20 +109,31 @@
       "items": {
         "type": "object",
         "properties": {
-          "nome": { "type": "string" },
-          "url": { "type": "string" },
-          "categoria": { "type": "string" }
+          "nome": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string"
+          }
         }
       },
       "rls": {
         "read": {
-          "user_condition": { "role": "admin" }
+          "user_condition": {
+            "role": "admin"
+          }
         }
       }
     },
     "forma_pagamento_preferida": {
       "type": "string",
-      "enum": ["pix_pj_cora", "pix_cpf_tony"],
+      "enum": [
+        "pix_pj_cora",
+        "pix_cpf_tony"
+      ],
       "default": "pix_pj_cora",
       "description": "Qual conta de recebimento mostrar ao cliente em \"Como pagar\". pix_pj_cora = QR/chave da empresa (padrao atual). pix_cpf_tony = usa o campo chave_pix_recebimento abaixo."
     },
@@ -118,15 +147,25 @@
       "items": {
         "type": "object",
         "properties": {
-          "tipo": { "type": "string" },
-          "titulo": { "type": "string" },
-          "descricao": { "type": "string" },
-          "valor_estimado": { "type": "number" }
+          "tipo": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "valor_estimado": {
+            "type": "number"
+          }
         }
       },
       "rls": {
         "read": {
-          "user_condition": { "role": "admin" }
+          "user_condition": {
+            "role": "admin"
+          }
         }
       }
     },
@@ -136,14 +175,23 @@
       "items": {
         "type": "object",
         "properties": {
-          "data": { "type": "string", "format": "date" },
-          "valor": { "type": "number" },
-          "resumo": { "type": "string" }
+          "data": {
+            "type": "string",
+            "format": "date"
+          },
+          "valor": {
+            "type": "number"
+          },
+          "resumo": {
+            "type": "string"
+          }
         }
       },
       "rls": {
         "read": {
-          "user_condition": { "role": "admin" }
+          "user_condition": {
+            "role": "admin"
+          }
         }
       }
     }

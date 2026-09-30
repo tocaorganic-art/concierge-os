@@ -150,7 +150,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
       </p>
 
       <div className="mb-4 md:mb-6">
-        <DashboardStatusViagem proposta={proposta} pctPago={totalContratado > 0 ? (totalPago / totalContratado) * 100 : 0} />
+        <DashboardStatusViagem proposta={proposta} podeEditar={user?.role === "admin"} />
       </div>
 
       <div className="bg-card border border-border rounded-xl p-5 gold-border-hover mb-4 md:mb-6">
