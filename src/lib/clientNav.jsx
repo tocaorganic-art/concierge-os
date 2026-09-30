@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Receipt, FileText, CalendarDays, BarChart3, Users, MessageSquare, FolderOpen, UserRound,
+  LayoutDashboard, Receipt, FileText, CalendarDays, BarChart3, Users, MessageSquare, FolderOpen, UserRound, Sparkles,
 } from "lucide-react";
 
 // Menu de uma conta "cliente" dentro do MESMO dashboard do admin (AppLayout) —
@@ -15,6 +15,7 @@ export const CLIENT_NAV_ITEMS = [
   { key: "nav_meu_grupo", labelFallback: "Meu Grupo", icon: Users, path: "/meu-grupo" },
   { key: "nav_meu_contrato", labelFallback: "Meu Contrato", icon: FileText, path: "/meu-contrato" },
   { key: "nav_documentos", labelFallback: "Documentos", icon: FolderOpen, path: "/documentos" },
+  { key: "nav_tria_cliente", labelFallback: "Toca TrIA", icon: Sparkles, path: "/toca-tria" },
   { key: "nav_reports", labelFallback: "Relatórios", icon: BarChart3, path: "/relatorios" },
   { key: "nav_perfil", labelFallback: "Perfil", icon: UserRound, path: "/meu-perfil" },
   { key: "nav_chat", labelFallback: "Chat", icon: MessageSquare, path: "/chat" },

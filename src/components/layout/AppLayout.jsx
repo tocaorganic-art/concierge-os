@@ -30,6 +30,7 @@ const CLIENT_ALLOWED_PATHS = [
   "/documentos",
   "/meu-perfil",
   "/chat",
+  "/toca-tria",
 ];
 
 function SemAcesso() {
@@ -69,8 +70,19 @@ function AppLayoutInner() {
       // quem opera o Toca OS (admin/equipe); uma conta cliente nunca tem
       // permissão para criar Client/Proposal (RLS), então mostrar isto a
       // ela só gera erro de permissão no meio do primeiro acesso.
-      if (u.first_login !== false && u.account_type !== "cliente") setShowOnboarding(true);
+      if (u.first_login !== false && u.account_type !== "cliente") {
+        setShowOnboarding(true);
+        return; // tutorial abre depois, quando o onboarding fechar (ver onComplete abaixo)
+      }
 
+      // tutorial_seen_${id} era escrito ao fechar o TutorialModal mas nunca
+      // lido em lugar nenhum — o tour animado só abria manualmente pelo
+      // Sidebar, nunca sozinho no primeiro acesso (achado real). Aqui é
+      // onde ele deveria ter sido consultado desde o início: sem esse
+      // registro (cliente novo, ou admin/equipe que já passou pelo
+      // onboarding de operação mas nunca viu o tour do produto), abre uma
+      // vez; depois fica só o botão manual "Tutorial" no menu.
+      if (u.id && !localStorage.getItem(`tutorial_seen_${u.id}`)) setShowTutorial(true);
     }).catch(() => {});
   }, []);
 
@@ -133,7 +145,10 @@ function AppLayoutInner() {
       {showOnboarding && user && (
         <OnboardingWizard
           user={user}
-          onComplete={() => setShowOnboarding(false)}
+          onComplete={() => {
+            setShowOnboarding(false);
+            if (user?.id && !localStorage.getItem(`tutorial_seen_${user.id}`)) setShowTutorial(true);
+          }}
         />
       )}
 
