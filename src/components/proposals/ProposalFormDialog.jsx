@@ -18,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, Loader2, X, Plus, Pencil, Trash2, Briefcase } from "lucide-react";
+import { FileText, Loader2, X, Plus, Pencil, Trash2, Briefcase, Sparkles } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
 import ContratoFornecedorFormDialog from "@/components/proposals/ContratoFornecedorFormDialog";
+import LeituraContratoModal from "@/components/proposals/LeituraContratoModal";
 
 const defaultForm = {
   client_id: "",
@@ -47,6 +48,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
   const [showFornecedorForm, setShowFornecedorForm] = useState(false);
   const [editingFornecedor, setEditingFornecedor] = useState(null);
   const [deletingFornecedor, setDeletingFornecedor] = useState(null);
+  const [showLeituraContrato, setShowLeituraContrato] = useState(false);
   const contratoInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -290,6 +292,11 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                   try {
                     const { file_url } = await base44.integrations.Core.UploadFile({ file });
                     setForm((f) => ({ ...f, contrato_assinado_url: file_url }));
+                    // Dispara a leitura por IA assim que o contrato é anexado — só
+                    // quando a proposta já existe (precisa do id pra aplicar depois
+                    // da confirmação). Numa proposta nova, o admin ainda pode ler o
+                    // contrato depois de salvar, com o botão "Ler contrato com IA".
+                    if (proposal?.id) setShowLeituraContrato(true);
                   } catch {
                     setUploadContratoError("Não consegui enviar o arquivo. Tente novamente.");
                   } finally {
@@ -299,14 +306,22 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                 }}
               />
               {form.contrato_assinado_url ? (
-                <div className="mt-1.5 flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
-                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                  <a href={form.contrato_assinado_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">
-                    Ver contrato anexado
-                  </a>
-                  <button type="button" onClick={() => setForm((f) => ({ ...f, contrato_assinado_url: "" }))}>
-                    <X className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400" />
-                  </button>
+                <div className="mt-1.5 space-y-1.5">
+                  <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
+                    <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                    <a href={form.contrato_assinado_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">
+                      Ver contrato anexado
+                    </a>
+                    <button type="button" onClick={() => setForm((f) => ({ ...f, contrato_assinado_url: "" }))}>
+                      <X className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400" />
+                    </button>
+                  </div>
+                  {proposal?.id && (
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => setShowLeituraContrato(true)}>
+                      <Sparkles className="w-3.5 h-3.5 text-primary" /> Ler contrato com IA
+                      {proposal.contrato_dados_extraidos && <span className="text-[10px] text-muted-foreground">(lido em {new Date(proposal.contrato_dados_extraidos.lido_em).toLocaleDateString("pt-BR")})</span>}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <Button type="button" variant="outline" size="sm" disabled={uploadingContrato} onClick={() => contratoInputRef.current?.click()} className="mt-1.5 gap-1.5">
@@ -376,6 +391,12 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
           contrato={editingFornecedor}
           proposalId={proposal.id}
           clientId={proposal.client_id}
+        />
+        <LeituraContratoModal
+          open={showLeituraContrato}
+          onOpenChange={setShowLeituraContrato}
+          proposal={{ ...proposal, ...form }}
+          onConfirmed={(patch) => setForm((f) => ({ ...f, ...patch }))}
         />
         <Dialog open={!!deletingFornecedor} onOpenChange={(v) => !v && setDeletingFornecedor(null)}>
           <DialogContent className="max-w-sm">

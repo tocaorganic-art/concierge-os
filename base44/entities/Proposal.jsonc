@@ -85,6 +85,51 @@
       "type": "string",
       "description": "URL do PDF/imagem do contrato assinado da casa, exibido integralmente na pagina \"Meu Contrato\" do cliente. Upload feito pelo admin (mesma RLS de update da entidade); visivel ao cliente vinculado (mesma visibilidade da proposta)."
     },
+    "contrato_dados_extraidos": {
+      "type": "object",
+      "description": "Dados estruturados lidos por IA do contrato_assinado_url (Fase 3) - cliente/documento, checkin/checkout, valor total, parcelas, deposito de garantia, custos extras, servicos incluidos e data de assinatura. Preenchido so apos confirmacao explicita do admin na tela de leitura do contrato; nunca escrito sozinho. Uso interno (RLS abaixo) - o cliente ja ve o PDF original em Meu Contrato, este campo e so pra alimentar o preenchimento automatico e os alertas.",
+      "properties": {
+        "cliente_nome": { "type": "string" },
+        "documento_identidade": { "type": "string" },
+        "propriedade_destino": { "type": "string" },
+        "checkin_data": { "type": "string", "format": "date" },
+        "checkin_hora": { "type": "string" },
+        "checkout_data": { "type": "string", "format": "date" },
+        "checkout_hora": { "type": "string" },
+        "valor_total": { "type": "number" },
+        "parcelas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "descricao": { "type": "string" },
+              "valor": { "type": "number" },
+              "data_vencimento": { "type": "string", "format": "date" }
+            }
+          }
+        },
+        "deposito_garantia_valor": { "type": "number" },
+        "deposito_garantia_condicao": { "type": "string" },
+        "custos_extras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "descricao": { "type": "string" },
+              "valor": { "type": "number" }
+            }
+          }
+        },
+        "servicos_incluidos": { "type": "string" },
+        "data_assinatura": { "type": "string", "format": "date" },
+        "lido_em": { "type": "string", "description": "Timestamp ISO de quando esta leitura foi confirmada." }
+      },
+      "rls": {
+        "read": {
+          "user_condition": { "role": "admin" }
+        }
+      }
+    },
     "documentos_cliente": {
       "type": "array",
       "description": "Documentos visiveis ao cliente vinculado (contrato/adendo assinado, vouchers) - mesma visibilidade da proposta em si, sem RLS de campo adicional.",
