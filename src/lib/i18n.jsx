@@ -117,7 +117,26 @@ function LanguageProviderInner({ children }) {
       // (ex: t("key", { count: 3 })). i18next cai para pt-BR (fallbackLng)
       // quando a chave não existe no idioma atual, e devolve a própria chave
       // se também não existir em pt-BR (igual ao comportamento anterior).
-      t: (key, options) => t(key, options),
+      //
+      // Rede de segurança final: em produção, t() as vezes devolve a própria
+      // chave mesmo com o i18next "pronto" e o idioma certo — bug real visto
+      // ao vivo (menu inteiro com "nav_overview" etc. na tela), sem causa raiz
+      // identificada apesar de 3 tentativas de correção pelo lado do i18next
+      // (isInitialized, lng explicito no init, changeLanguage forcado) — nenhuma
+      // reproduziu fora do bundle de producao real, o que sugere algo especifico
+      // da integracao React/producao dificil de isolar. Em vez de insistir em
+      // consertar o estado interno do i18next, aqui garantimos o resultado:
+      // se t() falhar (devolver a propria chave), busca direto no dicionario
+      // fonte em memoria — sincrono, sempre correto, sem depender de nenhum
+      // estado assincrono do i18next.
+      t: (key, options) => {
+        const result = t(key, options);
+        if (result === key && !options) {
+          const direct = resources[lang]?.translation?.[key] ?? resources["pt-BR"]?.translation?.[key];
+          if (direct !== undefined) return direct;
+        }
+        return result;
+      },
       setLang: (l) => {
         i18n.changeLanguage(l);
         // Persiste no perfil do usuário (best-effort) para funcionar entre
@@ -132,73 +151,22 @@ function LanguageProviderInner({ children }) {
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
-// Prova real de que t() já resolve de verdade — NÃO confiamos só em
-// i18next.isInitialized. Bug visto ao vivo em produção (menu lateral e
-// telas inteiras com "nav_overview", "field_name" etc. na tela, em
-// português mesmo): isInitialized virava true e i18n.language já
-// reportava o idioma certo, mas t() continuava devolvendo a própria
-// chave — só um changeLanguage() para OUTRO idioma "destravava". Não foi
-// possível reproduzir isso isolando i18next+LanguageDetector fora do
-// React (testado à parte: nesses testes t() sempre funcionou), então em
-// vez de apostar em qual flag interna seria a certa, verificamos o
-// sintoma direto com uma chave sempre presente nos 3 idiomas.
-const PROBE_KEY = "nav_overview";
-function translatorReallyReady() {
-  try {
-    return i18next.isInitialized && i18next.t(PROBE_KEY) !== PROBE_KEY;
-  } catch {
-    return false;
-  }
-}
-
 export function LanguageProvider({ children }) {
-  const [ready, setReady] = useState(translatorReallyReady);
+  // Segura só o primeiro instante (antes de isInitialized) para evitar o
+  // flash mais óbvio. A garantia de correção de verdade está no wrapper de
+  // t() acima (fallback direto no dicionário fonte) — depois de 3 tentativas
+  // de consertar isso só pelo lado do estado interno do i18next (que nunca
+  // reproduziu fora do bundle de produção real para eu conseguir validar
+  // com certeza), manter esse gate simples e apostar na rede de segurança
+  // por chamada é a opção mais confiável.
+  const [ready, setReady] = useState(i18next.isInitialized);
 
   useEffect(() => {
     if (ready) return;
-    let cancelled = false;
-    let attempts = 0;
-    let timer = null;
-
-    const check = () => {
-      if (cancelled) return;
-      if (translatorReallyReady()) {
-        setReady(true);
-        return;
-      }
-      attempts += 1;
-      // Na 1ª tentativa que falhar mesmo com isInitialized=true, força uma
-      // troca real de idioma — é o que corrigia o bug ao trocar de idioma
-      // manualmente pela UI. IMPORTANTE: changeLanguage(idioma já ativo) é
-      // no-op no i18next (não dispara "languageChanged", confirmado ao
-      // vivo: clicar de novo no mesmo idioma já selecionado não corrigia).
-      // Por isso "pula" por um idioma diferente antes de voltar pro
-      // desejado, forçando uma transição de verdade nos dois sentidos —
-      // invisível pro usuário, que ainda está vendo o spinner do gate.
-      if (attempts === 1) {
-        const desired = i18next.language || "pt-BR";
-        const bounce = SUPPORTED_LANGS.find((l) => l !== desired) || "en";
-        i18next.changeLanguage(bounce)
-          .then(() => i18next.changeLanguage(desired))
-          .catch(() => {});
-      }
-      // Nunca trava a UI pra sempre: ~2s de tentativas e libera do mesmo
-      // jeito (pior caso, volta ao comportamento anterior a este fix).
-      if (attempts > 100) {
-        setReady(true);
-        return;
-      }
-      timer = setTimeout(check, 20);
-    };
-
-    i18next.on("initialized", check);
-    check();
-
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-      i18next.off("initialized", check);
-    };
+    const onInitialized = () => setReady(true);
+    i18next.on("initialized", onInitialized);
+    if (i18next.isInitialized) setReady(true);
+    return () => i18next.off("initialized", onInitialized);
   }, [ready]);
 
   if (!ready) {
@@ -244,7 +212,14 @@ export function translateCategoria(categoria, lang) {
   if (!categoria) return categoria;
   const key = CATEGORIA_KEY_MAP[(categoria || "").trim().toLowerCase()];
   if (!key) return categoria;
-  return i18next.getFixedT(lang)(key);
+  const result = i18next.getFixedT(lang)(key);
+  // Mesma rede de segurança do t() em useLanguage() — getFixedT usa o mesmo
+  // mecanismo interno do i18next, então pode sofrer do mesmo problema.
+  if (result === key) {
+    const direct = translations[lang]?.[key] ?? translations["pt-BR"]?.[key];
+    if (direct !== undefined) return direct;
+  }
+  return result;
 }
 
 export { translations };
