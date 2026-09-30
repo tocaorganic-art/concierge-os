@@ -41,6 +41,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
   const [form, setForm] = useState(defaultForm);
   const [uploadingContrato, setUploadingContrato] = useState(false);
   const [uploadContratoError, setUploadContratoError] = useState("");
+  const [formError, setFormError] = useState("");
   const contratoInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -70,6 +71,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
     } else {
       setForm(defaultForm);
     }
+    setFormError("");
   }, [proposal, open]);
 
   const mutation = useMutation({
@@ -80,6 +82,13 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["proposals"] });
       onOpenChange(false);
+    },
+    // Sem isso, um erro do backend (validação, permissão, rede) só aparecia
+    // no console — o modal ficava parado, sem nenhum aviso pro usuário
+    // (o botão reabilitava e nada mais acontecia, dando a impressão de tela
+    // travada). Mesmo padrão já usado em BillingFormDialog.
+    onError: (err) => {
+      setFormError(`Não foi possível salvar a proposta${err?.message ? `: ${err.message}` : "."} Tente novamente.`);
     },
   });
 
@@ -94,6 +103,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setFormError("");
     mutation.mutate({
       ...form,
       num_pax: form.num_pax ? Number(form.num_pax) : undefined,
@@ -282,11 +292,13 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
               <p className="text-[11px] text-muted-foreground mt-1">Aparece integralmente em "Meu Contrato" para o cliente.</p>
             </div>
           </div>
+          {formError && <p className="text-xs text-red-400">{formError}</p>}
           <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex justify-end gap-3 z-10">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={mutation.isPending}>
+            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {proposal ? "Salvar" : "Criar Proposta"}
             </Button>
           </div>
