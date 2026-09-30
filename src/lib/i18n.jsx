@@ -168,10 +168,19 @@ export function LanguageProvider({ children }) {
       }
       attempts += 1;
       // Na 1ª tentativa que falhar mesmo com isInitialized=true, força uma
-      // resolução completa do idioma atual — é o que corrigia o bug ao
-      // trocar de idioma manualmente pela UI.
+      // troca real de idioma — é o que corrigia o bug ao trocar de idioma
+      // manualmente pela UI. IMPORTANTE: changeLanguage(idioma já ativo) é
+      // no-op no i18next (não dispara "languageChanged", confirmado ao
+      // vivo: clicar de novo no mesmo idioma já selecionado não corrigia).
+      // Por isso "pula" por um idioma diferente antes de voltar pro
+      // desejado, forçando uma transição de verdade nos dois sentidos —
+      // invisível pro usuário, que ainda está vendo o spinner do gate.
       if (attempts === 1) {
-        i18next.changeLanguage(i18next.language || "pt-BR").catch(() => {});
+        const desired = i18next.language || "pt-BR";
+        const bounce = SUPPORTED_LANGS.find((l) => l !== desired) || "en";
+        i18next.changeLanguage(bounce)
+          .then(() => i18next.changeLanguage(desired))
+          .catch(() => {});
       }
       // Nunca trava a UI pra sempre: ~2s de tentativas e libera do mesmo
       // jeito (pior caso, volta ao comportamento anterior a este fix).
