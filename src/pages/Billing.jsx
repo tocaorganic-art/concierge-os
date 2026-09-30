@@ -84,7 +84,8 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
             <LinhaParcela key={b.id} billing={b} recebimentos={recebimentos} onUploaded={invalidate} onEdit={(x) => { setEditBilling(x); setShowForm(true); }} defaultAberto={b.id === alvoId} />
           ))}
         </div>
-        {/* Total da categoria — soma dos valores das cobranças deste bloco */}
+        {/* Total da categoria — soma dos valores das cobranças deste bloco,
+            com quebra automática por tipo de despesa (Fixa / Variável). */}
         <div className="flex items-center justify-between gap-2 pt-3 mt-1 border-t border-border/60">
           <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
             {t("billing_block_total_label")} ({itens.length} {itens.length === 1 ? t("common_lancamento_singular") : t("common_lancamento_plural")})
@@ -93,6 +94,17 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
             {formatBRL(itens.reduce((sum, b) => sum + (b.valor || 0), 0))}
           </span>
         </div>
+        {(() => {
+          const fixa = itens.filter((b) => b.tipo_despesa === "fixa").reduce((sum, b) => sum + (b.valor || 0), 0);
+          const variavel = itens.filter((b) => b.tipo_despesa === "variavel").reduce((sum, b) => sum + (b.valor || 0), 0);
+          if (fixa === 0 && variavel === 0) return null;
+          return (
+            <div className="flex items-center justify-end gap-3 mt-1 text-[11px] font-mono text-muted-foreground">
+              {fixa > 0 && <span>Fixa {formatBRL(fixa)}</span>}
+              {variavel > 0 && <span>Variável {formatBRL(variavel)}</span>}
+            </div>
+          );
+        })()}
       </div>
     );
 
