@@ -174,7 +174,7 @@ export default function ClientProfileSheet({ client, onClose, onEdit }) {
                     <div className="flex items-center gap-1.5 mt-1">
                       <Calendar className="w-3 h-3 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">
-                        {new Date(p.data_chegada).toLocaleDateString("pt-BR")}
+                        {new Date(p.data_chegada + "T00:00:00").toLocaleDateString("pt-BR")}
                       </span>
                     </div>
                   )}

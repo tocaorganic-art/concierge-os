@@ -92,8 +92,8 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
             <SelectContent>
               {proposals.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
-                  {p.destino} · {p.data_chegada ? new Date(p.data_chegada).toLocaleDateString(localeDate) : ""}
-                  {p.data_saida ? `–${new Date(p.data_saida).toLocaleDateString(localeDate, { day: "2-digit", month: "2-digit" })}` : ""}
+                  {p.destino} · {p.data_chegada ? new Date(p.data_chegada + "T00:00:00").toLocaleDateString(localeDate) : ""}
+                  {p.data_saida ? `–${new Date(p.data_saida + "T00:00:00").toLocaleDateString(localeDate, { day: "2-digit", month: "2-digit" })}` : ""}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -43,7 +43,7 @@ function ProposalCard({ p, provided, snapshot, onMoveLeft, onMoveRight, stageIdx
       {p.data_chegada && (
         <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1.5">
           <Calendar className="w-3 h-3 flex-shrink-0" />
-          <span>{new Date(p.data_chegada).toLocaleDateString("pt-BR")}</span>
+          <span>{new Date(p.data_chegada + "T00:00:00").toLocaleDateString("pt-BR")}</span>
         </div>
       )}
       {p.num_pax > 0 && (
