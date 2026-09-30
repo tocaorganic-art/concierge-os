@@ -20,10 +20,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
-import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus } from "lucide-react";
-import { possivelBillingDuplicado, comprovantesDoBilling } from "@/lib/finance";
+import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus, Wand2 } from "lucide-react";
+import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao, valorPorNatureza } from "@/lib/finance";
 
-const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "", tipo_despesa: "variavel", motivo_cancelamento: "" };
+const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "", tipo_despesa: "variavel", motivo_cancelamento: "", natureza: "a_classificar", alocacao: [] };
+
+// Naturezas financeiras (mesmo enum de Billing.natureza) — repasse/caucao
+// nunca contam como receita própria; ver src/lib/finance.js.
+const NATUREZAS = [
+  { value: "a_classificar", label: "A classificar" },
+  { value: "honorario", label: "Honorário (taxa de concierge)" },
+  { value: "intermediacao", label: "Intermediação (minha margem)" },
+  { value: "comissao", label: "Comissão (fornecedor paga a mim)" },
+  { value: "repasse", label: "Repasse (custo do fornecedor)" },
+  { value: "caucao", label: "Caução (devolvível)" },
+];
 
 function addMonths(dateStr, months) {
   if (!dateStr) return "";
@@ -75,6 +86,37 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     queryFn: () => base44.entities.Billing.list("-created_date", 200),
   });
 
+  // Custo fechado com fornecedores desta viagem (lançado na Proposta) — usado
+  // só para sugerir a divisão repasse/intermediação abaixo, nunca lido pelo
+  // cliente (RLS já restringe ContratoFornecedor a admin/equipe).
+  const { data: contratosFornecedor = [] } = useQuery({
+    queryKey: ["contratos-fornecedor", form.proposal_id],
+    queryFn: () => base44.entities.ContratoFornecedor.filter({ proposal_id: form.proposal_id }),
+    enabled: !!form.proposal_id && !clientMode,
+  });
+
+  const custoFornecedorTotal = contratosFornecedor.reduce((sum, c) => sum + (c.custo_total || 0), 0);
+  // Repasse já classificado em OUTRAS cobranças desta mesma proposta — pra
+  // não sugerir repassar de novo um custo que já foi coberto.
+  const repasseJaAlocado = billings
+    .filter((b) => b.proposal_id === form.proposal_id && b.id !== billing?.id)
+    .reduce((sum, b) => sum + valorPorNatureza(b, ["repasse"]), 0);
+  const custoFornecedorPendente = Math.max(0, custoFornecedorTotal - repasseJaAlocado);
+  const alocacaoAtual = partesDaAlocacao({ natureza: form.natureza, alocacao: form.alocacao, valor: Number(form.valor) || 0 });
+
+  const sugerirDivisao = () => {
+    const valorBilling = Number(form.valor) || 0;
+    const repasse = Math.min(custoFornecedorPendente, valorBilling);
+    const intermediacao = Math.max(0, valorBilling - repasse);
+    setForm((f) => ({
+      ...f,
+      alocacao: [
+        ...(repasse > 0 ? [{ natureza: "repasse", valor: repasse }] : []),
+        ...(intermediacao > 0 ? [{ natureza: "intermediacao", valor: intermediacao }] : []),
+      ],
+    }));
+  };
+
   const categoriasExistentes = React.useMemo(() => {
     const vistas = new Map();
     [...CATEGORIAS_BASE, ...billings.map((b) => b.categoria).filter(Boolean)].forEach((c) => {
@@ -98,6 +140,8 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
         comprovante_url: billing.comprovante_url || "",
         tipo_despesa: billing.tipo_despesa || "variavel",
         motivo_cancelamento: billing.motivo_cancelamento || "",
+        natureza: billing.natureza || "a_classificar",
+        alocacao: billing.alocacao || [],
       });
     } else if (clientMode && fixedClient?.id) {
       setForm({ ...defaultForm, client_id: fixedClient.id, client_nome: fixedClient.nome || "" });
@@ -496,6 +540,46 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
               <Input type="date" value={form.data_vencimento} onChange={(e) => setForm((f) => ({ ...f, data_vencimento: e.target.value }))} className="mt-1.5 bg-secondary border-border" />
             </div>
           </div>
+
+          {!clientMode && !multiplas && !parcelar && (
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Natureza financeira</Label>
+              {form.alocacao?.length > 0 ? (
+                <div className="mt-1.5 space-y-1.5">
+                  {alocacaoAtual.map((a, i) => (
+                    <div key={i} className="flex items-center justify-between bg-secondary border border-border rounded-lg px-3 py-2 text-xs">
+                      <span className="text-foreground">{NATUREZAS.find((n) => n.value === a.natureza)?.label || a.natureza}</span>
+                      <span className="font-mono text-muted-foreground">{formatBRL(a.valor || 0)}</span>
+                    </div>
+                  ))}
+                  <Button type="button" variant="ghost" size="sm" className="text-xs h-7" onClick={() => setForm((f) => ({ ...f, alocacao: [] }))}>
+                    Limpar divisão
+                  </Button>
+                </div>
+              ) : (
+                <Select value={form.natureza} onValueChange={(v) => setForm((f) => ({ ...f, natureza: v }))}>
+                  <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {NATUREZAS.map((n) => (
+                      <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {form.proposal_id && custoFornecedorPendente > 0 && !(form.alocacao?.length > 0) && (
+                <button
+                  type="button"
+                  onClick={sugerirDivisao}
+                  className="mt-1.5 w-full flex items-center justify-center gap-1.5 text-xs text-primary hover:text-primary/80 bg-primary/5 border border-primary/20 rounded-lg py-2 transition-colors"
+                >
+                  <Wand2 className="w-3.5 h-3.5" /> Dividir automaticamente — repasse de {formatBRL(custoFornecedorPendente)} + minha margem
+                </button>
+              )}
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Repasse e caução nunca contam como receita própria nos KPIs do Dashboard.
+              </p>
+            </div>
+          )}
 
           {!billing && !multiplas && (
             <div className="rounded-xl border border-border bg-secondary/40 p-3 space-y-3">

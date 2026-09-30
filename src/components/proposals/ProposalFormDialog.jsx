@@ -18,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, Loader2, X } from "lucide-react";
+import { FileText, Loader2, X, Plus, Pencil, Trash2, Briefcase } from "lucide-react";
+import { formatBRL } from "@/lib/formatBRL";
+import ContratoFornecedorFormDialog from "@/components/proposals/ContratoFornecedorFormDialog";
 
 const defaultForm = {
   client_id: "",
@@ -42,6 +44,9 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
   const [uploadingContrato, setUploadingContrato] = useState(false);
   const [uploadContratoError, setUploadContratoError] = useState("");
   const [formError, setFormError] = useState("");
+  const [showFornecedorForm, setShowFornecedorForm] = useState(false);
+  const [editingFornecedor, setEditingFornecedor] = useState(null);
+  const [deletingFornecedor, setDeletingFornecedor] = useState(null);
   const contratoInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -49,6 +54,26 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("nome", 200),
   });
+
+  // Custo fechado com cada fornecedor desta viagem — uso interno (nunca
+  // exposto ao cliente), pra calcular a margem ao lado do valor cobrado
+  // dele. Só existe depois que a proposta já foi criada (precisa do id).
+  const { data: fornecedores = [] } = useQuery({
+    queryKey: ["contratos-fornecedor", proposal?.id],
+    queryFn: () => base44.entities.ContratoFornecedor.filter({ proposal_id: proposal.id }),
+    enabled: !!proposal?.id,
+  });
+
+  const deleteFornecedorMutation = useMutation({
+    mutationFn: (id) => base44.entities.ContratoFornecedor.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contratos-fornecedor", proposal?.id] });
+      setDeletingFornecedor(null);
+    },
+  });
+
+  const custoFornecedoresTotal = fornecedores.reduce((sum, f) => sum + (f.custo_total || 0), 0);
+  const margemEstimada = (Number(form.valor) || 0) - custoFornecedoresTotal;
 
   useEffect(() => {
     if (proposal) {
@@ -112,6 +137,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-card border-border">
         <DialogHeader>
@@ -291,6 +317,43 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
               {uploadContratoError && <p className="text-[11px] text-red-400 mt-1">{uploadContratoError}</p>}
               <p className="text-[11px] text-muted-foreground mt-1">Aparece integralmente em "Meu Contrato" para o cliente.</p>
             </div>
+            {proposal?.id && (
+              <div className="col-span-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Fornecedores desta viagem</Label>
+                  <Button type="button" variant="outline" size="sm" className="gap-1.5 h-7 text-xs" onClick={() => { setEditingFornecedor(null); setShowFornecedorForm(true); }}>
+                    <Plus className="w-3 h-3" /> Adicionar
+                  </Button>
+                </div>
+                {fornecedores.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground bg-secondary border border-border rounded-lg px-3 py-2">
+                    Nenhum fornecedor lançado ainda — custo fechado, nunca visível ao cliente.
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {fornecedores.map((f) => (
+                      <div key={f.id} className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
+                        <Briefcase className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-foreground truncate">{f.fornecedor_nome}{f.categoria ? ` · ${f.categoria}` : ""}</p>
+                        </div>
+                        <span className="text-xs font-mono text-muted-foreground flex-shrink-0">{formatBRL(f.custo_total || 0)}</span>
+                        <button type="button" onClick={() => { setEditingFornecedor(f); setShowFornecedorForm(true); }} className="text-muted-foreground hover:text-foreground flex-shrink-0">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button type="button" onClick={() => setDeletingFornecedor(f)} className="text-muted-foreground hover:text-red-400 flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-center justify-between mt-2 px-1 text-xs">
+                  <span className="text-muted-foreground">Margem estimada (valor cliente − custo fornecedores)</span>
+                  <span className={`font-mono font-semibold ${margemEstimada < 0 ? "text-red-400" : "text-primary"}`}>{formatBRL(margemEstimada)}</span>
+                </div>
+              </div>
+            )}
           </div>
           {formError && <p className="text-xs text-red-400">{formError}</p>}
           <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex justify-end gap-3 z-10">
@@ -305,5 +368,34 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
         </form>
       </DialogContent>
     </Dialog>
+    {proposal?.id && (
+      <>
+        <ContratoFornecedorFormDialog
+          open={showFornecedorForm}
+          onOpenChange={setShowFornecedorForm}
+          contrato={editingFornecedor}
+          proposalId={proposal.id}
+          clientId={proposal.client_id}
+        />
+        <Dialog open={!!deletingFornecedor} onOpenChange={(v) => !v && setDeletingFornecedor(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-display">Excluir fornecedor</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground -mt-2">
+              Tem certeza que quer excluir <strong className="text-foreground">{deletingFornecedor?.fornecedor_nome}</strong> desta viagem? Essa ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setDeletingFornecedor(null)}>Cancelar</Button>
+              <Button type="button" variant="destructive" disabled={deleteFornecedorMutation.isPending} onClick={() => deleteFornecedorMutation.mutate(deletingFornecedor.id)}>
+                {deleteFornecedorMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                Excluir
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    )}
+    </>
   );
 }
