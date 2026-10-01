@@ -95,15 +95,23 @@ export default function BuscaIA({ clientId }) {
     setPergunta("");
     setErro("");
     setCarregando(true);
+    // A pergunta aparece imediatamente com indicador de busca; a resposta
+    // substitui o indicador quando a IA responde.
+    setHistorico((h) => [...h, { pergunta: texto, resposta: "" }]);
     try {
       const contexto = montarContexto();
       const res = await base44.functions.invoke("generateWithAI", {
         type: "global_search",
         payload: { pergunta: texto, contexto },
       });
-      setHistorico((h) => [...h, { pergunta: texto, resposta: res?.data?.result || "" }]);
+      setHistorico((h) => {
+        const nova = [...h];
+        nova[nova.length - 1] = { pergunta: texto, resposta: res?.data?.result || "" };
+        return nova;
+      });
     } catch {
       setErro(t("common_ai_answer_error"));
+      setHistorico((h) => h.filter((item) => item.resposta));
     } finally {
       setCarregando(false);
     }
@@ -122,7 +130,14 @@ export default function BuscaIA({ clientId }) {
           {historico.map((h, i) => (
             <div key={i} className="text-[12px]">
               <p className="text-foreground font-medium">{h.pergunta}</p>
-              <p className="text-muted-foreground mt-0.5">{h.resposta}</p>
+              {h.resposta ? (
+                <p className="text-muted-foreground mt-0.5">{h.resposta}</p>
+              ) : (
+                <p className="text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                  {t("common_thinking")}
+                </p>
+              )}
             </div>
           ))}
         </div>
