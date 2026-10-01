@@ -113,7 +113,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           title={t("dash_kpi_pago")}
           value={formatBRL(totalPago)}
           icon={DollarSign}
-          valueClassName="text-emerald-400"
+          tone="success"
           to="/faturamento?status=recebido"
           trendLabel={dataUltimoPagamento ? `${pagosResumo.length} Pix · ${new Date(dataUltimoPagamento + "T00:00:00").toLocaleDateString(localeDate)}` : undefined}
         />
@@ -121,7 +121,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           title={t("dash_kpi_a_pagar")}
           value={formatBRL(totalAPagar)}
           icon={Wallet}
-          valueClassName={totalAPagar > 0 ? "text-amber-400" : "text-emerald-400"}
+          tone={totalAPagar > 0 ? "warning" : "success"}
           to="/faturamento?status=aberto"
           trendLabel={proximoVencimento ? `${t("common_prox_venc_label")} ${new Date(proximoVencimento + "T00:00:00").toLocaleDateString(localeDate)} · ${formatBRL(proximoVencimentoValor || 0)}` : undefined}
         />
@@ -129,6 +129,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           title={t("dash_kpi_caucao")}
           value={formatBRL(totalCaucao)}
           icon={Wallet}
+          tone="info"
           to="/faturamento?tipo=caucao"
           trendLabel={t("dash_caucao_trend")}
         />
@@ -139,7 +140,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
             title={t("dash_kpi_em_atraso")}
             value={formatBRL(emAtrasoValor)}
             icon={AlertCircle}
-            valueClassName="text-red-400"
+            tone="danger"
             to="/faturamento?status=atrasado"
             trendLabel={`${emAtrasoQtd} ${emAtrasoQtd > 1 ? t("common_cobranca_plural") : t("common_cobranca_singular")}`}
           />
@@ -357,10 +358,10 @@ export default function Dashboard() {
           title="Receita Própria do Mês (Caixa)"
           value={formatBRL(receitaMes.total)}
           icon={DollarSign}
-          valueClassName="text-emerald-400"
+          tone="success"
           trendLabel={
             receitaNaoClassificada > 0
-              ? <span className="inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3 flex-shrink-0" /> {formatBRL(receitaNaoClassificada)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.</span>
+              ? <span className="inline-flex items-center gap-1 text-warning"><AlertTriangle className="w-3 h-3 flex-shrink-0" /> {formatBRL(receitaNaoClassificada)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.</span>
               : `Honorário ${formatBRL(receitaMes.honorario)} · Intermediação ${formatBRL(receitaMes.intermediacao)} · Comissão ${formatBRL(receitaMes.comissao)}`
           }
         />
@@ -374,6 +375,7 @@ export default function Dashboard() {
           title="A Receber dos Clientes"
           value={formatBRL(aReceberClientes)}
           icon={Wallet}
+          tone="warning"
           to="/faturamento?status=aberto"
           trendLabel="Valor cheio (repasse + receita própria + caução)"
         />
@@ -381,6 +383,7 @@ export default function Dashboard() {
           title="Sua Receita a Receber"
           value={formatBRL(aReceberPropria)}
           icon={Wallet}
+          tone="warning"
           trendLabel="Só honorário + intermediação + comissão"
         />
       </div>
@@ -389,7 +392,7 @@ export default function Dashboard() {
           title="Em Atraso"
           value={formatBRL(atrasoTotal)}
           icon={AlertCircle}
-          valueClassName="text-red-400"
+          tone="danger"
           to="/faturamento?status=atrasado"
           trendLabel={atrasoQtd > 0 ? `${atrasoQtd} cobrança${atrasoQtd > 1 ? "s" : ""}` : "nenhuma"}
         />
@@ -397,18 +400,20 @@ export default function Dashboard() {
           title="Repasses em Custódia"
           value={formatBRL(custodia)}
           icon={Wallet}
+          tone="info"
         />
         <KpiCard
           title="Caução em Custódia"
           value={formatBRL(caucao)}
           icon={Wallet}
+          tone="info"
           to="/faturamento?tipo=caucao"
         />
         <KpiCard
           title="A Pagar a Fornecedores"
           value={formatBRL(aPagarFornecedores)}
           icon={AlertCircle}
-          valueClassName="text-red-400"
+          tone="danger"
           trendLabel="Custos vinculados a contratos de clientes (repasse) — não é margem própria"
         />
       </div>

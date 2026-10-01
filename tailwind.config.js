@@ -44,13 +44,26 @@ module.exports = {
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
   			gold: {
-  				DEFAULT: 'hsl(var(--gold))',
-  				light: 'hsl(var(--gold-light))',
-  				dark: 'hsl(var(--gold-dark))'
+  				DEFAULT: 'hsl(var(--gold) / <alpha-value>)',
+  				light: 'hsl(var(--gold-light) / <alpha-value>)',
+  				dark: 'hsl(var(--gold-dark) / <alpha-value>)'
   			},
-  			success: 'hsl(var(--success))',
-  			warning: 'hsl(var(--warning))',
-  			info: 'hsl(var(--info))',
+  			// `<alpha-value>` é obrigatório para os modificadores de opacidade
+  			// (bg-success/15, border-warning/30) funcionarem — sem ele o
+  			// Tailwind descarta o /15 e a cor sai 100% opaca.
+  			success: 'hsl(var(--success) / <alpha-value>)',
+  			warning: 'hsl(var(--warning) / <alpha-value>)',
+  			info: 'hsl(var(--info) / <alpha-value>)',
+  			danger: 'hsl(var(--danger) / <alpha-value>)',
+  			cat: {
+  				imovel: 'hsl(var(--cat-imovel) / <alpha-value>)',
+  				transporte: 'hsl(var(--cat-transporte) / <alpha-value>)',
+  				equipe: 'hsl(var(--cat-equipe) / <alpha-value>)',
+  				bemestar: 'hsl(var(--cat-bemestar) / <alpha-value>)',
+  				compras: 'hsl(var(--cat-compras) / <alpha-value>)',
+  				som: 'hsl(var(--cat-som) / <alpha-value>)',
+  				outros: 'hsl(var(--cat-outros) / <alpha-value>)'
+  			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',

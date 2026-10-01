@@ -84,7 +84,12 @@ export default function Agenda() {
     setShowForm(true);
   };
 
-  const TaskCard = ({ task }) => {
+  // `compact` é a variante da visualização Semana: a coluna tem 1/7 da
+  // largura, então um título longo (ex.: lembrete de parcela gerado pela
+  // leitura do contrato) quebrava em 6-7 linhas e desequilibrava a grade.
+  // No compacto ficam só horário, cliente e badge de categoria — o texto
+  // completo segue no tooltip e no modal do evento (clique no card).
+  const TaskCard = ({ task, compact = false }) => {
     const gcalUrl = buildGCalUrl(task);
     const [copied, setCopied] = useState(false);
     const handleCopyMensagem = async (e) => {
@@ -100,33 +105,36 @@ export default function Agenda() {
     return (
       <div
         onClick={() => !isClient && setSelectedEventId(task.id)}
-        className={`flex items-start gap-3 p-4 rounded-xl border transition-all gold-border-hover ${
+        className={`flex items-start gap-3 rounded-xl border transition-all gold-border-hover ${compact ? "p-2.5" : "p-4"} ${
           task.status === "concluido" ? "opacity-50 bg-card/50" : "bg-card border-border"
         } ${!isClient ? "cursor-pointer" : ""}`}
       >
         <button onClick={(e) => { e.stopPropagation(); if (!isClient) toggleTask.mutate(task); }} disabled={isClient} className={`mt-0.5 flex-shrink-0 ${isClient ? "cursor-default" : ""}`}>
           {task.status === "concluido" ? (
-            <CheckCircle2 className="w-5 h-5 text-green-400" />
+            <CheckCircle2 className={`${compact ? "w-4 h-4" : "w-5 h-5"} text-success`} />
           ) : (
-            <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
+            <Circle className={`${compact ? "w-4 h-4" : "w-5 h-5"} text-muted-foreground hover:text-primary transition-colors`} />
           )}
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <p className={`text-sm font-medium leading-tight ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}>
+            <p
+              title={task.titulo}
+              className={`text-sm font-medium leading-tight line-clamp-2 ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}
+            >
               {task.titulo}
             </p>
             <div className="flex items-center gap-1 flex-shrink-0">
               {task.horario && (
                 <span className="font-mono text-xs font-bold text-primary">{task.horario}</span>
               )}
-              {gcalUrl && (
+              {gcalUrl && !compact && (
                 <a href={gcalUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
                   className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors" title="Exportar para Google Calendar">
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}
-              {task.tipo === "chamada" && task.client_id && (
+              {task.tipo === "chamada" && task.client_id && !compact && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setWhatsappTask(task); }}
                   className="w-6 h-6 flex items-center justify-center rounded text-green-400 hover:bg-green-500/10 transition-colors"
@@ -139,14 +147,14 @@ export default function Agenda() {
           </div>
           <div className="flex items-center gap-2 flex-wrap mt-1">
             {task.tipo && <StatusBadge status={task.tipo} />}
-            {task.status === "em_progresso" && <EventStatusBadge status="em_progresso" />}
-            {task.prioridade && task.prioridade !== "media" && <StatusBadge status={task.prioridade} />}
-            {task.lembrete_antecedencia && (
+            <EventStatusBadge status={task.status || "pendente"} />
+            {task.prioridade && task.prioridade !== "media" && !compact && <StatusBadge status={task.prioridade} />}
+            {task.lembrete_antecedencia && !compact && (
               <span className="inline-flex items-center gap-1 font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full"><Bell className="w-2.5 h-2.5" /> {task.lembrete_antecedencia}</span>
             )}
             {task.client_nome && <span className="text-[11px] text-muted-foreground">• {task.client_nome}</span>}
           </div>
-          {task.mensagem_rascunho && (
+          {task.mensagem_rascunho && !compact && (
             <div className="mt-2 p-2.5 rounded-lg bg-secondary/50 border border-border/60">
               <p className="text-[11px] text-muted-foreground whitespace-pre-line line-clamp-3">{task.mensagem_rascunho}</p>
               <button
@@ -265,7 +273,7 @@ export default function Agenda() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    {dayTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+                    {dayTasks.map((task) => <TaskCard key={task.id} task={task} compact />)}
                     <FaturasDoDia billings={billings} dateStr={format(day, "yyyy-MM-dd")} />
                   </div>
                 </div>
