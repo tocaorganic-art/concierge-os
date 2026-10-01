@@ -242,8 +242,39 @@ export default function Settings() {
                 if (!inviteEmail) return;
                 setInviteStatus("");
                 try {
-                  await base44.users.inviteUser(inviteEmail, "user");
                   const client = clientsForInvite.find((c) => c.id === inviteClientId);
+                  const emailNorm = inviteEmail.trim().toLowerCase();
+                  // Email JÁ registrado neste app? A plataforma recusa
+                  // re-convite ("Only users with collaborator access...").
+                  // Não tentamos inviteUser de novo — tratamos direto.
+                  const usuarios = await base44.entities.User.list();
+                  const usuarioExistente = (usuarios || []).find(
+                    (u) => (u.email || "").toLowerCase() === emailNorm
+                  );
+                  if (usuarioExistente) {
+                    if (usuarioExistente.role === "admin" || usuarioExistente.account_type === "equipe") {
+                      // Vincular conta de equipe/admin como cliente derrubaria
+                      // o acesso admin dela — protege o dono do erro comum.
+                      setInviteStatus(`Este email já tem conta de equipe/admin no app e não pode virar cliente. Use um email novo para o convite (ou use o modo "Ver como cliente" na Visão Geral).`);
+                      return;
+                    }
+                    // Já é conta cliente: só atualiza o vínculo com o cliente selecionado.
+                    await base44.entities.User.update(usuarioExistente.id, {
+                      account_type: inviteType,
+                      client_id: inviteType === "cliente" ? inviteClientId : "",
+                    });
+                    if (inviteType === "cliente" && inviteClientId) {
+                      await base44.entities.Client.update(inviteClientId, {
+                        invited_at: new Date().toISOString(),
+                        invited_by: currentUser?.email || "",
+                      });
+                    }
+                    setInviteStatus(`Acesso atualizado — ${client?.nome || emailNorm} agora está vinculado a esta conta existente.`);
+                    setInviteEmail("");
+                    setInviteClientId("");
+                    return;
+                  }
+                  await base44.users.inviteUser(inviteEmail, "user");
                   // Re-convite: não duplica o perfil já vinculado a este e-mail.
                   const perfisExistentes = await base44.entities.UserProfile.filter({ invite_email: inviteEmail });
                   if (!perfisExistentes?.length) {
