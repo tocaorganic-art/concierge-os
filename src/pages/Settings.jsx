@@ -252,24 +252,35 @@ export default function Settings() {
                     (u) => (u.email || "").toLowerCase() === emailNorm
                   );
                   if (usuarioExistente) {
-                    if (usuarioExistente.role === "admin" || usuarioExistente.account_type === "equipe") {
-                      // Vincular conta de equipe/admin como cliente derrubaria
-                      // o acesso admin dela — protege o dono do erro comum.
-                      setInviteStatus(`Este email já tem conta de equipe/admin no app e não pode virar cliente. Use um email novo para o convite (ou use o modo "Ver como cliente" na Visão Geral).`);
-                      return;
-                    }
-                    // Já é conta cliente: só atualiza o vínculo com o cliente selecionado.
+                    // Conta já existe: a plataforma não aceita re-convite, então
+                    // liberamos o acesso direto, gravando o vínculo na própria conta.
                     await base44.entities.User.update(usuarioExistente.id, {
                       account_type: inviteType,
                       client_id: inviteType === "cliente" ? inviteClientId : "",
                     });
+                    const perfilExistente = (await base44.entities.UserProfile.filter({ user_id: usuarioExistente.id }))?.[0];
+                    const dadosPerfil = {
+                      account_type: inviteType,
+                      client_id: inviteType === "cliente" ? inviteClientId : "",
+                      invite_email: emailNorm,
+                    };
+                    if (perfilExistente) {
+                      await base44.entities.UserProfile.update(perfilExistente.id, dadosPerfil);
+                    } else {
+                      await base44.entities.UserProfile.create({ user_id: usuarioExistente.id, plan_id: "trial", ...dadosPerfil });
+                    }
                     if (inviteType === "cliente" && inviteClientId) {
                       await base44.entities.Client.update(inviteClientId, {
                         invited_at: new Date().toISOString(),
                         invited_by: currentUser?.email || "",
                       });
+                      try {
+                        await base44.functions.invoke("sendWelcomeEmail", { client_id: inviteClientId });
+                      } catch {
+                        // boas-vindas pode ser reenviada depois na ficha do cliente
+                      }
                     }
-                    setInviteStatus(`Acesso atualizado — ${client?.nome || emailNorm} agora está vinculado a esta conta existente.`);
+                    setInviteStatus(`Acesso liberado — ${emailNorm} agora entra como ${inviteType === "cliente" ? `cliente (${client?.nome || ""})` : "equipe"}.`);
                     setInviteEmail("");
                     setInviteClientId("");
                     return;
