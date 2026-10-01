@@ -1,16 +1,22 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
-import Anthropic from 'npm:@anthropic-ai/sdk@0.32.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
-Deno.serve(async (req) => {
+// Toda a IA do app passa pelo InvokeLLM (integração nativa da plataforma).
+// Antes este arquivo chamava a API da Anthropic direto com a secret
+// ANTHROPIC_API_KEY — a chave ficou inválida e toda chamada virava erro 500
+// (Toca TrIA do cliente e do admin parados). InvokeLLM não depende de
+// secret nenhuma, então não volta a quebrar por chave expirada.
+
+export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { type, payload } = await req.json();
-    const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") });
+    const llm = (args) => base44.asServiceRole.integrations.Core.InvokeLLM(args);
 
     let prompt = "";
+    let jsonSchema = null;
 
     if (type === "proposal") {
       const { client_nome, destino, tipo_servico, budget, num_pessoas, data_chegada, data_saida, observacoes, referencia_estilo } = payload;
@@ -26,13 +32,16 @@ Dados do cliente:
 - Observações: ${observacoes || "Nenhuma"}
 ${referencia_estilo ? `- Estilo de referência: ${referencia_estilo}` : ""}
 
-Gere exatamente este JSON (sem markdown, apenas JSON puro):
-{
-  "titulo": "título elegante e personalizado da proposta",
-  "servicos": "lista detalhada dos serviços sugeridos para este tipo, separados por vírgula (ex: Transfer VIP aeroporto, Hospedagem 5 estrelas, Jantar exclusivo, Passeios privativos)",
-  "descricao": "descrição profissional e envolvente da proposta em 2-3 parágrafos, personalizada para o cliente e destino",
-  "observacoes": "observações profissionais sobre logística, diferenciais e próximos passos"
-}`;
+Retorne um JSON com as chaves: titulo, servicos, descricao, observacoes.`;
+      jsonSchema = {
+        type: "object",
+        properties: {
+          titulo: { type: "string" },
+          servicos: { type: "string" },
+          descricao: { type: "string" },
+          observacoes: { type: "string" },
+        },
+      };
     } else if (type === "whatsapp") {
       const { template, client_nome, context } = payload;
       const templates = {
@@ -86,14 +95,23 @@ Dados:
 - Tarefas pendentes: ${tarefasPendentes}
 - Propostas confirmadas: ${proposals.filter(p => p.status === "confirmado" || p.status === "concluido").length}
 
-Responda apenas com JSON puro (sem markdown):
-{
-  "recomendacoes": [
-    { "titulo": "título curto da recomendação", "descricao": "recomendação acionável e específica em 1-2 frases", "tipo": "urgente|oportunidade|melhoria" },
-    { "titulo": "...", "descricao": "...", "tipo": "..." },
-    { "titulo": "...", "descricao": "...", "tipo": "..." }
-  ]
-}`;
+Cada recomendação tem: titulo (curto), descricao (acionável, 1-2 frases) e tipo (urgente|oportunidade|melhoria).`;
+      jsonSchema = {
+        type: "object",
+        properties: {
+          recomendacoes: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                titulo: { type: "string" },
+                descricao: { type: "string" },
+                tipo: { type: "string", enum: ["urgente", "oportunidade", "melhoria"] },
+              },
+            },
+          },
+        },
+      };
     } else if (type === "chat") {
       const { messages: chatHistory, user_context } = payload;
       const systemPrompt = `Você é a Toca TrIA, a assistente de IA do Concierge OS — uma plataforma para operadores de turismo de luxo e concierge no Brasil.
@@ -110,18 +128,15 @@ Você ajuda com:
 Contexto do usuário: ${user_context || "operador de concierge"}
 
 Seja direta, prática e amigável. Responda sempre em português brasileiro. Use emojis com moderação quando apropriado.`;
+      const historicoTexto = (chatHistory || [])
+        .map(m => `${m.role === "assistant" ? "Toca TrIA" : "Usuário"}: ${m.content}`)
+        .join("\n");
+      prompt = `${systemPrompt}
 
-      const formattedMessages = chatHistory.map(m => ({ role: m.role, content: m.content }));
+Histórico da conversa até agora:
+${historicoTexto}
 
-      const message = await anthropic.messages.create({
-        model: "claude-opus-4-5",
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: formattedMessages,
-      });
-
-      return Response.json({ result: message.content[0].text.trim() });
-
+Responda a última mensagem do usuário, continuando a conversa naturalmente. Responda apenas com a sua resposta, sem prefixos.`;
     } else if (type === "schedule_suggestion") {
       const { tasks_today, new_task_duration } = payload;
       const occupied = tasks_today.filter(t => t.horario).map(t => t.horario).sort();
@@ -163,20 +178,13 @@ Pergunta do cliente: ${pergunta}
 Responda em português, de forma direta e curta, citando a parte relevante do contrato quando possível.`;
     }
 
-    const message = await anthropic.messages.create({
-      model: "claude-opus-4-5",
-      max_tokens: 1024,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const text = message.content[0].text.trim();
-
-    if (type === "proposal" || type === "ai_suggestions") {
-      const json = JSON.parse(text);
-      return Response.json({ result: json });
+    if (!prompt) {
+      return Response.json({ error: `Tipo inválido: ${type}` }, { status: 400 });
     }
-    return Response.json({ result: text });
+
+    const result = await llm(jsonSchema ? { prompt, response_json_schema: jsonSchema } : { prompt });
+    return Response.json({ result });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
-});
+}

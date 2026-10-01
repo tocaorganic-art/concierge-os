@@ -15,10 +15,12 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Loader2, Sparkles, CheckCircle2, ImageIcon, X, Plus, Lock } from "lucide-react";
+import { Camera, Loader2, Sparkles, CheckCircle2, ImageIcon, X, Plus, Lock, Building2 } from "lucide-react";
+import { CLIENTE_INTERNO_ID, CLIENTE_INTERNO_NOME } from "@/lib/finance";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { useCategorias } from "@/lib/useCategorias";
 import { TIPO_DESPESA, criarOuReativarCategoria, garantirCategoria, norm as normalize, opcoesComAtual } from "@/lib/categoriasCatalogo";
@@ -109,7 +111,14 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
     },
   });
 
+  const INTERNAL_VALUE = "__interno__";
   const handleClientChange = (clientId) => {
+    if (clientId === INTERNAL_VALUE) {
+      // Custo interno da operação (ex.: ferramentas, assinaturas) — sem
+      // cliente/evento vinculado; não entra em KPI por cliente.
+      setForm((f) => ({ ...f, client_id: CLIENTE_INTERNO_ID, client_nome: CLIENTE_INTERNO_NOME, proposal_id: "" }));
+      return;
+    }
     const client = clients.find((c) => c.id === clientId);
     setForm((f) => ({ ...f, client_id: clientId, client_nome: client?.nome || "" }));
   };
@@ -277,9 +286,16 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente / Evento</Label>
-            <Select value={form.client_id} onValueChange={handleClientChange}>
+            <Select
+              value={form.client_id === CLIENTE_INTERNO_ID ? INTERNAL_VALUE : form.client_id}
+              onValueChange={handleClientChange}
+            >
               <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value={INTERNAL_VALUE} className="text-primary font-medium">
+                  <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> {CLIENTE_INTERNO_NOME}</span>
+                </SelectItem>
+                <SelectSeparator />
                 {clients.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                 ))}

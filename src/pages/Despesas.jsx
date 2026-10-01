@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { CLIENTE_INTERNO_ID, CLIENTE_INTERNO_NOME } from "@/lib/finance";
 import PageHeader from "@/components/shared/PageHeader";
 import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
@@ -91,7 +92,9 @@ export default function Despesas() {
       return acc;
     }, {})
   ).sort((a, b) => b[1] - a[1]);
-  const totalMargemAdmin = expenses.reduce((sum, e) => sum + (e.margem_admin || 0), 0);
+  const totalMargemAdmin = expenses
+    .filter((e) => e.client_id !== CLIENTE_INTERNO_ID)
+    .reduce((sum, e) => sum + (e.margem_admin || 0), 0);
 
   if (isLoading) {
     return (
@@ -135,6 +138,8 @@ export default function Despesas() {
           <SelectTrigger className="w-full sm:w-44 bg-secondary border-border"><SelectValue placeholder="Cliente" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os clientes</SelectItem>
+            <SelectItem value={CLIENTE_INTERNO_ID}>{CLIENTE_INTERNO_NOME}</SelectItem>
+            <SelectSeparator />
             {clients.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
             ))}

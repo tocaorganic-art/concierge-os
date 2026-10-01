@@ -23,6 +23,7 @@ import { formatBRL } from "@/lib/formatBRL";
 import { categoriaFornecedorVisual } from "@/lib/uiTones";
 import ContratoFornecedorFormDialog from "@/components/proposals/ContratoFornecedorFormDialog";
 import LeituraContratoModal from "@/components/proposals/LeituraContratoModal";
+import { ETAPAS } from "@/components/dashboard/DashboardStatusViagem";
 
 const defaultForm = {
   client_id: "",
@@ -33,6 +34,7 @@ const defaultForm = {
   num_pax: "",
   valor: "",
   status: "lead",
+  etapa_jornada: 1,
   data_validade: "",
   servicos: "",
   observacoes: "",
@@ -89,6 +91,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
         num_pax: proposal.num_pax || "",
         valor: proposal.valor || "",
         status: proposal.status || "lead",
+        etapa_jornada: proposal.etapa_jornada || 1,
         data_validade: proposal.data_validade || "",
         servicos: proposal.servicos || "",
         observacoes: proposal.observacoes || "",
@@ -226,6 +229,20 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                 </SelectContent>
               </Select>
             </div>
+            {proposal?.id && (
+              <div className="col-span-2">
+                <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Etapa da jornada (portal do cliente)</Label>
+                <Select value={String(form.etapa_jornada || 1)} onValueChange={(v) => setForm((f) => ({ ...f, etapa_jornada: Number(v) }))}>
+                  <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ETAPAS.map((label, i) => (
+                      <SelectItem key={label} value={String(i + 1)}>{i + 1}. {label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground mt-1">Você define quando avançar — o cliente vê a fase atual no portal. Não avança sozinha.</p>
+              </div>
+            )}
             <div className="col-span-2">
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Válida até</Label>
               <Input

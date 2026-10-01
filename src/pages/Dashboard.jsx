@@ -14,6 +14,7 @@ import DashboardProximosEventos from "@/components/dashboard/DashboardProximosEv
 import DashboardMeuGrupoResumo from "@/components/dashboard/DashboardMeuGrupoResumo";
 import DashboardSeusPagamentos from "@/components/dashboard/DashboardSeusPagamentos";
 import RequestModal from "@/components/concierge/RequestModal";
+import EventModal from "@/components/events/EventModal";
 import { useLanguage, safeLocaleDate } from "@/lib/i18n";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
@@ -48,6 +49,10 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
   const queryClient = useQueryClient();
   const [proposalIdSelecionado, setProposalIdSelecionado] = useState(proposals?.[0]?.id || "");
   const proposta = proposals.find((p) => p.id === proposalIdSelecionado) || proposals[0];
+  // Modal de edição de evento (o mesmo da Agenda) — só para admin (inclusive
+  // "ver como cliente"); para o cliente real o widget segue somente-leitura.
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const podeEditarEventos = user?.role === "admin";
 
   const localeDate = safeLocaleDate(t);
   const TIPOS_PEDIDO = getTiposPedido(t);
@@ -176,7 +181,7 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <div className="xl:col-span-2">
-          <DashboardProximosEventos tasks={tasks} />
+          <DashboardProximosEventos tasks={tasks} onTaskClick={podeEditarEventos ? setSelectedEventId : undefined} />
         </div>
         <DashboardMeuGrupoResumo hospedes={hospedes} />
       </div>
@@ -194,6 +199,13 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
           onClose={() => setSelectedTipo(null)}
           onSubmit={(data) => createMutation.mutate({ ...data, client_id: user?.client_id })}
           isSubmitting={createMutation.isPending}
+        />
+      )}
+
+      {podeEditarEventos && (
+        <EventModal
+          task={tasks.find((tk) => tk.id === selectedEventId) || null}
+          onClose={() => setSelectedEventId(null)}
         />
       )}
     </div>

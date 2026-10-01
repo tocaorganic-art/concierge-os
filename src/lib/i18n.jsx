@@ -131,9 +131,19 @@ function LanguageProviderInner({ children }) {
       // estado assincrono do i18next.
       t: (key, options) => {
         const result = t(key, options);
-        if (result === key && !options) {
+        if (result === key) {
           const direct = resources[lang]?.translation?.[key] ?? resources["pt-BR"]?.translation?.[key];
-          if (direct !== undefined) return direct;
+          if (typeof direct === "string") {
+            if (!options) return direct;
+            // Interpolação manual dos placeholders {{x}} — cobre as chamadas
+            // COM options (ex: dash_receita_aguardando, meugrupo_summary,
+            // meugrupo_missing_flight/doc, meugrupo_excedente_warning), que
+            // era exatamente o caso em que a rede de segurança anterior não
+            // entrava e a chave crua aparecia na tela.
+            return direct.replace(/\{\{(\w+)\}\}/g, (match, name) =>
+              options[name] !== undefined ? String(options[name]) : match
+            );
+          }
         }
         return result;
       },

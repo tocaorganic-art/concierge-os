@@ -537,7 +537,7 @@ export const translations = {
     request_type_reserva_label: "Reservar",
     request_type_reserva_sub: "Restaurantes, hotéis, transfers",
 
-    requests_empty_desc: "Quando seus clientes fizerem pedidos, eles aparecerão aqui",
+    requests_empty_desc: "Quando você fizer um pedido, ele aparecerá aqui",
     requests_empty_title: "Nenhuma solicitação encontrada",
     requests_new_button: "Novo Pedido",
     requests_novo_singular: "novo",
@@ -1118,7 +1118,7 @@ export const translations = {
     request_type_reserva_label: "Book",
     request_type_reserva_sub: "Restaurants, hotels, transfers",
 
-    requests_empty_desc: "When your clients make requests, they'll appear here",
+    requests_empty_desc: "When you make a request, it will appear here",
     requests_empty_title: "No requests found",
     requests_new_button: "New Request",
     requests_novo_singular: "new",
@@ -1699,7 +1699,7 @@ export const translations = {
     request_type_reserva_label: "Reservar",
     request_type_reserva_sub: "Restaurantes, hoteles, traslados",
 
-    requests_empty_desc: "Cuando tus clientes hagan pedidos, aparecerán aquí",
+    requests_empty_desc: "Cuando hagas un pedido, aparecerá aquí",
     requests_empty_title: "No se encontraron solicitudes",
     requests_new_button: "Nuevo Pedido",
     requests_novo_singular: "nuevo",

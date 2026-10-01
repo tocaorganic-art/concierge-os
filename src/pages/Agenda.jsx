@@ -120,12 +120,12 @@ export default function Agenda() {
           <div className="flex items-start justify-between gap-2 mb-1">
             <p
               title={task.titulo}
-              className={`text-sm font-medium leading-tight line-clamp-2 ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}
+              className={`text-sm font-medium leading-tight line-clamp-2 flex-1 min-w-0 ${task.status === "concluido" ? "line-through text-muted-foreground" : "text-foreground"}`}
             >
               {task.titulo}
             </p>
             <div className="flex items-center gap-1 flex-shrink-0">
-              {task.horario && (
+              {task.horario && !compact && (
                 <span className="font-mono text-xs font-bold text-primary">{task.horario}</span>
               )}
               {gcalUrl && !compact && (
@@ -146,6 +146,9 @@ export default function Agenda() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap mt-1">
+            {task.horario && compact && (
+              <span className="font-mono text-xs font-bold text-primary">{task.horario}</span>
+            )}
             {task.tipo && <StatusBadge status={task.tipo} />}
             <EventStatusBadge status={task.status || "pendente"} />
             {task.prioridade && task.prioridade !== "media" && !compact && <StatusBadge status={task.prioridade} />}

@@ -23,7 +23,7 @@ import { LinhaParcela } from "@/components/billing/ClientBillingBlocks";
 import { getClientColor } from "@/lib/clientColor";
 import {
   statusDerivado, saldoDevedor, valorRecebido, agruparBillingsCliente,
-  receitaCaixaDoMes, totalAReceber, emAtraso, indiceRecebimento,
+  receitaCaixaDoMes, totalAReceber, emAtrasoTotal, indiceRecebimento,
   comprovantesDoBilling, ultimoComprovante,
 } from "@/lib/finance";
 
@@ -207,7 +207,7 @@ export default function Billing() {
   const now = new Date();
   const thisMonthReceived = receitaCaixaDoMes(billings, recebimentos, now.getMonth() + 1, now.getFullYear());
   const pendingTotal = totalAReceber(billings, recebimentos);
-  const { total: overdueTotal, quantidade: overdueCount } = emAtraso(billings, recebimentos);
+  const { total: overdueTotal, quantidade: overdueCount } = emAtrasoTotal(billings, recebimentos);
   const indice = indiceRecebimento(billings, recebimentos);
 
   // Reserva Financeira = apenas crédito real (depósitos do cliente / saldo que sobrou), nunca cobrança a receber.

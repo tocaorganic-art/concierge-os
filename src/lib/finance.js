@@ -151,6 +151,12 @@ function inPeriod(dateStr, month, year) {
 // Tony, não repassado a fornecedor nem devolvido como caução).
 const NATUREZAS_RECEITA_PROPRIA = ["honorario", "intermediacao", "comissao"];
 
+// Despesa de custo interno da operação (Toca Concierge) — sem client_id
+// real. Nunca entra em KPI por cliente (repasses em custódia, margem):
+// é custo da empresa, não de viagem de um cliente.
+export const CLIENTE_INTERNO_ID = "toca_interno";
+export const CLIENTE_INTERNO_NOME = "Toca Concierge (interno)";
+
 // Um Billing "misto" (preço cheio cobrado do cliente) pode conter partes de
 // naturezas diferentes — ex.: uma parcela de aluguel = repasse ao
 // proprietário + intermediação + honorário, todos embutidos no mesmo
@@ -344,7 +350,9 @@ export function repassesEmCustodia(billings, recebimentos, expenses) {
     billings.reduce((sum, b) => sum + valorPorNaturezaRecebido(b, recebimentos, ["repasse"]), 0)
   );
   const pagoFornecedores = roundCents(
-    expenses.filter((e) => (e.status || "pago") === "pago").reduce((sum, e) => sum + (e.valor || 0), 0)
+    expenses
+      .filter((e) => (e.status || "pago") === "pago" && e.client_id !== CLIENTE_INTERNO_ID)
+      .reduce((sum, e) => sum + (e.valor || 0), 0)
   );
   return roundCents(recebidoRepasse - pagoFornecedores);
 }

@@ -6,7 +6,10 @@ import StatusBadge from "@/components/shared/StatusBadge";
 // mostra tarefas de HOJE, pensado pro admin que abre o Dashboard todo dia).
 // A viagem do cliente é uma data futura específica, então mostra os
 // próximos eventos futuros (visivel_cliente=true via RLS), não só "hoje".
-export default function DashboardProximosEventos({ tasks }) {
+// onTaskClick (só passado pro admin, inclusive "ver como cliente") abre o
+// mesmo EventModal usado na página Agenda — para o cliente real o widget
+// segue somente-leitura (RLS de Task não permite update pra ele).
+export default function DashboardProximosEventos({ tasks, onTaskClick }) {
   const hojeStr = new Date().toISOString().split("T")[0];
   const proximos = tasks
     .filter((task) => task.data >= hojeStr)
@@ -21,7 +24,13 @@ export default function DashboardProximosEventos({ tasks }) {
           <p className="text-sm text-muted-foreground text-center py-8">Nenhum evento agendado ainda.</p>
         )}
         {proximos.map((task) => (
-          <div key={task.id} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-secondary/30">
+          <div
+            key={task.id}
+            onClick={() => onTaskClick?.(task.id)}
+            className={`flex items-start gap-3 p-3 rounded-lg border border-border bg-secondary/30 ${
+              onTaskClick ? "cursor-pointer hover:border-primary/40 transition-colors" : ""
+            }`}
+          >
             <div className="mt-0.5">
               <Clock className="w-4 h-4 text-muted-foreground" />
             </div>

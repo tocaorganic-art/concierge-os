@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Crown, Sparkles, Loader2, CheckCircle2, Wine, Plane } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 
 function getViajaCom(t) {
   return [
@@ -29,9 +30,11 @@ function getHospedagem(t) {
 
 export default function ClientProfile() {
   const { t } = useLanguage();
+  const { isClientMode, effectiveClientId } = useEffectiveRole();
   const VIAJA_COM = getViajaCom(t);
   const HOSPEDAGEM = getHospedagem(t);
   const [user, setUser] = useState(null);
+  const [clientNome, setClientNome] = useState("");
   const [memory, setMemory] = useState(null);
   const [form, setForm] = useState({});
   const [saved, setSaved] = useState(false);
@@ -41,6 +44,15 @@ export default function ClientProfile() {
     const load = async () => {
       const u = await base44.auth.me();
       setUser(u);
+      // Nome exibido = nome do registro Client vinculado ao login (o mesmo
+      // que Meu Grupo e Meu Contrato mostram), não o full_name do User —
+      // que pode ser de outra conta (ex.: "Antonio"). No modo "ver como
+      // cliente", usa o cliente efetivo da visualização.
+      const clientId = isClientMode && effectiveClientId ? effectiveClientId : u?.client_id;
+      if (clientId) {
+        const clients = await base44.entities.Client.filter({ id: clientId });
+        setClientNome(clients?.[0]?.nome || "");
+      }
       const mems = await base44.entities.ClientMemory.filter({ user_id: u.id });
       const m = mems?.[0] || null;
       setMemory(m);
@@ -82,7 +94,7 @@ export default function ClientProfile() {
           <Crown className="w-3 h-3" /> {t("profile_badge")}
         </div>
         <h1 className="font-heading text-2xl font-bold text-foreground">
-          {user?.full_name?.split(" ")[0] || t("profile_fallback_name")}
+          {clientNome || user?.full_name || t("profile_fallback_name")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           {t("profile_subtitle")}
