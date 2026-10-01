@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ShieldOff, Eye, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { ViewAsClientProvider, useEffectiveRole } from "@/lib/ViewAsClientContext";
 import Sidebar from "./Sidebar";
@@ -9,6 +8,7 @@ import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
 import MobileBottomNav from "./MobileBottomNav";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import { deveMostrarOnboardingOperador } from "@/lib/papel";
 import TutorialModal from "@/components/tutorial/TutorialModal";
 import ClientTour from "@/components/client/ClientTour";
 import PwaInstallPopup from "@/components/PwaInstallPopup";
@@ -54,48 +54,35 @@ export default function AppLayout() {
 
 function AppLayoutInner() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showClientTour, setShowClientTour] = useState(false);
-  const { isLoading: isLoadingProfile } = useUserProfile();
+  const { user, isClient, isLoading: isLoadingProfile } = useUserProfile();
   const { isClientMode, isImpersonating, viewingClientNome, stopViewAs } = useEffectiveRole();
   const location = useLocation();
 
+  // Decide onboarding/tour só DEPOIS que o papel foi resolvido (useUserProfile já
+  // espera o vínculo do convite). Antes isto lia um auth.me() próprio, em
+  // paralelo, ainda sem o vínculo — o cliente recém-convidado caía no assistente
+  // de configuração de operador (criar cliente/proposta) em vez do Portal.
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
-      if (!u) return;
-      setUser(u);
+    if (isLoadingProfile || !user) return;
 
-      // Onboarding — assistente de configuração da operação (nome do
-      // negócio, primeiro cliente, primeira proposta). Faz sentido só para
-      // quem opera o Toca OS (admin/equipe); uma conta cliente nunca tem
-      // permissão para criar Client/Proposal (RLS), então mostrar isto a
-      // ela só gera erro de permissão no meio do primeiro acesso.
-      if (u.first_login !== false && u.account_type !== "cliente") {
-        setShowOnboarding(true);
-        return; // tutorial abre depois, quando o onboarding fechar (ver onComplete abaixo)
-      }
+    // Onboarding de operação: só para quem opera o Toca OS (admin/equipe).
+    // Conta cliente não tem permissão de criar Client/Proposal (RLS).
+    if (deveMostrarOnboardingOperador({ user, isClient })) {
+      setShowOnboarding(true);
+      return; // tutorial abre depois, quando o onboarding fechar (ver onComplete abaixo)
+    }
 
-      // tutorial_seen_${id} era escrito ao fechar o TutorialModal mas nunca
-      // lido em lugar nenhum — o tour animado só abria manualmente pelo
-      // Sidebar, nunca sozinho no primeiro acesso (achado real). Aqui é
-      // onde ele deveria ter sido consultado desde o início: sem esse
-      // registro (cliente novo, ou admin/equipe que já passou pelo
-      // onboarding de operação mas nunca viu o tour do produto), abre uma
-      // vez; depois fica só o botão manual "Tutorial" no menu.
-      if (u.account_type === "cliente") {
-        // Tour guiado do Portal do Cliente (Bug 11): substitui o tour
-        // animado do produto (que é do dashboard admin) para contas
-        // cliente. Abre só no primeiro acesso — a flag onboarding_concluido
-        // é gravada no perfil do usuário ao concluir ou pular; depois só
-        // reabre pelo botão "Ver tour novamente" na página Perfil.
-        if (u.onboarding_concluido !== true) setShowClientTour(true);
-      } else if (u.id && !localStorage.getItem(`tutorial_seen_${u.id}`)) {
-        setShowTutorial(true);
-      }
-    }).catch(() => {});
-  }, []);
+    if (isClient) {
+      // Tour guiado do Portal do Cliente: abre só no primeiro acesso; a flag
+      // onboarding_concluido é gravada ao concluir/pular.
+      if (user.onboarding_concluido !== true) setShowClientTour(true);
+    } else if (user.id && !localStorage.getItem(`tutorial_seen_${user.id}`)) {
+      setShowTutorial(true);
+    }
+  }, [isLoadingProfile, user?.id, isClient]);
 
   // Reabertura manual do tour do cliente: a página Perfil dispara este
   // evento no botão "Ver tour novamente".
