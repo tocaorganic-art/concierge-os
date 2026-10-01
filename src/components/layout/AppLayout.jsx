@@ -10,6 +10,7 @@ import MobileDrawer from "./MobileDrawer";
 import MobileBottomNav from "./MobileBottomNav";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import TutorialModal from "@/components/tutorial/TutorialModal";
+import ClientTour from "@/components/client/ClientTour";
 import PwaInstallPopup from "@/components/PwaInstallPopup";
 import GlobalSearch from "./GlobalSearch";
 import FloatingChat from "@/components/chat/FloatingChat";
@@ -56,6 +57,7 @@ function AppLayoutInner() {
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showClientTour, setShowClientTour] = useState(false);
   const { isLoading: isLoadingProfile } = useUserProfile();
   const { isClientMode, isImpersonating, viewingClientNome, stopViewAs } = useEffectiveRole();
   const location = useLocation();
@@ -82,8 +84,25 @@ function AppLayoutInner() {
       // registro (cliente novo, ou admin/equipe que já passou pelo
       // onboarding de operação mas nunca viu o tour do produto), abre uma
       // vez; depois fica só o botão manual "Tutorial" no menu.
-      if (u.id && !localStorage.getItem(`tutorial_seen_${u.id}`)) setShowTutorial(true);
+      if (u.account_type === "cliente") {
+        // Tour guiado do Portal do Cliente (Bug 11): substitui o tour
+        // animado do produto (que é do dashboard admin) para contas
+        // cliente. Abre só no primeiro acesso — a flag onboarding_concluido
+        // é gravada no perfil do usuário ao concluir ou pular; depois só
+        // reabre pelo botão "Ver tour novamente" na página Perfil.
+        if (u.onboarding_concluido !== true) setShowClientTour(true);
+      } else if (u.id && !localStorage.getItem(`tutorial_seen_${u.id}`)) {
+        setShowTutorial(true);
+      }
     }).catch(() => {});
+  }, []);
+
+  // Reabertura manual do tour do cliente: a página Perfil dispara este
+  // evento no botão "Ver tour novamente".
+  useEffect(() => {
+    const abrirTour = () => setShowClientTour(true);
+    window.addEventListener("toca:abrir-tour-cliente", abrirTour);
+    return () => window.removeEventListener("toca:abrir-tour-cliente", abrirTour);
   }, []);
 
   // Enquanto o perfil ainda está carregando, NÃO renderiza o <Outlet/> — evita que
@@ -150,6 +169,11 @@ function AppLayoutInner() {
             if (user?.id && !localStorage.getItem(`tutorial_seen_${user.id}`)) setShowTutorial(true);
           }}
         />
+      )}
+
+      {/* Tour guiado do cliente (primeiro acesso) */}
+      {showClientTour && (
+        <ClientTour onFinish={() => setShowClientTour(false)} />
       )}
 
       {/* Tutorial modal */}

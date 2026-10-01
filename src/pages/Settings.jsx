@@ -244,13 +244,17 @@ export default function Settings() {
                 try {
                   await base44.users.inviteUser(inviteEmail, "user");
                   const client = clientsForInvite.find((c) => c.id === inviteClientId);
-                  await base44.entities.UserProfile.create({
-                    user_id: "",
-                    plan_id: "trial",
-                    invite_email: inviteEmail,
-                    account_type: inviteType,
-                    client_id: inviteType === "cliente" ? inviteClientId : "",
-                  });
+                  // Re-convite: não duplica o perfil já vinculado a este e-mail.
+                  const perfisExistentes = await base44.entities.UserProfile.filter({ invite_email: inviteEmail });
+                  if (!perfisExistentes?.length) {
+                    await base44.entities.UserProfile.create({
+                      user_id: "",
+                      plan_id: "trial",
+                      invite_email: inviteEmail,
+                      account_type: inviteType,
+                      client_id: inviteType === "cliente" ? inviteClientId : "",
+                    });
+                  }
                   if (inviteType === "cliente" && inviteClientId) {
                     await base44.entities.Client.update(inviteClientId, {
                       invited_at: new Date().toISOString(),
@@ -268,7 +272,7 @@ export default function Settings() {
                   setInviteEmail("");
                   setInviteClientId("");
                 } catch (e) {
-                  setInviteStatus("Não consegui enviar o convite. Tente novamente.");
+                  setInviteStatus(`Não consegui enviar o convite: ${e?.message || "tente novamente."}`);
                 }
               }}
             >

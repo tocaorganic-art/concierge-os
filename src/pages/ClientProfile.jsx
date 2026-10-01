@@ -99,6 +99,15 @@ export default function ClientProfile() {
         <p className="text-sm text-muted-foreground mt-1">
           {t("profile_subtitle")}
         </p>
+        {isClientMode && (
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("toca:abrir-tour-cliente"))}
+            className="mt-3 text-xs text-primary hover:underline transition-colors"
+          >
+            Ver tour novamente
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
