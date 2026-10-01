@@ -1,0 +1,90 @@
+{
+  "name": "BillingCategory",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome da categoria exatamente como e gravado em Expense.categoria / Billing.categoria (texto, nao id) — por isso renomear aqui NAO reescreve registros antigos; registros historicos continuam com o texto original."
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "despesa",
+        "cobranca"
+      ],
+      "description": "despesa = categoria usada em Expense (Despesas). cobranca = categoria usada em Billing (Faturamento). O par (nome, tipo) e unico por convencao — a unicidade e garantida em src/lib/categoriasCatalogo.js, nao pelo banco."
+    },
+    "cor": {
+      "type": "string",
+      "enum": [
+        "gold",
+        "success",
+        "warning",
+        "danger",
+        "info",
+        "neutral"
+      ],
+      "default": "gold",
+      "description": "Chave de tom do sistema de cores (src/lib/uiTones.js, tokens CSS da Fase 4) — nunca um hex."
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Soft delete: false some dos dropdowns de NOVO lancamento, mas a categoria continua aparecendo normalmente nos registros antigos que a usam. Nunca apagar fisicamente uma categoria."
+    },
+    "criado_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora ISO de criacao no catalogo."
+    }
+  },
+  "required": [
+    "nome",
+    "tipo"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "account_type": "equipe"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "account_type": "equipe"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "account_type": "cliente"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

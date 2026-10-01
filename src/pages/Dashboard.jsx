@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DollarSign, FileText, TrendingUp, Users, AlertCircle, AlertTriangle, Wallet, Percent, Eye, Palmtree, UtensilsCrossed, Gem, LifeBuoy } from "lucide-react";
@@ -359,6 +360,14 @@ export default function Dashboard() {
           value={formatBRL(receitaMes.total)}
           icon={DollarSign}
           tone="success"
+          titleHint={t("dash_kpi_receita_hint")}
+          extra={
+            receitaMes.total === 0 && aReceberPropria > 0 ? (
+              <Link to="/faturamento?status=pendente" className="text-warning hover:underline">
+                {t("dash_receita_aguardando", { valor: formatBRL(aReceberPropria) })}
+              </Link>
+            ) : null
+          }
           trendLabel={
             receitaNaoClassificada > 0
               ? <span className="inline-flex items-center gap-1 text-warning"><AlertTriangle className="w-3 h-3 flex-shrink-0" /> {formatBRL(receitaNaoClassificada)} recebido(s) este mês sem classificação de natureza — não contam aqui. Classifique em Faturamento.</span>

@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Camera, Loader2, Sparkles, CheckCircle2, ImageIcon, X, Plus, Lock } from "lucide-react";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { useCategorias } from "@/lib/useCategorias";
+import { TIPO_DESPESA, criarOuReativarCategoria, garantirCategoria, norm as normalize, opcoesComAtual } from "@/lib/categoriasCatalogo";
 
 const defaultForm = {
   client_id: "",
@@ -37,16 +39,7 @@ const defaultForm = {
   status: "pago",
 };
 
-// Sugestões iniciais — a lista real cresce sozinha com o que já foi usado/criado
-const CATEGORIAS_BASE = [
-  "Imóvel", "Equipe/Pessoal", "Transporte", "Compras", "Outros",
-];
-
 const NEW_CATEGORY_VALUE = "__nova__";
-
-function normalize(str) {
-  return (str || "").trim().toLowerCase();
-}
 
 export default function ExpenseFormDialog({ open, onOpenChange, expense, defaultClientId }) {
   const { lang } = useLanguage();
@@ -65,24 +58,15 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
     queryFn: () => base44.entities.Client.list("nome", 200),
   });
 
-  const { data: allExpenses = [] } = useQuery({
-    queryKey: ["expenses"],
-    queryFn: () => base44.entities.Expense.list("-data_despesa", 500),
-  });
-
   useEffect(() => {
     base44.auth.me().then((u) => setIsAdmin(u?.role === "admin")).catch(() => {});
   }, []);
 
-  // Todas as categorias já em uso, + as sugestões base, sem duplicar (comparação case-insensitive)
-  const categoriasExistentes = useMemo(() => {
-    const seen = new Map();
-    [...CATEGORIAS_BASE, ...allExpenses.map((e) => e.categoria).filter(Boolean)].forEach((c) => {
-      const key = normalize(c);
-      if (key && !seen.has(key)) seen.set(key, c);
-    });
-    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [allExpenses]);
+  // Categorias vêm do catálogo BillingCategory (Fase 5), não mais do distinct()
+  // dos registros salvos — uma categoria criada aqui existe mesmo que o
+  // formulário seja cancelado em seguida.
+  const { categorias: categoriasAtivas } = useCategorias(TIPO_DESPESA, { enabled: open });
+  const categoriasExistentes = useMemo(() => opcoesComAtual(categoriasAtivas, form.categoria), [categoriasAtivas, form.categoria]);
 
   useEffect(() => {
     if (expense) {
@@ -112,12 +96,15 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
   }, [expense, open, defaultClientId]);
 
   const mutation = useMutation({
-    mutationFn: (data) =>
-      expense
+    mutationFn: async (data) => {
+      await garantirCategoria({ nome: data.categoria, tipo: TIPO_DESPESA }).catch(() => {});
+      return expense
         ? base44.entities.Expense.update(expense.id, data)
-        : base44.entities.Expense.create(data),
+        : base44.entities.Expense.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["billing-categories"] });
       onOpenChange(false);
     },
   });
@@ -189,11 +176,21 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
     }
   };
 
-  const confirmNovaCategoria = () => {
+  // Grava no catálogo na hora (não espera salvar a despesa): cancelar o
+  // formulário depois não perde a categoria. Se a gravação falhar, a
+  // categoria ainda fica selecionada no formulário e é garantida ao salvar.
+  const confirmNovaCategoria = async () => {
     const nome = novaCategoria.trim();
     if (!nome) return;
-    setForm((f) => ({ ...f, categoria: nome }));
     setCreatingCategoria(false);
+    setForm((f) => ({ ...f, categoria: nome }));
+    try {
+      const canonico = await criarOuReativarCategoria({ nome, tipo: TIPO_DESPESA });
+      queryClient.invalidateQueries({ queryKey: ["billing-categories"] });
+      if (canonico) setForm((f) => (normalize(f.categoria) === normalize(nome) ? { ...f, categoria: canonico } : f));
+    } catch {
+      // sem permissão ou rede: segue com o nome no formulário
+    }
   };
 
   // Margem sugerida automaticamente quando os dois valores estão preenchidos, mas o campo continua editável

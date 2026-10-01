@@ -33,6 +33,21 @@ export function tone(name) {
   return TONES[name] || TONES.gold;
 }
 
+// Cores selecionáveis em BillingCategory.cor (Fase 5). Mesmos tons de TONES —
+// nenhuma paleta nova; `dot` é a bolinha sólida do seletor/lista.
+export const CATEGORY_COLORS = [
+  { value: "gold", dot: "bg-primary" },
+  { value: "success", dot: "bg-success" },
+  { value: "warning", dot: "bg-warning" },
+  { value: "danger", dot: "bg-danger" },
+  { value: "info", dot: "bg-info" },
+  { value: "neutral", dot: "bg-muted-foreground" },
+];
+
+export function categoryDot(cor) {
+  return (CATEGORY_COLORS.find((c) => c.value === cor) || CATEGORY_COLORS[0]).dot;
+}
+
 // Categoria de fornecedor (ContratoFornecedor.categoria é texto livre — ver
 // CATEGORIAS_FORNECEDOR em ContratoFornecedorFormDialog.jsx). O match é por
 // palavra-chave normalizada para aceitar variações digitadas à mão
