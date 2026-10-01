@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, User, CreditCard, Users, Image, Globe, Trash2, Lock, Save, ExternalLink, Loader2, Check } from "lucide-react";
+import { Settings as SettingsIcon, User, CreditCard, Users, Image, Globe, Tags, Trash2, Lock, Save, ExternalLink, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from "@/components/shared/PageHeader";
 import PlanGate from "@/components/monetization/PlanGate";
+import CategoriasManager from "@/components/settings/CategoriasManager";
 import { useLanguage } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import { useNavigate } from "react-router-dom";
@@ -277,6 +278,12 @@ export default function Settings() {
           </div>
         </PlanGate>
       </Section>
+
+      {currentUser?.role === "admin" && (
+        <Section icon={Tags} title={t("cat_manager_title")}>
+          <CategoriasManager />
+        </Section>
+      )}
 
       {/* White-label - Agency only */}
       <Section icon={Image} title="White-label">

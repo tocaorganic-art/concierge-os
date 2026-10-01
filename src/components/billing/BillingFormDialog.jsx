@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
+import { useCategorias } from "@/lib/useCategorias";
+import { TIPO_COBRANCA, criarOuReativarCategoria, garantirCategoria, norm, opcoesComAtual } from "@/lib/categoriasCatalogo";
 import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus, Wand2 } from "lucide-react";
 import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao } from "@/lib/finance";
 import { custoFornecedorPendente, splitRepasseMargem } from "@/lib/splitRepasseMargem";
@@ -44,16 +46,12 @@ function addMonths(dateStr, months) {
   return d.toISOString().slice(0, 10);
 }
 
-// Valores canônicos (sempre em português — é o que fica salvo no banco em
-// Billing.categoria; translateCategoria() só traduz a EXIBIÇÃO, nunca o
-// valor armazenado, para não quebrar comparações como `categoria === "Reserva Financeira"`
-// nem o agrupamento em src/lib/finance.js).
-const CATEGORIAS_BASE = ["Pacote Principal", "Contas a Pagar", "Reserva Financeira"];
+// Valores gravados em Billing.categoria são sempre texto em português;
+// translateCategoria() só traduz a EXIBIÇÃO, nunca o valor armazenado, para não
+// quebrar comparações como `categoria === "Reserva Financeira"` nem o
+// agrupamento em src/lib/finance.js. A lista de opções vem do catálogo
+// BillingCategory (Fase 5), ver src/lib/useCategorias.js.
 const NEW_CATEGORY_VALUE = "__nova__";
-
-function normalize(str) {
-  return (str || "").trim().toLowerCase();
-}
 
 export default function BillingFormDialog({ open, onOpenChange, billing, clientMode = false, fixedClient = null }) {
   const { t, lang } = useLanguage();
@@ -108,14 +106,8 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     setForm((f) => ({ ...f, alocacao }));
   };
 
-  const categoriasExistentes = React.useMemo(() => {
-    const vistas = new Map();
-    [...CATEGORIAS_BASE, ...billings.map((b) => b.categoria).filter(Boolean)].forEach((c) => {
-      const key = normalize(c);
-      if (key && !vistas.has(key)) vistas.set(key, c);
-    });
-    return Array.from(vistas.values());
-  }, [billings]);
+  const { categorias: categoriasAtivas } = useCategorias(TIPO_COBRANCA, { enabled: open });
+  const categoriasExistentes = React.useMemo(() => opcoesComAtual(categoriasAtivas, form.categoria), [categoriasAtivas, form.categoria]);
 
   useEffect(() => {
     if (billing) {
@@ -154,6 +146,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
 
   const mutation = useMutation({
     mutationFn: async (data) => {
+      await garantirCategoria({ nome: data.categoria, tipo: TIPO_COBRANCA }).catch(() => {});
       if (billing) {
         return base44.entities.Billing.update(billing.id, clientMode ? { ...data, ultima_edicao_por: "cliente" } : data);
       }
@@ -195,6 +188,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billings"] });
+      queryClient.invalidateQueries({ queryKey: ["billing-categories"] });
       onOpenChange(false);
     },
     onError: (err) => {
@@ -215,6 +209,22 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     }
     setCreatingCategoria(false);
     setForm((f) => ({ ...f, categoria: value }));
+  };
+
+  // Grava no catálogo na hora (não espera salvar a cobrança): cancelar o
+  // formulário depois não perde a categoria.
+  const confirmNovaCategoria = async () => {
+    const val = novaCategoria.trim();
+    setCreatingCategoria(false);
+    if (!val) return;
+    setForm((f) => ({ ...f, categoria: val }));
+    try {
+      const canonico = await criarOuReativarCategoria({ nome: val, tipo: TIPO_COBRANCA });
+      queryClient.invalidateQueries({ queryKey: ["billing-categories"] });
+      if (canonico) setForm((f) => (norm(f.categoria) === norm(val) ? { ...f, categoria: canonico } : f));
+    } catch {
+      // sem permissão (ex.: portal do cliente) ou rede: segue só no formulário
+    }
   };
 
   const handleFileSelected = async (e) => {
@@ -478,11 +488,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    const val = novaCategoria.trim();
-                    if (val) setForm((f) => ({ ...f, categoria: val }));
-                    setCreatingCategoria(false);
-                  }}
+                  onClick={confirmNovaCategoria}
                 >
                   {t("billing_form_ok")}
                 </Button>
