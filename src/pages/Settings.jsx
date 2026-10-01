@@ -244,60 +244,11 @@ export default function Settings() {
                 try {
                   const client = clientsForInvite.find((c) => c.id === inviteClientId);
                   const emailNorm = inviteEmail.trim().toLowerCase();
-                  // Email JÁ registrado neste app? A plataforma recusa
-                  // re-convite ("Only users with collaborator access...").
-                  // Não tentamos inviteUser de novo — tratamos direto.
-                  const usuarios = await base44.entities.User.list();
-                  const usuarioExistente = (usuarios || []).find(
-                    (u) => (u.email || "").toLowerCase() === emailNorm
-                  );
-                  if (usuarioExistente) {
-                    // Conta já existe: a plataforma não aceita re-convite, então
-                    // liberamos o acesso direto, gravando o vínculo na própria conta.
-                    await base44.entities.User.update(usuarioExistente.id, {
-                      account_type: inviteType,
-                      client_id: inviteType === "cliente" ? inviteClientId : "",
-                    });
-                    const perfilExistente = (await base44.entities.UserProfile.filter({ user_id: usuarioExistente.id }))?.[0];
-                    const dadosPerfil = {
-                      account_type: inviteType,
-                      client_id: inviteType === "cliente" ? inviteClientId : "",
-                      invite_email: emailNorm,
-                    };
-                    if (perfilExistente) {
-                      await base44.entities.UserProfile.update(perfilExistente.id, dadosPerfil);
-                    } else {
-                      await base44.entities.UserProfile.create({ user_id: usuarioExistente.id, plan_id: "trial", ...dadosPerfil });
-                    }
-                    if (inviteType === "cliente" && inviteClientId) {
-                      await base44.entities.Client.update(inviteClientId, {
-                        invited_at: new Date().toISOString(),
-                        invited_by: currentUser?.email || "",
-                      });
-                      try {
-                        await base44.functions.invoke("sendWelcomeEmail", { client_id: inviteClientId });
-                      } catch {
-                        // boas-vindas pode ser reenviada depois na ficha do cliente
-                      }
-                    }
-                    setInviteStatus(`Acesso liberado — ${emailNorm} agora entra como ${inviteType === "cliente" ? `cliente (${client?.nome || ""})` : "equipe"}.`);
-                    setInviteEmail("");
-                    setInviteClientId("");
-                    return;
-                  }
-                  await base44.users.inviteUser(inviteEmail, "user");
-                  // Re-convite: não duplica o perfil já vinculado a este e-mail.
-                  const perfisExistentes = await base44.entities.UserProfile.filter({ invite_email: inviteEmail });
-                  if (!perfisExistentes?.length) {
-                    await base44.entities.UserProfile.create({
-                      user_id: "",
-                      plan_id: "trial",
-                      invite_email: inviteEmail,
-                      account_type: inviteType,
-                      client_id: inviteType === "cliente" ? inviteClientId : "",
-                    });
-                  }
-                  if (inviteType === "cliente" && inviteClientId) {
+                  const clientId = inviteType === "cliente" ? inviteClientId : "";
+
+                  // Boas-vindas + marca do convite na ficha do cliente (comum aos dois caminhos).
+                  const finalizarCliente = async () => {
+                    if (inviteType !== "cliente" || !inviteClientId) return;
                     await base44.entities.Client.update(inviteClientId, {
                       invited_at: new Date().toISOString(),
                       invited_by: currentUser?.email || "",
@@ -305,11 +256,48 @@ export default function Settings() {
                     try {
                       await base44.functions.invoke("sendWelcomeEmail", { client_id: inviteClientId });
                     } catch {
-                      // convite (acesso) já foi enviado; boas-vindas pode ser reenviada depois na ficha do cliente
+                      // o acesso já foi liberado; as boas-vindas podem ser reenviadas na ficha do cliente
                     }
+                  };
+
+                  // 1) E-mail que JÁ tem conta: a plataforma recusa re-convite e o
+                  // navegador não pode listar/alterar User — a checagem e a gravação
+                  // rodam no backend (service role), só para admin.
+                  const resultado = await base44.functions.invoke("grantUserAccess", {
+                    email: emailNorm,
+                    account_type: inviteType,
+                    client_id: clientId,
+                  });
+                  const status = resultado?.data?.status ?? resultado?.status;
+
+                  if (status === "linked") {
+                    await finalizarCliente();
+                    setInviteStatus(`Acesso liberado — ${emailNorm} agora entra como ${inviteType === "cliente" ? `cliente (${client?.nome || ""})` : "equipe"}.`);
+                    setInviteEmail("");
+                    setInviteClientId("");
+                    return;
                   }
+                  if (status === "admin_protected") {
+                    setInviteStatus(`${emailNorm} é admin da operação e não foi alterado — rebaixar um admin a cliente tira o acesso ao painel. Use outro e-mail ou o "Ver como cliente" da Visão Geral.`);
+                    return;
+                  }
+
+                  // 2) E-mail novo: convite normal. O perfil pendente é vinculado
+                  // pelo linkInvitedAccount quando a pessoa aceitar.
+                  await base44.users.inviteUser(emailNorm, "user");
+                  const perfisExistentes = await base44.entities.UserProfile.filter({ invite_email: emailNorm });
+                  if (!perfisExistentes?.length) {
+                    await base44.entities.UserProfile.create({
+                      user_id: "",
+                      plan_id: "trial",
+                      invite_email: emailNorm,
+                      account_type: inviteType,
+                      client_id: clientId,
+                    });
+                  }
+                  await finalizarCliente();
                   setInviteStatus(inviteType === "cliente"
-                    ? `Convite enviado — ${client?.nome || inviteEmail} vai cair direto no Portal do Cliente ao aceitar, e recebeu o email de boas-vindas.`
+                    ? `Convite enviado — ${client?.nome || emailNorm} vai cair direto no Portal do Cliente ao aceitar, e recebeu o email de boas-vindas.`
                     : "Convite de equipe enviado.");
                   setInviteEmail("");
                   setInviteClientId("");
