@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { resolverPapel } from "@/lib/papel";
 
 // Resolve quem está logado e qual o tipo de acesso dele:
 // admin (dono da conta), equipe (colaborador interno) ou cliente (acesso restrito ao Portal do Cliente).
@@ -33,6 +35,11 @@ async function loadUserAndProfile() {
       const result = await base44.functions.invoke("linkInvitedAccount", { user: { id: u.id, email: u.email } });
       if (result?.status === "linked") {
         u = await base44.auth.me();
+        // O auth.me() logo após o vínculo pode vir sem account_type/client_id
+        // novos; a resposta da própria function é a fonte confiável aqui.
+        if (result.account_type === "cliente" && u.account_type !== "cliente") {
+          u = { ...u, account_type: "cliente", client_id: result.client_id || u.client_id || "" };
+        }
       }
     } catch {
       // sem convite pendente, ou falha ao vincular — segue como está
@@ -50,11 +57,8 @@ export function useUserProfile() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const user = data?.user || null;
+  const papel = useMemo(() => resolverPapel(data?.user || null, data?.profile || null), [data]);
   const profile = data?.profile || null;
-  const isAdmin = user?.role === "admin";
-  const isClient = user?.account_type === "cliente";
-  const isTeam = Boolean(user) && !isAdmin && !isClient;
 
-  return { user, profile, isLoading, isAdmin, isClient, isTeam };
+  return { user: papel.user, profile, isLoading, isAdmin: papel.isAdmin, isClient: papel.isClient, isTeam: papel.isTeam };
 }

@@ -53,7 +53,7 @@ export default async function (req) {
       });
     }
 
-    return Response.json({ status: 'linked', account_type: pending.account_type || 'equipe' });
+    return Response.json({ status: 'linked', account_type: pending.account_type || 'equipe', client_id: pending.client_id || '' });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
