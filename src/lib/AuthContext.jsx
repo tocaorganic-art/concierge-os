@@ -53,6 +53,11 @@ export const AuthProvider = ({ children }) => {
         // Handle app-level errors
         if (appError.status === 403 && appError.data?.extra_data?.reason) {
           const reason = appError.data.extra_data.reason;
+          // Token inválido salvo do link de convite: limpa antes de qualquer
+          // redirect, senão o próximo load falha de novo (ver limparTokenInvalido).
+          if (reason === 'auth_required' || reason === 'user_not_registered') {
+            limparTokenInvalido();
+          }
           if (reason === 'auth_required') {
             setAuthError({
               type: 'auth_required',
@@ -89,6 +94,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Limpa token salvo inválido/expirado. SEM isto o app entra em loop: o
+  // token ruim fica no localStorage, me() falha, o AuthContext manda pro
+  // login da plataforma, que (para quem já tem sessão na plataforma) devolve
+  // o usuário ao app — onde me() falha de novo — recarga atrás de recarga até
+  // o Chrome morrer com "Não há memória suficiente" (bug crônico dos
+  // convites: o access_token do link de convite não é token de sessão e era
+  // gravado pelo app-params).
+  const limparTokenInvalido = () => {
+    try {
+      window.localStorage.removeItem('base44_access_token');
+      window.localStorage.removeItem('token');
+    } catch (e) {
+      console.error('Failed to clear stale auth token:', e);
+    }
+  };
+
   const checkUserAuth = async () => {
     try {
       // Now check if the user is authenticated
@@ -103,9 +124,10 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setAuthChecked(true);
-      
+
       // If user auth fails, it might be an expired token
       if (error.status === 401 || error.status === 403) {
+        limparTokenInvalido();
         setAuthError({
           type: 'auth_required',
           message: 'Authentication required'

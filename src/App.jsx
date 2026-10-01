@@ -37,6 +37,12 @@ import Obrigado from "@/pages/Obrigado";
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
+  // Side effect fora do render: chamar navigateToLogin() no meio do render
+  // dispara redirecionamentos repetidos durante os re-renders do boot.
+  React.useEffect(() => {
+    if (authError?.type === "auth_required") navigateToLogin();
+  }, [authError, navigateToLogin]);
+
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -49,7 +55,7 @@ const AuthenticatedApp = () => {
     if (authError.type === "user_not_registered") {
       return <UserNotRegisteredError />;
     } else if (authError.type === "auth_required") {
-      navigateToLogin();
+      // O redirect ao login acontece no useEffect acima (uma vez só).
       return null;
     }
   }
