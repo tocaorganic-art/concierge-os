@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/select";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus, Wand2 } from "lucide-react";
-import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao, valorPorNatureza } from "@/lib/finance";
+import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao } from "@/lib/finance";
+import { custoFornecedorPendente, splitRepasseMargem } from "@/lib/splitRepasseMargem";
 
 const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "", tipo_despesa: "variavel", motivo_cancelamento: "", natureza: "a_classificar", alocacao: [] };
 
@@ -95,26 +96,16 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     enabled: !!form.proposal_id && !clientMode,
   });
 
-  const custoFornecedorTotal = contratosFornecedor.reduce((sum, c) => sum + (c.custo_total || 0), 0);
-  // Repasse já classificado em OUTRAS cobranças desta mesma proposta — pra
-  // não sugerir repassar de novo um custo que já foi coberto.
-  const repasseJaAlocado = billings
-    .filter((b) => b.proposal_id === form.proposal_id && b.id !== billing?.id)
-    .reduce((sum, b) => sum + valorPorNatureza(b, ["repasse"]), 0);
-  const custoFornecedorPendente = Math.max(0, custoFornecedorTotal - repasseJaAlocado);
+  // Custo de fornecedor ainda não coberto por repasse em outras cobranças
+  // desta proposta. A regra de divisão mora em src/lib/splitRepasseMargem.js
+  // — a mesma usada pela geração automática de cobranças na leitura de
+  // contrato por IA (LeituraContratoModal), pra não existirem duas versões.
+  const custoPendente = custoFornecedorPendente(contratosFornecedor, billings, form.proposal_id, billing?.id);
   const alocacaoAtual = partesDaAlocacao({ natureza: form.natureza, alocacao: form.alocacao, valor: Number(form.valor) || 0 });
 
   const sugerirDivisao = () => {
-    const valorBilling = Number(form.valor) || 0;
-    const repasse = Math.min(custoFornecedorPendente, valorBilling);
-    const intermediacao = Math.max(0, valorBilling - repasse);
-    setForm((f) => ({
-      ...f,
-      alocacao: [
-        ...(repasse > 0 ? [{ natureza: "repasse", valor: repasse }] : []),
-        ...(intermediacao > 0 ? [{ natureza: "intermediacao", valor: intermediacao }] : []),
-      ],
-    }));
+    const { alocacao } = splitRepasseMargem(form.valor, custoPendente);
+    setForm((f) => ({ ...f, alocacao }));
   };
 
   const categoriasExistentes = React.useMemo(() => {
@@ -566,13 +557,13 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
                   </SelectContent>
                 </Select>
               )}
-              {form.proposal_id && custoFornecedorPendente > 0 && !(form.alocacao?.length > 0) && (
+              {form.proposal_id && custoPendente > 0 && !(form.alocacao?.length > 0) && (
                 <button
                   type="button"
                   onClick={sugerirDivisao}
                   className="mt-1.5 w-full flex items-center justify-center gap-1.5 text-xs text-primary hover:text-primary/80 bg-primary/5 border border-primary/20 rounded-lg py-2 transition-colors"
                 >
-                  <Wand2 className="w-3.5 h-3.5" /> Dividir automaticamente — repasse de {formatBRL(custoFornecedorPendente)} + minha margem
+                  <Wand2 className="w-3.5 h-3.5" /> Dividir automaticamente — repasse de {formatBRL(custoPendente)} + minha margem
                 </button>
               )}
               <p className="text-[11px] text-muted-foreground mt-1">

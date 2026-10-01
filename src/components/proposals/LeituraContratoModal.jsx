@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, AlertTriangle, Check } from "lucide-react";
+import { Loader2, Sparkles, AlertTriangle, Check, Wallet } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
+import { useLanguage } from "@/lib/i18n";
+import { possivelBillingDuplicado } from "@/lib/finance";
+import { custoFornecedorPendente, splitParcelasRepasseMargem } from "@/lib/splitRepasseMargem";
 
 // Schema de extração (Fase 3) — pedido explicitamente pelo Tony com base no
 // contrato real que ele usa ("Adenda Contractual": tabela Cliente/Check-in/
@@ -92,7 +95,25 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
   const [erro, setErro] = useState("");
   const [incluirAgenda, setIncluirAgenda] = useState(true);
   const [incluirAlertas, setIncluirAlertas] = useState(true);
+  // Fase 4 — desmarcado por padrão de propósito: gerar cobrança é decisão
+  // do Tony, nunca efeito colateral silencioso da leitura do contrato.
+  const [criarCobrancas, setCriarCobrancas] = useState(false);
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
+
+  // Custo fechado com os fornecedores desta viagem — sem ele não há como
+  // dividir repasse/margem, então o checkbox nem aparece.
+  const { data: contratosFornecedor = [] } = useQuery({
+    queryKey: ["contratos-fornecedor", proposal?.id],
+    queryFn: () => base44.entities.ContratoFornecedor.filter({ proposal_id: proposal.id }),
+    enabled: open && !!proposal?.id,
+  });
+
+  const { data: billings = [] } = useQuery({
+    queryKey: ["billings"],
+    queryFn: () => base44.entities.Billing.list("-created_date", 200),
+    enabled: open && !!proposal?.id,
+  });
 
   const [tentativa, setTentativa] = useState(0);
 
@@ -199,11 +220,42 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
         if (tarefas.length > 0) await Promise.all(tarefas.map((t) => base44.entities.Task.create(t)));
       }
 
+      // Fase 4 — cobranças em Faturamento para as parcelas do contrato, com
+      // repasse/margem já divididos pela MESMA regra do botão "Dividir
+      // automaticamente" (src/lib/splitRepasseMargem.js). Só roda quando o
+      // Tony marca o checkbox; nunca retroativo para contratos já lidos.
+      if (criarCobrancas && parcelasDivididas.length > 0) {
+        const novas = parcelasDivididas
+          .map((p, i) => ({
+            client_id: proposal.client_id,
+            client_nome: proposal.client_nome,
+            proposal_id: proposal.id,
+            numero_parcela: i + 1,
+            total_parcelas: parcelasDivididas.length,
+            descricao: `Pagamento cliente — parcela ${i + 1} (contrato IA)`,
+            valor: p.valor,
+            // Status sempre pendente: marcar como recebido é decisão humana
+            // (lançamento no ledger de Recebimento), nunca automática.
+            status: "pendente",
+            data_vencimento: p.data_vencimento,
+            ...(dados.data_assinatura ? { data_emissao: dados.data_assinatura } : {}),
+            natureza: "a_classificar",
+            alocacao: p.alocacao,
+            tipo_despesa: "fixa",
+          }))
+          // Guarda contra duplicar se o contrato for lido duas vezes com o
+          // checkbox marcado — mesma regra de duplicata do Faturamento.
+          .filter((b) => !possivelBillingDuplicado(billings, b));
+        if (novas.length > 0) await Promise.all(novas.map((b) => base44.entities.Billing.create(b)));
+      }
+
       return updates;
     },
     onSuccess: (updates) => {
       queryClient.invalidateQueries({ queryKey: ["proposals"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["billings"] });
+      queryClient.invalidateQueries({ queryKey: ["billings-dashboard"] });
       // Sincroniza o form do diálogo pai (ainda não salvo) com o que já foi
       // gravado direto no banco aqui — senão um "Salvar" manual depois
       // reverteria destino/datas/valor pro que estava antes da leitura.
@@ -221,6 +273,14 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
       setErro("Não consegui salvar os dados confirmados. Tente novamente.");
     },
   });
+
+  // Parcelas do contrato já divididas em repasse/margem — preview no modal
+  // e payload das cobranças usam exatamente o mesmo cálculo.
+  const custoPendente = custoFornecedorPendente(contratosFornecedor, billings, proposal?.id);
+  const parcelasComData = (dados?.parcelas || []).filter((p) => p.valor > 0 && p.data_vencimento);
+  const parcelasDivididas = splitParcelasRepasseMargem(parcelasComData, custoPendente);
+  const temFornecedor = contratosFornecedor.length > 0 && custoPendente > 0;
+  const podeGerarCobrancas = temFornecedor && parcelasDivididas.length > 0;
 
   const n = (v) => (v || v === 0 ? formatBRL(v) : "—");
   const d = (v) => (v ? new Date(v + "T00:00:00").toLocaleDateString("pt-BR") : "—");
@@ -308,8 +368,8 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
                 </label>
                 <div className="space-y-1">
                   {dados.alertas_contratuais.map((a, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
-                      <AlertTriangle className="w-3 h-3 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div key={i} className="flex items-start gap-2 text-xs bg-warning/5 border border-warning/25 rounded-lg px-3 py-2">
+                      <AlertTriangle className="w-3 h-3 text-warning flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-foreground">{a.titulo}</p>
                         {a.descricao && <p className="text-muted-foreground mt-0.5">{a.descricao}</p>}
@@ -324,6 +384,36 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
               <input type="checkbox" checked={incluirAgenda} onChange={(e) => setIncluirAgenda(e.target.checked)} className="rounded border-border" />
               Criar na Agenda: check-in, check-out e um lembrete por parcela
             </label>
+
+            {parcelasDivididas.length > 0 && (
+              podeGerarCobrancas ? (
+                <div className="rounded-xl border border-border bg-secondary/40 p-3 space-y-2">
+                  <label className="flex items-start gap-2 text-xs text-foreground cursor-pointer">
+                    <input type="checkbox" checked={criarCobrancas} onChange={(e) => setCriarCobrancas(e.target.checked)} className="rounded border-border mt-0.5" />
+                    <span className="flex-1">{t("leitura_contrato_gerar_cobrancas")}</span>
+                  </label>
+                  {criarCobrancas && (
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Wallet className="w-3 h-3" /> {t("leitura_contrato_cobrancas_titulo")}
+                      </p>
+                      {parcelasDivididas.map((p, i) => (
+                        <div key={i} className="flex items-center justify-between gap-2 text-[11px] bg-secondary border border-border rounded-lg px-3 py-1.5">
+                          <span className="text-foreground truncate">Parcela {i + 1} · {d(p.data_vencimento)}</span>
+                          <span className="font-mono text-muted-foreground flex-shrink-0">
+                            {t("leitura_contrato_divisao_preview", { repasse: formatBRL(p.repasse), margem: formatBRL(p.intermediacao) })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground bg-secondary border border-border rounded-lg px-3 py-2">
+                  {t("leitura_contrato_sem_fornecedor")}
+                </p>
+              )
+            )}
 
             {erro && <p className="text-xs text-red-400">{erro}</p>}
 

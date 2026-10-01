@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, Loader2, X, Plus, Pencil, Trash2, Briefcase, Sparkles } from "lucide-react";
+import { FileText, Loader2, X, Plus, Pencil, Trash2, Sparkles } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
+import { categoriaFornecedorVisual } from "@/lib/uiTones";
 import ContratoFornecedorFormDialog from "@/components/proposals/ContratoFornecedorFormDialog";
 import LeituraContratoModal from "@/components/proposals/LeituraContratoModal";
 
@@ -346,9 +347,13 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                   </p>
                 ) : (
                   <div className="space-y-1.5">
-                    {fornecedores.map((f) => (
+                    {fornecedores.map((f) => {
+                      const cat = categoriaFornecedorVisual(f.categoria);
+                      return (
                       <div key={f.id} className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
-                        <Briefcase className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${cat.bg}`}>
+                          <cat.Icon className={`w-3.5 h-3.5 ${cat.className}`} />
+                        </span>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-foreground truncate">{f.fornecedor_nome}{f.categoria ? ` · ${f.categoria}` : ""}</p>
                         </div>
@@ -356,16 +361,17 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                         <button type="button" onClick={() => { setEditingFornecedor(f); setShowFornecedorForm(true); }} className="text-muted-foreground hover:text-foreground flex-shrink-0">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => setDeletingFornecedor(f)} className="text-muted-foreground hover:text-red-400 flex-shrink-0">
+                        <button type="button" onClick={() => setDeletingFornecedor(f)} className="text-muted-foreground hover:text-danger flex-shrink-0">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 <div className="flex items-center justify-between mt-2 px-1 text-xs">
                   <span className="text-muted-foreground">Margem estimada (valor cliente − custo fornecedores)</span>
-                  <span className={`font-mono font-semibold ${margemEstimada < 0 ? "text-red-400" : "text-primary"}`}>{formatBRL(margemEstimada)}</span>
+                  <span className={`font-mono font-semibold ${margemEstimada < 0 ? "text-danger" : "text-success"}`}>{formatBRL(margemEstimada)}</span>
                 </div>
               </div>
             )}

@@ -9,18 +9,18 @@ export default function AlertasContratuais({ alertas = [] }) {
   if (alertas.length === 0) return null;
 
   return (
-    <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-amber-500/20">
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-        <span className="text-xs font-mono uppercase tracking-wider text-amber-400">Alertas do contrato</span>
+    <div className="mt-3 rounded-lg border border-warning/25 bg-warning/5 overflow-hidden">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-warning/25">
+        <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
+        <span className="text-xs font-mono uppercase tracking-wider text-warning">Alertas do contrato</span>
       </div>
-      <ul className="divide-y divide-amber-500/10">
+      <ul className="divide-y divide-warning/15">
         {alertas.map((a, i) => (
           <li key={i} className="px-3 py-2.5">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm text-foreground">{a.titulo}</p>
               {a.valor_estimado > 0 && (
-                <span className="text-xs font-mono text-amber-400 flex-shrink-0">
+                <span className="text-xs font-mono text-warning flex-shrink-0">
                   {formatBRL(a.valor_estimado)}
                 </span>
               )}

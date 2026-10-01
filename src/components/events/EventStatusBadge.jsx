@@ -10,17 +10,17 @@ const CONFIG = {
   pendente: {
     label: "Pendente",
     icon: Clock,
-    className: "bg-slate-500/15 text-slate-400 border-slate-500/30",
+    className: "bg-muted text-muted-foreground border-border",
   },
   em_progresso: {
     label: "Em progresso",
     icon: Settings,
-    className: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    className: "bg-warning/15 text-warning border-warning/30",
   },
   concluido: {
     label: "Concluído",
     icon: CheckCircle2,
-    className: "bg-green-500/15 text-green-400 border-green-500/30",
+    className: "bg-success/15 text-success border-success/30",
   },
 };
 

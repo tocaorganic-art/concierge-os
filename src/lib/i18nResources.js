@@ -563,6 +563,11 @@ export const translations = {
     tria_welcome_message: "Olá! Sou a Toca TrIA ✦\n\nSou sua assistente de IA especializada em concierge e turismo de luxo. Posso ajudar com propostas, estratégias de vendas, follow-up de clientes, gestão de agenda e muito mais.\n\nComo posso te ajudar hoje?",
 
     locale_date: "pt-BR",
+    // Fase 4 — leitura de contrato por IA: geração de cobranças
+    leitura_contrato_gerar_cobrancas: "Criar cobranças em Faturamento para as parcelas identificadas (com repasse/margem já divididos)",
+    leitura_contrato_sem_fornecedor: "Lance os fornecedores desta viagem para poder gerar as cobranças automaticamente.",
+    leitura_contrato_divisao_preview: "Repasse {{repasse}} · Margem {{margem}}",
+    leitura_contrato_cobrancas_titulo: "Cobranças em Faturamento",
   },
 
   en: {
@@ -1113,6 +1118,11 @@ export const translations = {
     tria_welcome_message: "Hello! I'm Toca TrIA ✦\n\nI'm your AI assistant specialized in concierge and luxury travel. I can help with proposals, sales strategies, client follow-up, schedule management and much more.\n\nHow can I help you today?",
 
     locale_date: "en-US",
+    // Fase 4 — leitura de contrato por IA: geração de cobranças
+    leitura_contrato_gerar_cobrancas: "Create charges in Billing for the identified installments (with pass-through/margin already split)",
+    leitura_contrato_sem_fornecedor: "Add this trip's suppliers to be able to generate the charges automatically.",
+    leitura_contrato_divisao_preview: "Pass-through {{repasse}} · Margin {{margem}}",
+    leitura_contrato_cobrancas_titulo: "Charges in Billing",
   },
 
   es: {
@@ -1663,6 +1673,11 @@ export const translations = {
     tria_welcome_message: "¡Hola! Soy Toca TrIA ✦\n\nSoy tu asistente de IA especializada en concierge y turismo de lujo. Puedo ayudarte con propuestas, estrategias de ventas, seguimiento de clientes, gestión de agenda y mucho más.\n\n¿Cómo puedo ayudarte hoy?",
 
     locale_date: "es-ES",
+    // Fase 4 — leitura de contrato por IA: geração de cobranças
+    leitura_contrato_gerar_cobrancas: "Crear cobros en Facturación para las cuotas identificadas (con traspaso/margen ya divididos)",
+    leitura_contrato_sem_fornecedor: "Registra los proveedores de este viaje para poder generar los cobros automáticamente.",
+    leitura_contrato_divisao_preview: "Traspaso {{repasse}} · Margen {{margem}}",
+    leitura_contrato_cobrancas_titulo: "Cobros en Facturación",
   },
 };
 
