@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle, FolderOpen } from "lucide-react";
+import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle, FolderOpen, LayoutTemplate } from "lucide-react";
+import TemplateManagerDialog from "@/components/proposals/TemplateManagerDialog";
 import ProposalPdfButton from "@/components/proposals/ProposalPdfButton";
 import ImportarDocumentosDialog from "@/components/proposals/ImportarDocumentosDialog";
 import AlertasContratuais from "@/components/proposals/AlertasContratuais";
@@ -32,6 +33,7 @@ export default function Proposals() {
   const [showForm, setShowForm] = useState(false);
   const [editProposal, setEditProposal] = useState(null);
   const [showAI, setShowAI] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [whatsappProposal, setWhatsappProposal] = useState(null);
   const [importProposal, setImportProposal] = useState(null);
   const [search, setSearch] = useState("");
@@ -107,6 +109,9 @@ export default function Proposals() {
         action={
           !isClient && (
             <div className="hidden md:flex items-center gap-2">
+              <Button onClick={() => setShowTemplates(true)} variant="outline" className="gap-2">
+                <LayoutTemplate className="w-4 h-4" /> Templates
+              </Button>
               <Button onClick={() => setShowAI(true)} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
                 <Sparkles className="w-4 h-4" /> Gerar com IA <AiBadge />
               </Button>
@@ -217,6 +222,7 @@ export default function Proposals() {
       )}
 
       <ProposalFormDialog open={showForm} onOpenChange={(v) => { setShowForm(v); if (!v) queryClient.invalidateQueries({ queryKey: ["proposals"] }); }} proposal={editProposal} />
+      <TemplateManagerDialog open={showTemplates} onOpenChange={setShowTemplates} />
       <AIProposalModal open={showAI} onOpenChange={setShowAI} onGenerated={handleAIGenerated} />
 
       {importProposal && (

@@ -18,11 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, Loader2, X, Plus, Pencil, Trash2, Sparkles } from "lucide-react";
+import { FileText, Loader2, X, Plus, Pencil, Trash2, Sparkles, LayoutTemplate, Save } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
 import { categoriaFornecedorVisual } from "@/lib/uiTones";
 import ContratoFornecedorFormDialog from "@/components/proposals/ContratoFornecedorFormDialog";
 import LeituraContratoModal from "@/components/proposals/LeituraContratoModal";
+import TemplateManagerDialog from "@/components/proposals/TemplateManagerDialog";
+import SalvarTemplateDialog from "@/components/proposals/SalvarTemplateDialog";
 import { ETAPAS } from "@/components/dashboard/DashboardStatusViagem";
 
 const defaultForm = {
@@ -59,6 +61,28 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("nome", 200),
   });
+
+  // Templates de proposta: estruturas prontas de serviços/observações que o
+  // admin reaproveita ao criar uma proposta nova, sem digitar do zero.
+  const { data: templates = [] } = useQuery({
+    queryKey: ["proposal-templates"],
+    queryFn: () => base44.entities.ProposalTemplate.list("nome", 100),
+  });
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showSalvarTemplate, setShowSalvarTemplate] = useState(false);
+
+  const aplicarTemplate = (templateId) => {
+    const tpl = templates.find((tpl) => tpl.id === templateId);
+    if (!tpl) return;
+    setForm((f) => ({
+      ...f,
+      destino: f.destino || tpl.destino || "",
+      num_pax: f.num_pax || (tpl.num_pax ? String(tpl.num_pax) : ""),
+      valor: f.valor || (tpl.valor_base ? String(tpl.valor_base) : ""),
+      servicos: tpl.servicos || f.servicos,
+      observacoes: tpl.observacoes || f.observacoes,
+    }));
+  };
 
   // Custo fechado com cada fornecedor desta viagem — uso interno (nunca
   // exposto ao cliente), pra calcular a margem ao lado do valor cobrado
@@ -152,6 +176,27 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!proposal && templates.length > 0 && (
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Começar de um template</Label>
+              <div className="flex items-center gap-2 mt-1.5">
+                <Select onValueChange={aplicarTemplate}>
+                  <SelectTrigger className="bg-secondary border-border flex-1">
+                    <SelectValue placeholder="Escolher template (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map((tpl) => (
+                      <SelectItem key={tpl.id} value={tpl.id}>{tpl.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" className="flex-shrink-0" title="Gerenciar templates" onClick={() => setShowTemplates(true)}>
+                  <LayoutTemplate className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Preenche destino, serviços, observações, valor e pax — você ajusta o resto.</p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Cliente</Label>
@@ -254,7 +299,14 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
               <p className="text-[11px] text-muted-foreground mt-1">Sem efeito depois de confirmada — só marca como expirada enquanto está em Lead/Proposta.</p>
             </div>
             <div className="col-span-2">
-              <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Serviços Incluídos</Label>
+              <div className="flex items-center justify-between">
+                <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Serviços Incluídos</Label>
+                {!proposal && form.servicos && (
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs gap-1 text-primary hover:bg-primary/10 px-2" onClick={() => setShowSalvarTemplate(true)}>
+                    <Save className="w-3 h-3" /> Salvar como template
+                  </Button>
+                )}
+              </div>
               <Textarea
                 value={form.servicos}
                 onChange={(e) => setForm((f) => ({ ...f, servicos: e.target.value }))}
@@ -406,6 +458,12 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
         </form>
       </DialogContent>
     </Dialog>
+    <TemplateManagerDialog open={showTemplates} onOpenChange={setShowTemplates} />
+    <SalvarTemplateDialog
+      open={showSalvarTemplate}
+      onOpenChange={setShowSalvarTemplate}
+      defaults={{ destino: form.destino, servicos: form.servicos, observacoes: form.observacoes, valor: form.valor, num_pax: form.num_pax }}
+    />
     {proposal?.id && (
       <>
         <ContratoFornecedorFormDialog
