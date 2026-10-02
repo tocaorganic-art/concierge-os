@@ -20,6 +20,7 @@ import {
   UserCircle,
   MessagesSquare,
   MessageSquare,
+  Plug,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -255,6 +256,18 @@ export default function Sidebar({ onOpenTutorial }) {
             <MessageSquare className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/solicitacoes" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
             <span className="flex-1">Solicitações</span>
             {location.pathname === "/solicitacoes" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Link>
+          <Link
+            to="/connect"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              location.pathname === "/connect"
+                ? "bg-primary/10 text-primary"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+            }`}
+          >
+            <Plug className={`w-[18px] h-[18px] transition-colors ${location.pathname === "/connect" ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+            <span className="flex-1">Conectar IA</span>
+            {location.pathname === "/connect" && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </Link>
           <Link
             to="/toca-tria"

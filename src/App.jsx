@@ -34,6 +34,7 @@ import Chat from "@/pages/Chat";
 import Documentos from "@/pages/Documentos";
 import Obrigado from "@/pages/Obrigado";
 import OAuthConsent from "@/pages/OAuthConsent";
+import Connect from "@/pages/Connect";
 
 
 const AuthenticatedApp = () => {
@@ -92,6 +93,7 @@ const AuthenticatedApp = () => {
           <Route path="/documentos" element={<Documentos />} />
           <Route path="/meu-perfil" element={<ClientProfile />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/connect" element={<Connect />} />
         </Route>
         {/* /planos mostrava planos de um produto diferente (consumidor final,
             Essencial/Premium/Black) com checkout do Stripe apontando pra
