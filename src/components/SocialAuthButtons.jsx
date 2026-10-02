@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Apple, Facebook, Loader2 } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import MicrosoftIcon from "@/components/MicrosoftIcon";
+import { safeReturnTo } from "@/lib/authReturnTo";
 
 const PROVIDERS = [
   { id: "google", label: "Google", Icon: GoogleIcon },
@@ -20,7 +21,7 @@ export default function SocialAuthButtons() {
     setError("");
     setLoadingProvider(providerId);
     try {
-      await base44.auth.loginWithProvider(providerId, "/");
+      await base44.auth.loginWithProvider(providerId, safeReturnTo());
     } catch (err) {
       setError(
         err?.message ||

@@ -33,6 +33,7 @@ import MeuContrato from "@/pages/MeuContrato";
 import Chat from "@/pages/Chat";
 import Documentos from "@/pages/Documentos";
 import Obrigado from "@/pages/Obrigado";
+import OAuthConsent from "@/pages/OAuthConsent";
 
 
 const AuthenticatedApp = () => {
@@ -63,6 +64,9 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      {/* Consentimento OAuth do servidor MCP — fora de qualquer guarda de auth,
+          a própria página redireciona ao login quando não autenticada. */}
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/obrigado" element={<Obrigado />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
