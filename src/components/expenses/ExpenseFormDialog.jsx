@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Loader2, Sparkles, CheckCircle2, ImageIcon, X, Plus, Lock, Building2 } from "lucide-react";
+import { Camera, Loader2, Sparkles, CheckCircle2, ImageIcon, X, Plus, Lock, Building2, Trash2 } from "lucide-react";
 import { CLIENTE_INTERNO_ID, CLIENTE_INTERNO_NOME } from "@/lib/finance";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { useCategorias } from "@/lib/useCategorias";
@@ -110,6 +110,21 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
       onOpenChange(false);
     },
   });
+
+  // Exclusão só para admin master, e sempre em dois cliques (confirmação)
+  // pra não apagar um lançamento por engano.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const deleteMutation = useMutation({
+    mutationFn: () => base44.entities.Expense.delete(expense.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      onOpenChange(false);
+    },
+  });
+
+  useEffect(() => {
+    setConfirmingDelete(false);
+  }, [expense, open]);
 
   const INTERNAL_VALUE = "__interno__";
   const handleClientChange = (clientId) => {
@@ -380,12 +395,41 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
             </div>
           )}
 
-          <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex justify-end gap-3 z-10">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2" disabled={mutation.isPending || uploading || !form.categoria}>
-              {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              {expense ? "Salvar" : "Lançar Despesa"}
-            </Button>
+          <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex justify-between gap-3 z-10">
+            {isAdmin && expense ? (
+              confirmingDelete ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="gap-2"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => deleteMutation.mutate()}
+                >
+                  {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Confirmar exclusão
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                  onClick={() => setConfirmingDelete(true)}
+                >
+                  <Trash2 className="w-4 h-4" /> Excluir
+                </Button>
+              )
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2" disabled={mutation.isPending || uploading || !form.categoria}>
+                {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                {expense ? "Salvar" : "Lançar Despesa"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
