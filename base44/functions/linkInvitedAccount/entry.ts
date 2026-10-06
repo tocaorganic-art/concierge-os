@@ -15,10 +15,14 @@ export default async function (req) {
       return Response.json({ status: 'skipped_no_email' });
     }
 
-    const pendings = await base44.asServiceRole.entities.UserProfile.filter({ invite_email: newUser.email });
-    // Só vincula convites AINDA não vinculados (user_id vazio). Perfis já
-    // vinculados — a outro usuário ou a esta mesma — nunca são reprocessados.
-    const pending = (pendings || []).find((p) => !p.user_id);
+    // Convites pendentes: busca por user_id vazio e casa o e-mail SEM
+    // diferenciar maiúsculas/minúsculas — convites digitados com caixa
+    // diferente do e-mail real (ex.: "Guidomessi@gmail.com" vs
+    // "guidomessi@gmail.com") não casavam e o cliente ficava sem vínculo.
+    const pendings = await base44.asServiceRole.entities.UserProfile.filter({ user_id: "" });
+    const pending = (pendings || []).find(
+      (p) => (p.invite_email || "").toLowerCase() === newUser.email.toLowerCase()
+    );
 
     if (!pending) {
       return Response.json({ status: 'no_pending_invite' });
