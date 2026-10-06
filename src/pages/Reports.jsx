@@ -206,9 +206,15 @@ export default function Reports() {
     queryKey: ["recebimentos"],
     queryFn: () => base44.entities.Recebimento.list("-data_recebimento", 1000),
   });
+  // Expense não é lido no branch isClientMode abaixo (ReportsCliente usa só
+  // billings/recebimentos) — `enabled` evita a chamada à toa pra uma conta
+  // cliente, que a RLS de Expense bloqueia por completo (só created_by_id ou
+  // admin podem ler; ver base44/entities/Expense.jsonc), mesmo padrão já
+  // usado pela query equivalente em src/pages/Dashboard.jsx.
   const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
     queryKey: ["expenses-reports"],
     queryFn: () => base44.entities.Expense.list("-data_despesa", 1000),
+    enabled: !isClientMode,
   });
   const { data: proposals = [], isLoading: loadingProposals } = useQuery({
     queryKey: ["proposals"],

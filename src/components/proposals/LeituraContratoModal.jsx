@@ -254,6 +254,13 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
     onSuccess: (updates) => {
       queryClient.invalidateQueries({ queryKey: ["proposals"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // Achado de auditoria: faltava este — o widget "Agenda de hoje" do
+      // Dashboard (src/components/dashboard/DashboardAgenda.jsx) lê
+      // ["tasks-today"], uma chave separada de ["tasks"] (usada pela página
+      // Agenda). As tarefas de check-in/check-out/parcela criadas aqui
+      // ficavam fora do cache do widget até a próxima remontagem. Mesmo
+      // padrão de dupla invalidação já usado em TaskFormDialog.jsx.
+      queryClient.invalidateQueries({ queryKey: ["tasks-today"] });
       queryClient.invalidateQueries({ queryKey: ["billings"] });
       queryClient.invalidateQueries({ queryKey: ["billings-dashboard"] });
       // Sincroniza o form do diálogo pai (ainda não salvo) com o que já foi

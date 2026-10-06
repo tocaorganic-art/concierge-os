@@ -54,7 +54,22 @@ export function useUserProfile() {
   const { data, isLoading } = useQuery({
     queryKey: ["user-profile-and-link"],
     queryFn: loadUserAndProfile,
-    staleTime: 5 * 60 * 1000,
+    // Achado de auditoria (0.A — "cliente vendo o dashboard de admin",
+    // intermitente): esta query decide o LAYOUT inteiro (admin x cliente,
+    // src/components/layout/AppLayout.jsx) e, com staleTime de 5 minutos e
+    // o default global de refetchOnWindowFocus desligado (ver
+    // src/lib/query-client.js), uma aba aberta por mais tempo NUNCA
+    // reconferia o papel sozinha — só remontando o layout (logout/login,
+    // que o SDK sempre faz via reload de página completa, ver
+    // node_modules/@base44/sdk .../modules/auth.js:logout). Se o papel do
+    // usuário mudar no servidor enquanto a aba já está aberta (reclassificar
+    // uma conta de teste, corrigir um vínculo de convite, etc.), a aba podia
+    // continuar mostrando o papel ANTIGO por tempo indefinido. Mantém o
+    // staleTime curto (não zero, pra não re-disparar linkInvitedAccount a
+    // cada clique) e liga refetchOnWindowFocus só nesta query, já que é
+    // uma decisão de acesso/segurança — vale o refetch extra ao focar a aba.
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   const papel = useMemo(() => resolverPapel(data?.user || null, data?.profile || null), [data]);

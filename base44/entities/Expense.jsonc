@@ -32,7 +32,7 @@
     },
     "valor_cobrado_cliente": {
       "type": "number",
-      "description": "Valor cheio (pre\u00e7o cheio) cobrado do cliente por este item, quando h\u00e1 repasse com markup \u2014 este \u00e9 o valor que aparece para equipe/cliente. Deixe em branco quando n\u00e3o houver repasse com margem."
+      "description": "Valor cheio (pre\u00e7o cheio) que DEVERIA ser cobrado do cliente por este item, quando h\u00e1 repasse com markup \u2014 uso interno do admin, s\u00f3 para comparar com o que foi efetivamente pago (campo 'valor'). N\u00e3o aparece em nenhuma tela de equipe/cliente (a RLS de leitura desta entidade, mais abaixo, s\u00f3 libera created_by_id e admin) e n\u00e3o gera nem atualiza nenhuma cobran\u00e7a (Billing) automaticamente \u2014 Expense e Billing s\u00e3o entidades independentes, sem v\u00ednculo. Se o cliente precisa ver essa cobran\u00e7a, lance-a separadamente em Faturamento. Deixe em branco quando n\u00e3o houver repasse com margem."
     },
     "margem_admin": {
       "type": "number",

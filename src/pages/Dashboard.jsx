@@ -224,27 +224,27 @@ export default function Dashboard() {
   const { isClientMode, isRealClient, effectiveClientId, startViewAs } = useEffectiveRole();
   const [selectedClientId, setSelectedClientId] = useState("all");
 
-  const { data: proposals = [] } = useQuery({
+  const { data: proposals = [], isLoading: loadingProposals } = useQuery({
     queryKey: ["proposals"],
     queryFn: () => base44.entities.Proposal.list("-created_date", 100),
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: loadingClients } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("-created_date", 100),
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ["tasks-today"],
     queryFn: () => base44.entities.Task.list("-created_date", 50),
   });
 
-  const { data: billings = [] } = useQuery({
+  const { data: billings = [], isLoading: loadingBillings } = useQuery({
     queryKey: ["billings-dashboard"],
     queryFn: () => base44.entities.Billing.list("-data_vencimento", 500),
   });
 
-  const { data: recebimentos = [] } = useQuery({
+  const { data: recebimentos = [], isLoading: loadingRecebimentos } = useQuery({
     queryKey: ["recebimentos"],
     queryFn: () => base44.entities.Recebimento.list("-data_recebimento", 500),
   });
@@ -271,6 +271,22 @@ export default function Dashboard() {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
   const localeDate = safeLocaleDate(t);
+
+  // Achado de auditoria: a Visão Geral não tinha NENHUM estado de loading —
+  // com a rede lenta, todo KPI aparecia zerado por um instante (R$0,00, 0%)
+  // antes do dado real chegar, em vez de um spinner. Mesmo spinner já usado
+  // em Agenda.jsx/Billing.jsx/Reports.jsx. Só as queries que alimentam
+  // QUALQUER KPI/widget entram aqui — expenses/contasPagar (admin-only) e
+  // hospedes (client-only) nunca travam o spinner da visão que não as usa,
+  // porque staleTime=0 + enabled:false faz isLoading já nascer false nelas.
+  const loadingDashboard = loadingProposals || loadingClients || loadingTasks || loadingBillings || loadingRecebimentos;
+  if (loadingDashboard) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (isClientMode) {
     const billingsCliente = billings.filter((b) => b.client_id === effectiveClientId);
@@ -421,7 +437,13 @@ export default function Dashboard() {
           title="Repasses em Custódia"
           value={formatBRL(custodia)}
           icon={Wallet}
-          tone="info"
+          // Achado de auditoria, confirmado com dado real de produção (Guido
+          // Luis Messi: -R$ 2.523,44): repassesEmCustodia() pode ficar
+          // negativo quando o admin já pagou o fornecedor (Expense status
+          // "pago") antes de receber a parcela correspondente do cliente —
+          // um saldo negativo é exposição financeira real (dinheiro
+          // adiantado do próprio bolso), não um estado neutro como "info".
+          tone={custodia < 0 ? "danger" : "info"}
         />
         <KpiCard
           title="Caução em Custódia"
