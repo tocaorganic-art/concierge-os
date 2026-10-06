@@ -395,6 +395,18 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
             </div>
           )}
 
+          {/* Achado de auditoria (0.B): Expense (custo interno) e Billing (cobrança
+              do cliente) são entidades independentes, sem vínculo — excluir esta
+              despesa NUNCA cancela uma cobrança lançada separadamente em
+              Faturamento para o mesmo custo. Isso gerou confusão real: um custo
+              foi excluído aqui esperando que a cobrança do cliente sumisse
+              junto, e ela continuou lá (correta, já que ninguém pediu pra
+              cancelá-la) — só que sem essa explicação, pareceu um bug. */}
+          {isAdmin && expense && confirmingDelete && (
+            <p className="text-[11px] text-warning bg-warning/10 border border-warning/25 rounded-lg px-3 py-2 -mt-1 mb-1">
+              Isso exclui só este lançamento interno. Se o cliente tem uma cobrança lançada em Faturamento para este mesmo custo, ela não é afetada — cancele-a separadamente lá, se for o caso.
+            </p>
+          )}
           <div className="sticky bottom-0 -mx-6 -mb-6 px-6 pb-6 pt-4 mt-2 bg-card border-t border-border flex justify-between gap-3 z-10">
             {isAdmin && expense ? (
               confirmingDelete ? (

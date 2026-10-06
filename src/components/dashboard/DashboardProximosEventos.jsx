@@ -1,4 +1,5 @@
 import React from "react";
+import { format } from "date-fns";
 import { Clock, CalendarDays } from "lucide-react";
 import StatusBadge from "@/components/shared/StatusBadge";
 
@@ -10,7 +11,11 @@ import StatusBadge from "@/components/shared/StatusBadge";
 // mesmo EventModal usado na página Agenda — para o cliente real o widget
 // segue somente-leitura (RLS de Task não permite update pra ele).
 export default function DashboardProximosEventos({ tasks, onTaskClick }) {
-  const hojeStr = new Date().toISOString().split("T")[0];
+  // Mesmo achado de fuso horário do DashboardAgenda.jsx: toISOString() é UTC
+  // e, no fuso Brasil, "viraria o dia" ~21h, escondendo os eventos de hoje à
+  // noite (e até os de amanhã) até a troca de dia em UTC. format() do
+  // date-fns usa o fuso local, mesmo padrão de src/pages/Agenda.jsx.
+  const hojeStr = format(new Date(), "yyyy-MM-dd");
   const proximos = tasks
     .filter((task) => task.data >= hojeStr)
     .sort((a, b) => (a.data + (a.horario || "")).localeCompare(b.data + (b.horario || "")))

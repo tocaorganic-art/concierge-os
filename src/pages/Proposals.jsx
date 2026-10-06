@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, FileText, MapPin, Calendar, Sparkles, MessageCircle, AlertTriangle, FolderOpen, LayoutTemplate } from "lucide-react";
@@ -48,6 +49,20 @@ export default function Proposals() {
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("nome", 200),
   });
+
+  // Abre direto uma proposta vinda de fora (ex.: Pipeline do Dashboard,
+  // achado de auditoria: antes não tinha nenhum jeito de clicar num card lá
+  // e cair na proposta certa aqui). Nunca pra cliente — mesma regra do
+  // clique normal na linha/card desta página (abaixo).
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (!openId || isClient || proposals.length === 0) return;
+    const proposal = proposals.find((p) => p.id === openId);
+    if (proposal) { setEditProposal(proposal); setShowForm(true); }
+    setSearchParams((prev) => { prev.delete("open"); return prev; }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proposals, isClient]);
 
   const { data: contratosFornecedor = [] } = useQuery({
     queryKey: ["contratos-fornecedor"],

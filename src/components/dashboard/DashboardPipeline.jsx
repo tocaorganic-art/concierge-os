@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { formatBRL } from "@/lib/formatBRL";
@@ -32,7 +33,15 @@ export default function DashboardPipeline({ proposals }) {
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {items.slice(0, 3).map((p) => (
-                  <div key={p.id} className="bg-secondary/50 border border-border rounded-lg p-3 text-xs">
+                  // Achado de auditoria: antes o card não tinha onClick/Link
+                  // nenhum — clicar não fazia nada. Leva pra Propostas já
+                  // com o formulário de edição desta proposta aberto (ver
+                  // src/pages/Proposals.jsx).
+                  <Link
+                    key={p.id}
+                    to={`/propostas?open=${p.id}`}
+                    className="block bg-secondary/50 border border-border rounded-lg p-3 text-xs hover:border-primary/40 transition-colors"
+                  >
                     <p className="font-medium text-foreground truncate">{p.client_nome}</p>
                     <div className="flex items-center gap-1 text-muted-foreground mt-1">
                       <MapPin className="w-3 h-3" />
@@ -43,7 +52,7 @@ export default function DashboardPipeline({ proposals }) {
                         {formatBRL(p.valor)}
                       </p>
                     )}
-                  </div>
+                  </Link>
                 ))}
                 {items.length === 0 && (
                   <p className="text-[11px] text-muted-foreground text-center py-4">{t("dash_empty_pipeline")}</p>

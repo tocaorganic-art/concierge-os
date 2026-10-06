@@ -1,11 +1,17 @@
 import React from "react";
+import { format } from "date-fns";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Clock, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 export default function DashboardAgenda({ tasks }) {
   const { t } = useLanguage();
-  const today = new Date().toISOString().split("T")[0];
+  // Achado de auditoria: toISOString() converte pra UTC — pra fuso Brasil
+  // (UTC-3), das ~21h até meia-noite no horário local o dia em UTC já virou
+  // amanhã, e "Agenda de hoje" ficava vazia mesmo com tarefas de hoje à
+  // noite. date-fns format() usa o fuso LOCAL do navegador, mesmo padrão já
+  // usado em src/pages/Agenda.jsx e src/components/dashboard/TaskNotifications.jsx.
+  const today = format(new Date(), "yyyy-MM-dd");
   const todayTasks = tasks
     .filter((task) => task.data === today)
     .sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, User, MessageCircle } from "lucide-react";
@@ -36,6 +37,21 @@ export default function Clients() {
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list("-created_date", 200),
   });
+
+  // Abre direto a ficha de um cliente vindo de fora (ex.: "Clientes
+  // recentes" do Dashboard, achado de auditoria: antes não tinha nenhum
+  // jeito de clicar num cliente lá e cair na ficha certa aqui). Roda só uma
+  // vez quando a lista chega; não reabre se o usuário fechar a ficha e o
+  // parâmetro continuar na URL.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (!openId || clients.length === 0) return;
+    const client = clients.find((c) => c.id === openId);
+    if (client) setSelectedClient(client);
+    setSearchParams((prev) => { prev.delete("open"); return prev; }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clients]);
 
   const isStarter = plan === "starter";
   const atLimit = isStarter && clients.length >= STARTER_LIMIT;

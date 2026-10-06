@@ -17,7 +17,14 @@ export default function DashboardClients({ clients }) {
       </div>
       <div className="space-y-3">
         {recent.map((client) => (
-          <div key={client.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30">
+          // Achado de auditoria: antes a linha inteira não tinha onClick nem
+          // Link nenhum — clicar num cliente aqui não fazia nada. Leva pra
+          // Clientes já com a ficha dele aberta (ver src/pages/Clients.jsx).
+          <Link
+            key={client.id}
+            to={`/clientes?open=${client.id}`}
+            className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 hover:border-primary/40 transition-colors"
+          >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-semibold text-primary">{client.nome?.[0]?.toUpperCase()}</span>
@@ -28,7 +35,7 @@ export default function DashboardClients({ clients }) {
               </div>
             </div>
             {client.tipo && <StatusBadge status={client.tipo} />}
-          </div>
+          </Link>
         ))}
         {recent.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-8">{t("dash_no_clients")}</p>
