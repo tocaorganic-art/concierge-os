@@ -47,7 +47,14 @@ async function loadUserAndProfile() {
   }
 
   const profiles = await base44.entities.UserProfile.filter({ user_id: u.id });
-  return { user: u, profile: profiles?.[0] || null };
+  let perfil = profiles?.[0] || null;
+  // Convite pendente ainda não vinculado (ex.: conta criada há mais de 24h
+  // com convite aguardando): casa também pelo e-mail do convite.
+  if (!perfil && u.email) {
+    const porEmail = await base44.entities.UserProfile.filter({ invite_email: u.email });
+    perfil = porEmail?.[0] || null;
+  }
+  return { user: u, profile: perfil };
 }
 
 export function useUserProfile() {

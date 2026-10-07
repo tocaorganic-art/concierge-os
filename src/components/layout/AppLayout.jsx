@@ -8,6 +8,7 @@ import MobileTopbar from "./MobileTopbar";
 import MobileDrawer from "./MobileDrawer";
 import MobileBottomNav from "./MobileBottomNav";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import ConviteNecessario from "@/components/auth/ConviteNecessario";
 import { deveMostrarOnboardingOperador } from "@/lib/papel";
 import TutorialModal from "@/components/tutorial/TutorialModal";
 import ClientTour from "@/components/client/ClientTour";
@@ -57,7 +58,7 @@ function AppLayoutInner() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showClientTour, setShowClientTour] = useState(false);
-  const { user, isClient, isLoading: isLoadingProfile } = useUserProfile();
+  const { user, isClient, isAdmin, profile, isLoading: isLoadingProfile } = useUserProfile();
   const { isClientMode, isImpersonating, viewingClientNome, stopViewAs } = useEffectiveRole();
   const location = useLocation();
 
