@@ -246,7 +246,7 @@ function Slide6({ t, onClose }) {
         </h2>
       </div>
       <button
-        onClick={() => { navigate("/"); onClose(); }}
+        onClick={() => { navigate("/dashboard"); onClose(); }}
         className="px-8 py-4 rounded-xl font-semibold text-base text-primary-foreground transition-all duration-300 hover:scale-105 active:scale-95"
         style={{ background: "linear-gradient(135deg, hsl(24 87% 56%), hsl(18 86% 41%))", boxShadow: "0 0 32px rgba(240,122,46,0.35)" }}
       >

@@ -21,7 +21,7 @@ import FloatingChat from "@/components/chat/FloatingChat";
 // áreas internas do Tony. Qualquer rota fora desta lista mostra "Sem
 // Acesso" em vez de piscar o conteúdo interno antes de redirecionar.
 const CLIENT_ALLOWED_PATHS = [
-  "/",
+  "/dashboard",
   "/faturamento",
   "/agenda",
   "/relatorios",

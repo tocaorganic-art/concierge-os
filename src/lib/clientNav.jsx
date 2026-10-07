@@ -8,7 +8,7 @@ import {
 // mesmo padrão do admin), MobileDrawer (☰, lista completa) e
 // MobileBottomNav (mobile, só os 4 principais — ver CLIENT_BOTTOM_NAV_PATHS).
 export const CLIENT_NAV_ITEMS = [
-  { key: "nav_overview", labelFallback: "Visão Geral", icon: LayoutDashboard, path: "/" },
+  { key: "nav_overview", labelFallback: "Visão Geral", icon: LayoutDashboard, path: "/dashboard" },
   { key: "nav_billing_cliente", labelFallback: "Financeiro", icon: Receipt, path: "/faturamento" },
   { key: "nav_schedule", labelFallback: "Agenda", icon: CalendarDays, path: "/agenda" },
   { key: "nav_solicitacoes", labelFallback: "Pedidos", icon: MessageSquare, path: "/solicitacoes" },
@@ -22,4 +22,4 @@ export const CLIENT_NAV_ITEMS = [
 ];
 
 // Barra inferior do celular: só os 4 principais, conforme especificado.
-export const CLIENT_BOTTOM_NAV_PATHS = ["/", "/faturamento", "/agenda", "/solicitacoes"];
+export const CLIENT_BOTTOM_NAV_PATHS = ["/dashboard", "/faturamento", "/agenda", "/solicitacoes"];

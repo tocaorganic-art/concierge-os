@@ -68,6 +68,9 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Consentimento OAuth do servidor MCP — fora de qualquer guarda de auth,
           a própria página redireciona ao login quando não autenticada. */}
+      {/* Página institucional estática como página principal (pública) —
+          o dashboard autenticado agora vive em /dashboard. */}
+      <Route path="/" element={<Institucional />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/obrigado" element={<Obrigado />} />
       <Route path="/login" element={<Login />} />
@@ -76,7 +79,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pipeline" element={<Pipeline />} />
           <Route path="/clientes" element={<Clients />} />
           <Route path="/agenda" element={<Agenda />} />
@@ -103,13 +106,13 @@ const AuthenticatedApp = () => {
             Redireciona pra Configurações em vez de manter a rota acessível
             e clicável. Decisão de negócio pendente antes de reativar. */}
         <Route path="/planos" element={<Navigate to="/configuracoes" replace />} />
-        {/* Portal antigo removido — rotas antigas caem na Visão Geral ("/"),
-            que já se adapta por papel (admin/cliente). */}
-        <Route path="/portal" element={<Navigate to="/" replace />} />
+        {/* Portal antigo removido — rotas antigas caem na Visão Geral
+            (/dashboard), que já se adapta por papel (admin/cliente). */}
+        <Route path="/portal" element={<Navigate to="/dashboard" replace />} />
         <Route path="/portal/financeiro" element={<Navigate to="/faturamento" replace />} />
         <Route path="/portal/pedidos" element={<Navigate to="/solicitacoes" replace />} />
-        <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/inicio" element={<Navigate to="/" replace />} />
+        <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

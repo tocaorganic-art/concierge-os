@@ -44,7 +44,7 @@ export default function Obrigado() {
 
         {/* CTA */}
         <Button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
           className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-8"
           size="lg"
         >

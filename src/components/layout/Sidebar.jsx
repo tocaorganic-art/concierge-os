@@ -31,7 +31,7 @@ import { CLIENT_NAV_ITEMS } from "@/lib/clientNav";
 import LanguageSelector from "./LanguageSelector";
 
 const navKeys = [
-  { key: "nav_overview", icon: LayoutDashboard, path: "/" },
+  { key: "nav_overview", icon: LayoutDashboard, path: "/dashboard" },
   { key: "nav_pipeline", icon: KanbanSquare, path: "/pipeline" },
   { key: "nav_clients", icon: Users, path: "/clientes" },
   { key: "nav_schedule", icon: CalendarDays, path: "/agenda" },

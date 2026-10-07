@@ -6,7 +6,7 @@ import { useEffectiveRole } from "@/lib/ViewAsClientContext";
 import { CLIENT_NAV_ITEMS, CLIENT_BOTTOM_NAV_PATHS } from "@/lib/clientNav";
 
 const PRIMARY_TABS = [
-  { key: "nav_overview",  icon: LayoutDashboard, path: "/" },
+  { key: "nav_overview",  icon: LayoutDashboard, path: "/dashboard" },
   { key: "nav_pipeline",  icon: KanbanSquare,    path: "/pipeline" },
   { key: "nav_clients",   icon: Users,           path: "/clientes" },
   { key: "nav_schedule",  icon: CalendarDays,    path: "/agenda" },

@@ -2,10 +2,10 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, ArrowLeft } from "lucide-react";
 
-const PRIMARY_ROUTES = ["/", "/pipeline", "/clientes", "/agenda"];
+const PRIMARY_ROUTES = ["/dashboard", "/pipeline", "/clientes", "/agenda"];
 
 const routeTitles = {
-  "/": "Visão Geral",
+  "/dashboard": "Visão Geral",
   "/pipeline": "Pipeline",
   "/clientes": "Clientes",
   "/agenda": "Agenda",
