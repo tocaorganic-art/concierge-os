@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!doctype html>
 <!--
   REGRA DE ESTILO — TOCA CONCIERGE
@@ -820,9 +819,6 @@ html.dark .icon-moon { display: block; }
    PAGE 5 QUEM SOMOS
 ═══════════════════════════════════════════════════════════ */
 /* ── Quem Somos: foto full-bleed com overlay ──────────────────── */
-#pg-sobre {
-  position: relative;
-}
 #pg-sobre .page-inner {
   padding: 0;
   gap: 0;
@@ -1355,9 +1351,6 @@ html.dark .icon-moon { display: block; }
 /* ═══════════════════════════════════════════════════════════
    PAGE 7 NOSSO PÚBLICO: background
 ═══════════════════════════════════════════════════════════ */
-#pg-publico {
-  position: relative;
-}
 #pg-publico::before {
   content: '';
   position: absolute;
@@ -1830,6 +1823,21 @@ html.dark .poi-grid::-webkit-scrollbar-thumb { background: rgba(245,239,229,.2);
 @media (prefers-reduced-motion: reduce) {
   .curadoria-hero-image, .experience-card { transition: none; }
   .experience-card:hover { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HEADER: colapsar para menu hamburguer no mobile
+   (o breadcrumb de 9 itens nao cabe abaixo de ~860px e
+   sobrepoe os controles do header, bloqueando cliques)
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 860px) {
+  .page-nav { display: none; }
+  .lang { display: none; }
+  .header-actions .theme-btn[aria-label="Acessar o painel"] { display: none; }
+  .mobile-toggle { display: flex; }
+}
+@media (max-width: 480px) {
+  .btn-cta { padding: 9px 12px; }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2608,9 +2616,14 @@ html.dark .drawer-panel { background: var(--sand-200); }
             </div>
             <p data-i18n="x.204">A primeira: que a região onde escolhemos viver tem mais a oferecer do que cabe em qualquer guia. A segunda: que cada hóspede tem um ritmo próprio e merece um plano que o respeite.</p>
             <p data-i18n="x.205">Não somos uma agência. Não vendemos pacotes. Somos a pessoa que conhece o dono do bar e sabe a previsão das ondas para amanhã.</p>
+            <p data-i18n="about.founder">Tony Monteiro é empreendedor e DJ carioca, com mais de 10 anos criando experiências personalizadas para seus clientes e uma bagagem internacional de mais de 30 países visitados. Essa vivência trouxe um novo padrão de curadoria de luxo para o Brasil.</p>
 
             <!-- Timeline Nossa História -->
             <div class="timeline" id="sobreTimeline">
+              <div class="tl-item">
+                <div class="tl-year" data-i18n="about.tl0.year">Rio de Janeiro</div>
+                <div class="tl-text" data-i18n="about.tl0.text">Tony Monteiro constrói, como DJ e empreendedor, mais de uma década de carreira criando experiências e eventos para seus clientes, com passagem por mais de 30 países.</div>
+              </div>
               <div class="tl-item">
                 <div class="tl-year" data-i18n="x.206">Origem</div>
                 <div class="tl-text" data-i18n="x.207">Tony Monteiro chega a Trancoso e descobre que os melhores lugares não aparecem em guia nenhum.</div>
@@ -2625,7 +2638,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
               </div>
               <div class="tl-item">
                 <div class="tl-year" data-i18n="x.212">Hoje</div>
-                <div class="tl-text" data-i18n="x.213">Clientes de 15 países. O mesmo princípio: cada hóspede merece um plano feito para ele.</div>
+                <div class="tl-text" data-i18n="about.tl4.text">Mais de 100 clientes satisfeitos em todo o mundo, atendidos em 15 países. O mesmo princípio: cada hóspede merece um plano feito para ele.</div>
               </div>
             </div>
 
@@ -4128,5 +4141,3 @@ document.querySelectorAll('.btn-primary,.btn-ghost,.nav-btn,.btn-cta').forEach(b
 </script>
 </body>
 </html>
-
-</body></html>
