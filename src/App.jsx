@@ -35,6 +35,7 @@ import Documentos from "@/pages/Documentos";
 import Obrigado from "@/pages/Obrigado";
 import OAuthConsent from "@/pages/OAuthConsent";
 import Connect from "@/pages/Connect";
+import Institucional from "@/pages/Institucional";
 
 
 const AuthenticatedApp = () => {
