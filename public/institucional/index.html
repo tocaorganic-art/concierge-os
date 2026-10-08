@@ -1912,6 +1912,37 @@ html.dark .lang button[aria-pressed=true] { background: var(--ink); color: var(-
 html.dark .btn-cta { background: var(--ink); color: var(--sand-100); }
 html.dark .btn-cta:hover { background: var(--sea); }
 html.dark .drawer-panel { background: var(--sand-200); }
+/* ═══════════════════════════════════════════════════════════
+   MOBILE — nada pode ser cortado
+   .page-inner é overflow:hidden por padrão (baralho de telas),
+   mas no celular o conteúdo de várias páginas é mais alto que a
+   tela (Proposta, Serviços, Reserva e, em aparelhos mais baixos,
+   todas). Libera rolagem vertical dentro da página, mantém a
+   navegação inferior sempre visível (sticky) e recompõe as
+   grades que não cabem na largura do celular.
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .page-inner {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .footer-nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+  }
+
+  /* Grades: colunas únicas / 2 colunas no celular */
+  .pillars-grid { grid-template-columns: repeat(2, 1fr); }
+  .services-grid { grid-template-columns: 1fr; }
+  .servicos-grid { grid-template-columns: 1fr; }
+
+  /* Filtros (Galeria / Serviços): nunca passam da largura da tela */
+  .page-inner > * { min-width: 0; }
+  .filters { max-width: 100%; flex-wrap: wrap; }
+}
 </style>
 </head>
 <body>
