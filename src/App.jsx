@@ -68,8 +68,9 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Consentimento OAuth do servidor MCP — fora de qualquer guarda de auth,
           a própria página redireciona ao login quando não autenticada. */}
-      {/* Site institucional estático — servido em /institucional (arquivo em
-          public/institucional/index.html); este componente só redireciona. */}
+      {/* Raiz pública: o componente decide — visitante (não logado) vê o site
+          institucional estático; usuário logado vai direto ao dashboard. */}
+      <Route path="/" element={<Institucional />} />
       <Route path="/institucional" element={<Institucional />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/obrigado" element={<Obrigado />} />
@@ -79,9 +80,6 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<AppLayout />}>
-          {/* Raiz = o app (dashboard para quem está logado, login para quem
-              não está). O site institucional vive em /institucional. */}
-          <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pipeline" element={<Pipeline />} />
           <Route path="/clientes" element={<Clients />} />
