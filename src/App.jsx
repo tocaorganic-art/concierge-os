@@ -68,8 +68,10 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Consentimento OAuth do servidor MCP — fora de qualquer guarda de auth,
           a própria página redireciona ao login quando não autenticada. */}
-      {/* Raiz pública: o componente decide — visitante (não logado) vê o site
-          institucional estático; usuário logado vai direto ao dashboard. */}
+      {/* Raiz pública: sempre o site institucional estático, para qualquer
+          visitante, logado ou não (ver nota em pages/Institucional.jsx). O
+          acesso ao dashboard é pelos links "Acessar o painel" do próprio
+          site, que apontam para /dashboard. */}
       <Route path="/" element={<Institucional />} />
       <Route path="/institucional" element={<Institucional />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
