@@ -316,6 +316,7 @@ html.dark .icon-moon { display: block; }
   border: 1px solid var(--line);
   background: var(--sand-50);
   transition: all 160ms ease;
+  white-space: nowrap;
 }
 .nav-btn:hover { color: var(--ink); border-color: var(--sand-300); background: var(--sand-200); }
 .nav-btn:disabled { opacity: .3; pointer-events: none; }
@@ -1922,17 +1923,35 @@ html.dark .drawer-panel { background: var(--sand-200); }
    grades que não cabem na largura do celular.
 ═══════════════════════════════════════════════════════════ */
 @media (max-width: 700px) {
-  .page-inner {
+  /* #pg-home usa .hero-full como wrapper, não .page-inner — precisa das
+     mesmas regras de rolagem, senão o conteúdo da home (hero + stats)
+     fica cortado/sobreposto pelo footer-nav fixo em telas baixas. */
+  .page-inner,
+  .hero-full {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    padding-bottom: var(--footer-h);
   }
+  /* position: sticky dentro de um container com overflow-y tem bugs
+     conhecidos de renderização no Safari/iOS (a barra de navegação
+     sobrepõe o conteúdo). .page (ancestral direto) já tem `transform`
+     em .page.active, o que o torna o "containing block" de um filho
+     position:fixed — então o fixed aqui fica preso aos limites da
+     própria página, não da viewport real do navegador. */
   .footer-nav {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
     z-index: 6;
   }
+  /* Bolinhas de paginação somem no celular: são redundantes com o
+     texto "NN / 09" ao lado e, nas páginas com nome longo (Nosso
+     Público, Nossos Serviços), disputavam espaço com os botões
+     Anterior/Próxima e quebravam o texto em duas linhas. */
+  .footer-nav .page-dots { display: none; }
 
   /* Grades: colunas únicas / 2 colunas no celular */
   .pillars-grid { grid-template-columns: repeat(2, 1fr); }
