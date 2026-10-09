@@ -661,21 +661,11 @@ html.dark .icon-moon { display: block; }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGE 3 GALERIA / POIs
+   NOSSAS EXPERIÊNCIAS (inclui o antigo conteúdo da página Galeria,
+   mesclada aqui a pedido do Tony — ver #pg-servicos .page-inner,
+   que já tem overflow-y:auto inline pra rolar o Guia de Destinos
+   com 154 cards sem cortar nada).
 ═══════════════════════════════════════════════════════════ */
-#pg-galeria .page-inner {
-  padding: clamp(28px,3.5vw,48px) var(--gutter);
-  gap: 20px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-/* Antes: overflow:hidden (herdado de .page-inner) cortava o Guia de
-   Destinos (140+ cards) logo depois das primeiras linhas — o
-   scrollHeight real passava de 7000px contra ~836px visiveis, e nao
-   havia nenhum jeito de rolar pra ver o resto. O footer-nav (ja
-   position:sticky por padrao) continua fixo no rodape enquanto o resto
-   rola por baixo. */
 
 .filters {
   display: flex;
@@ -1071,7 +1061,7 @@ html.dark .dest-card .dest-map { color: #f5efe5; border-top-color: rgba(245,239,
   background: var(--ink);
   color: var(--sand-50);
 }
-#pg-reserva .page-inner { padding: clamp(40px,5vw,72px) var(--gutter); justify-content: center; gap: 0; }
+#pg-reserva .page-inner { padding: clamp(40px,5vw,72px) var(--gutter); justify-content: center; gap: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .reserva-wrap {
   display: grid;
   grid-template-columns: 1.2fr .8fr;
@@ -2145,19 +2135,17 @@ html.dark .drawer-panel { background: var(--sand-200); }
       <span class="sep">›</span>
       <button onclick="goTo(1)" data-page="1" data-i18n="x.3">Curadoria</button>
       <span class="sep">›</span>
-      <button onclick="goTo(2)" data-page="2" data-i18n="x.4">Galeria</button>
+      <button onclick="goTo(2)" data-page="2" data-i18n="x.7">Sobre</button>
       <span class="sep">›</span>
-      <button onclick="goTo(3)" data-page="3" data-i18n="x.5">Proposta</button>
+      <button onclick="goTo(3)" data-page="3" data-i18n="x.6">Nossas Experiências</button>
       <span class="sep">›</span>
-      <button onclick="goTo(4)" data-page="4" data-i18n="x.6">Nossas Experiências</button>
+      <button onclick="goTo(4)" data-page="4" data-i18n="x.9">Nosso Público</button>
       <span class="sep">›</span>
-      <button onclick="goTo(5)" data-page="5" data-i18n="x.7">Sobre</button>
+      <button onclick="goTo(5)" data-page="5" data-i18n="x.5">Proposta</button>
       <span class="sep">›</span>
-      <button onclick="goTo(6)" data-page="6" data-i18n="x.8">FAQ</button>
+      <button onclick="goTo(6)" data-page="6" data-i18n="x.10">Reservar</button>
       <span class="sep">›</span>
-      <button onclick="goTo(7)" data-page="7" data-i18n="x.9">Nosso Público</button>
-      <span class="sep">›</span>
-      <button onclick="goTo(8)" data-page="8" data-i18n="x.10">Reservar</button>
+      <button onclick="goTo(7)" data-page="7" data-i18n="x.8">FAQ</button>
     </nav>
 
     <div class="header-actions">
@@ -2173,7 +2161,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
       <a href="/dashboard" class="theme-btn" aria-label="Acessar o painel" title="Acessar o painel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       </a>
-      <button class="btn-cta" onclick="goTo(8)" data-i18n="x.10">Reservar</button>
+      <button class="btn-cta" onclick="goTo(6)" data-i18n="x.10">Reservar</button>
       <button class="mobile-toggle" onclick="openDrawer()" aria-label="Menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
@@ -2217,8 +2205,8 @@ html.dark .drawer-panel { background: var(--sand-200); }
             <h1 class="h-display" data-i18n="hero.title">Tudo o que você precisa,<br>antes mesmo de <em>pedir</em>.</h1>
             <p class="lede" data-i18n="hero.lede">O Toca Concierge conecta hóspedes de alto padrão a experiências únicas, onde você estiver. Da hospedagem e equipe na casa até roteiros exclusivos, festas privativas e acesso aos melhores lugares de cada destino.</p>
             <div class="hero-ctas">
-              <button class="btn-primary" onclick="goTo(8)" data-i18n="x.11">Quero minha experiência <span class="arrow">→</span></button>
-              <button class="btn-ghost" onclick="goTo(2)" data-i18n="x.12">Conhecer a curadoria <span class="arrow">→</span></button>
+              <button class="btn-primary" onclick="goTo(6)" data-i18n="x.11">Quero minha experiência <span class="arrow">→</span></button>
+              <button class="btn-ghost" onclick="goTo(1)" data-i18n="x.12">Conhecer a curadoria <span class="arrow">→</span></button>
             </div>
           </div>
           <div class="home-stats-box">
@@ -2279,7 +2267,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
           <button class="nav-btn" disabled style="opacity:.2;background:rgba(245,239,229,.06);border-color:rgba(245,239,229,.15);color:rgba(245,239,229,.5);" data-i18n="x.30">← Anterior</button>
           <div class="page-indicator">
             <div class="page-dots" id="dots-home"></div>
-            <span style="color:rgba(245,239,229,.4)" id="pg-label-home">01 / 09</span>
+            <span style="color:rgba(245,239,229,.4)" id="pg-label-home">01 / 08</span>
           </div>
           <button class="nav-btn primary" onclick="goTo(1)" data-i18n="x.31">Curadoria →</button>
         </div>
@@ -2296,7 +2284,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
 
           <!-- HEADER -->
           <div class="curadoria-header">
-            <span class="curadoria-label" data-i18n="cur.eyebrow">01 · Curadoria</span>
+            <span class="curadoria-label" data-i18n="cur.eyebrow">02 · Curadoria</span>
             <h2 class="curadoria-title" data-i18n="cur.title">Sua Jornada,<br>Nossa Narrativa.</h2>
             <p class="curadoria-description" data-i18n="cur.lede">Experiências únicas, meticulosamente desenhadas para você. Mergulhamos no seu perfil, desejos e momento de vida para tecer uma narrativa completa. Do primeiro dia ao último, fluida, autêntica e inesquecível.</p>
           </div>
@@ -2336,7 +2324,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
               <span class="card-cta" data-i18n="x.336">Explorar</span>
             </article>
 
-            <article class="experience-card" onclick="curCardLaunch(this, () => goTo(4))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+            <article class="experience-card" onclick="curCardLaunch(this, () => goTo(3))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
               <div class="card-media">
                 <img src="images/34790496.jpg" alt="Piscina de borda infinita em villa de luxo ao entardecer" loading="lazy" decoding="async"/>
               </div>
@@ -2408,39 +2396,303 @@ html.dark .drawer-panel { background: var(--sand-200); }
           <button class="nav-btn" onclick="goTo(0)" style="background:rgba(245,239,229,.08);border-color:rgba(245,239,229,.18);color:rgba(245,239,229,.8);" data-i18n="x.40">← O que Fazemos</button>
           <div class="page-indicator">
             <div class="page-dots" id="dots-cur"></div>
-            <span id="pg-label-cur" style="color:rgba(245,239,229,.45);">02 / 09</span>
+            <span id="pg-label-cur" style="color:rgba(245,239,229,.45);">02 / 08</span>
           </div>
-          <button class="nav-btn primary" onclick="goTo(2)" style="background:var(--sunset);border-color:var(--sunset);color:#fff;" data-i18n="x.41">Galeria →</button>
+          <button class="nav-btn primary" onclick="goTo(2)" style="background:var(--sunset);border-color:var(--sunset);color:#fff;" data-i18n="x.41">Sobre →</button>
         </div>
 
       </div>
     </div>
 
-    <!-- PAGE 3 GALERIA -->
-    <div class="page" id="pg-galeria">
+    <!-- PAGE 4 PROPOSTA -->
+    <div class="page" id="pg-proposta">
       <div class="page-inner">
-        <div class="section-header" style="flex-direction:row;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
-          <div>
-            <div class="h-eyebrow" data-i18n="map.eyebrow">03 · Galeria de Experiências</div>
-            <h2 class="h-section" style="margin-top:10px;" data-i18n="map.title">Cada lugar,<br>escolhido pessoalmente.</h2>
-          <!--
-            NOTA DE AUDITORIA (Claude, 2026-10-09): o grid fictício de 12 locais
-            que existia aqui (nomes, notas e preços inventados) foi REMOVIDO e
-            substituído pelo "Guia de Destinos" abaixo: pesquisa real (WebSearch)
-            de estabelecimentos em 14 cidades/regiões pedidas por Tony, sem nota
-            nem preço fabricados — só nome, bairro/endereço (linkado ao Google
-            Maps) e 1 frase de contexto. Onde a pesquisa não confirmou 2 opções
-            sólidas numa categoria, ficou com 1 ou nenhuma, sinalizado no relatório
-            — nada foi inventado para completar a cota. Vários endereços têm
-            pequenas divergências entre fontes e alguns estabelecimentos (ex.
-            UXUA Praia Bar em Trancoso, Warung em Itajaí) tiveram incidentes
-            recentes nas fontes — revisar com a equipe local antes de publicar
-            como definitivo. Fotos reais dos locais não foram incluídas (não há
-            licença para reusar fotos de terceiros no site) — o link "Ver no
-            mapa" abre o Google Maps do local, com fotos reais do próprio Google.
-          -->
-          <p class="lede" style="margin-top:8px;" data-i18n="x.42">Uma curadoria real, construída destino por destino — sem preço fixo, porque cada experiência é sob consulta.</p>
+        <div class="section-header">
+          <div class="h-eyebrow" data-i18n="prop.eyebrow">06 · Proposta</div>
+          <h2 class="h-section" data-i18n="prop.title">Antecipamos. Reservamos.<br>Acompanhamos.</h2>
+          <p class="lede" data-i18n="prop.lede">Três frentes simples, executadas com obsessão pelo detalhe.</p>
         </div>
+        <img class="curadoria-hero-image" src="images/898215.jpg" alt="Festa privativa ao entardecer na praia, organizada pela curadoria Toca Concierge" loading="lazy" decoding="async" style="margin-bottom:24px;"/>
+        <div class="services-grid">
+          <article class="service-card">
+            <span class="service-num">01</span>
+            <h3 data-i18n="prop.s1.title">Curadoria</h3>
+            <p data-i18n="prop.s1.desc">Briefing pré-chegada com perguntas-chave: ritmo, gostos, restrições, datas. Devolvemos um plano em 48 horas.</p>
+            <ul class="service-list">
+              <li data-i18n="x.120">Roteiro diário personalizado</li>
+              <li data-i18n="x.121">Mapa pessoal com favoritos</li>
+              <li data-i18n="x.122">Reservas pré-confirmadas</li>
+              <li data-i18n="x.123">Alternativas para imprevistos</li>
+            </ul>
+          </article>
+          <article class="service-card">
+            <span class="service-num">02</span>
+            <h3 data-i18n="prop.s2.title">Acesso</h3>
+            <p data-i18n="prop.s2.desc">Lista de hóspedes em casas com fila, mesas em horários disputados, ingressos para festivais e regatas sem ligações.</p>
+            <ul class="service-list">
+              <li data-i18n="x.124">Mesas em beach clubs lotados</li>
+              <li data-i18n="x.125">Reservas em restaurantes-conceito</li>
+              <li data-i18n="x.126">Ingressos para eventos privados</li>
+              <li data-i18n="x.127">Translado VIP aeroporto à casa</li>
+            </ul>
+          </article>
+          <article class="service-card">
+            <span class="service-num">03</span>
+            <h3 data-i18n="prop.s3.title">Atenção 24/7</h3>
+            <p data-i18n="prop.s3.desc">Um anfitrião à distância de uma mensagem do início ao fim da estadia. Mudou o vento? Reorganizamos o dia.</p>
+            <ul class="service-list">
+              <li data-i18n="x.128">WhatsApp dedicado</li>
+              <li data-i18n="x.129">Visita de cortesia na chegada</li>
+              <li data-i18n="x.130">Despedida com mimo regional</li>
+              <li data-i18n="x.131">Histórico para próximas estadias</li>
+            </ul>
+          </article>
+        </div>
+        <div class="footer-nav">
+          <button class="nav-btn" onclick="goTo(4)" data-i18n="x.132">← Nosso Público</button>
+          <div class="page-indicator">
+            <div class="page-dots" id="dots-prop"></div>
+            <span id="pg-label-prop">06 / 08</span>
+          </div>
+          <button class="nav-btn primary" onclick="goTo(6)" data-i18n="x.133">Reservar →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4B NOSSAS EXPERIÊNCIAS -->
+    <!--
+      NOTA DE AUDITORIA (Claude, 2026-10-07): conteudo desta pagina vem de
+      propostas comerciais reais fornecidas por Tony (Mansao Sol & Mar,
+      Mansao Le Joux, Passeio de Lancha Antares 38). Valores foram removidos
+      e trocados por "Sob consulta" a pedido dele. O nome do cliente da
+      proposta de lancha (Marcelo Monte) foi removido por ser dado pessoal
+      de terceiro. Novas casas/experiencias devem ser cadastradas aqui no
+      mesmo padrao de card, dentro da subcategoria correta.
+
+      NOTA DE AUDITORIA (Claude, 2026-10-09): os links "Ver tour em video"
+      (Casa Del Lago, Casa del Joa) e "Ver tour em video e galeria completa"
+      (Casa Praia dos Amores) foram REMOVIDOS. Os dois primeiros apontavam
+      para files.manuscdn.com, que serve essas paginas com o header HTTP
+      Content-Disposition: attachment — por isso o clique forcava download
+      em vez de abrir a pagina (confirmado via curl -I). Alem disso, as 3
+      paginas linkadas nao eram "videos": eram propostas comerciais reais
+      com valores (R$ 36.500, R$ 9.000/noite, R$ 68.000, R$ 88.000 etc.),
+      o que contradiz a politica deste site de nunca exibir preco publico
+      (sempre "Sob consulta"). Republicar esse conteudo no site institucional
+      teria exposto preco real de propostas de clientes especificos. Nao ha,
+      no repositorio, fotos ou videos reais por imovel para usar no lugar —
+      apenas as imagens de estoque genericas em public/institucional/images/.
+      Se Tony fornecer fotos/videos reais de cada casa (sem precos), cadastrar
+      aqui como <img>/<video> locais, nunca como link para proposta comercial.
+    -->
+    <div class="page" id="pg-servicos">
+      <div class="page-inner" style="overflow-y:auto;">
+        <div class="section-header">
+          <div class="h-eyebrow" data-i18n="x.134">04 · Nossas Experiências</div>
+          <h2 class="h-section" data-i18n="x.135">O que oferecemos,<br>casa por casa, experiência por experiência.</h2>
+          <p class="lede" data-i18n="x.136">Duas frentes da curadoria Toca: imóveis selecionados para temporada e experiências privadas sob medida, em qualquer destino do Brasil.</p>
+        </div>
+
+        <!-- SUBCATEGORIA: IMOVEIS PARA TEMPORADA -->
+        <!--
+          NOTA DE AUDITORIA (Claude, 2026-10-07): imoveis cadastrados a partir
+          de propostas comerciais reais (PDFs e paginas HTML fornecidas por
+          Tony). Organizados por estado, com filtro de busca direta. Novas
+          casas devem ser cadastradas aqui, com data-state apontando para a
+          sigla do estado (criar novo filtro se for um estado ainda nao
+          listado). Valores removidos e trocados por "Sob consulta".
+        -->
+        <div class="servicos-subcategoria">
+          <div class="servicos-subcategoria-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <span class="h-eyebrow" style="color:var(--sunset);" data-i18n="x.137">Imóveis para Temporada</span>
+            <div class="filters" role="group" aria-label="Filtrar por estado">
+              <button class="state-filter-btn" data-state-filter="all" aria-pressed="true" data-i18n="x.138">Todos os estados <span class="count">7</span></button>
+              <button class="state-filter-btn" data-state-filter="RJ" aria-pressed="false" data-i18n="x.139">Rio de Janeiro <span class="count">6</span></button>
+              <button class="state-filter-btn" data-state-filter="SC" aria-pressed="false" data-i18n="x.140">Santa Catarina <span class="count">1</span></button>
+            </div>
+          </div>
+          <div class="servicos-grid" id="imoveisGrid">
+
+            <article class="servico-card" data-state="RJ">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.141">Joatinga · Rio de Janeiro</span>
+                <h3 data-i18n="x.142">Mansão Sol &amp; Mar</h3>
+                <p data-i18n="x.143">Mansão triplex com elevador, em condomínio fechado na Joatinga, com praia privativa (Praia da Joatinga) e vista ao mar de todos os ambientes.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.144">4 suítes, todas com varanda, até 10 pessoas</li>
+                  <li data-i18n="x.145">Suíte master com closet, hidromassagem e terraço privativo</li>
+                  <li data-i18n="x.146">Piscina com deck e área gourmet com churrasqueira</li>
+                  <li data-i18n="x.147">Condomínio fechado e seguro, a cerca de 10 a 17 min das praias e da vida noturna da Zona Sul</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="servico-card" data-state="RJ">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.141">Joatinga · Rio de Janeiro</span>
+                <h3 data-i18n="x.150">Mansão Le Joux</h3>
+                <p data-i18n="x.151">Mansão com estrutura completa de bem-estar, no mesmo condomínio fechado da Joatinga, com praia privativa e vista ao mar.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.152">6 quartos, sendo 4 suítes, todos com vista ao mar e climatização</li>
+                  <li data-i18n="x.153">Piscina com deck, sauna, jacuzzi com vista ao mar e academia completa</li>
+                  <li data-i18n="x.154">Living, cozinha e área gourmet equipada, limpeza da piscina inclusa</li>
+                  <li data-i18n="x.147">Condomínio fechado e seguro, a cerca de 10 a 17 min das praias e da vida noturna da Zona Sul</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="servico-card" data-state="RJ">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.155">Barra da Tijuca · Rio de Janeiro</span>
+                <h3 data-i18n="x.156">Casa Del Lago</h3>
+                <p data-i18n="x.157">Casa em condomínio fechado na Barra da Tijuca, com piscina espelho d'água e estrutura completa de lazer.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.158">4 suítes, até 10 hóspedes (até 15 pessoas em uso diurno)</li>
+                  <li data-i18n="x.159">Piscina com hidromassagem, área gourmet com churrasqueira profissional e chopeira</li>
+                  <li data-i18n="x.160">Academia equipada, living, sala de jantar, deck e lounge</li>
+                  <li data-i18n="x.161">Ar-condicionado split em todos os ambientes</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="servico-card" data-state="RJ">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.163">Joá · Rio de Janeiro</span>
+                <h3 data-i18n="x.164">Casa del Joá</h3>
+                <p data-i18n="x.165">Casa mobiliada e equipada no Joá, com vista panorâmica, suporte de concierge e segurança 24h. Indicada para grupos e celebrações com horário de silêncio a partir das 22h.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.166">Até 10 hóspedes hospedados, até 15 visitantes diurnos</li>
+                  <li data-i18n="x.167">Vista panorâmica e som ambiente</li>
+                  <li data-i18n="x.168">Segurança 24h e suporte de concierge dedicado</li>
+                  <li data-i18n="x.169">Recepção e operação acompanhadas pela equipe Toca</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+            <!--
+              NOTA DE AUDITORIA: dados de localizacao vieram de uma mensagem
+              de WhatsApp encaminhada por Tony (texto, nao PDF/HTML oficial).
+              As fotos do moodboard enviado (piscina, suite master, home
+              theater) sao usadas apenas como referencia das legendas que o
+              proprio moodboard trazia; nao ha confirmacao de quartos/banheiros/
+              capacidade para esta casa. Tony: confirmar se Casa da Luz e
+              realmente um imovel distinto das Mansoes Sol & Mar / Le Joux
+              (as tres ficam na mesma regiao da Joatinga/Sao Conrado), e
+              enviar numero de quartos, banheiros e capacidade reais.
+            -->
+            <article class="servico-card" data-state="RJ">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.170">São Conrado (Joatinga) · Rio de Janeiro</span>
+                <h3 data-i18n="x.171">Casa da Luz</h3>
+                <p data-i18n="x.172">Mansão em condomínio privado fechado com segurança 24h, em São Conrado, na região da Joatinga, cercada por Mata Atlântica e a poucos minutos da cidade.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.173">Piscina de borda infinita e vista para o mar e a Mata Atlântica</li>
+                  <li data-i18n="x.174">Sala de estar integrada com janelas do piso ao teto</li>
+                  <li data-i18n="x.175">Área gourmet com churrasqueira integrada ao deck da piscina</li>
+                  <li data-i18n="x.176">Suíte master com cama king e banheira de hidromassagem, home theater com adega</li>
+                  <li data-i18n="x.177">A cerca de 5 min da Praia de São Conrado, do Fashion Mall, do Parque Nacional da Tijuca e da Vista Chinesa</li>
+                  <li data-i18n="x.178">Quartos, banheiros e capacidade: a confirmar</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="servico-card" data-state="RJ">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.179">Entre Copacabana e Ipanema · Rio de Janeiro</span>
+                <h3 data-i18n="x.180">Apartamento Vista Mar, Zona Sul</h3>
+                <p data-i18n="x.181">Apartamento amplo entre Copacabana e Ipanema, a cerca de 5 min a pé de Copacabana e 10 min de Ipanema e Arpoador.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.182">5 quartos, 6 camas, 4,5 banheiros, até 11 hóspedes</li>
+                  <li data-i18n="x.183">Serviço de cozinheira e faxineira incluso</li>
+                  <li data-i18n="x.184">Sala de estar, sala de jantar e área de refeições com vista</li>
+                  <li data-i18n="x.185">Ideal para famílias e grupos</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+            <!--
+              NOTA DE AUDITORIA: dados atualizados com a versao mais completa
+              da proposta (proposta-comercial-concierge-2026.vercel.app),
+              mesma propriedade do link xQRR...html usado antes. O card de
+              preview do WhatsApp chamava essa pagina de "Casa A Cima", mas
+              o nome real da propriedade, em todo o conteudo da pagina e no
+              endereco, e "Casa Praia dos Amores" (tambem referida como
+              "Casa Playa Amores" na versao em espanhol). Mantido como um
+              unico card para nao duplicar o mesmo imovel.
+            -->
+            <article class="servico-card" data-state="SC">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.186">Praia dos Amores · Balneário Camboriú, Santa Catarina</span>
+                <h3 data-i18n="x.187">Casa Praia dos Amores</h3>
+                <p data-i18n="x.188">Casa de alto padrão na Praia dos Amores, Rua Plínio Salgado, 32, região de Balneário Camboriú, com estrutura completa para grupos grandes.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.189">7 suítes + 2 quartos (9 acomodações), até 15 hóspedes</li>
+                  <li data-i18n="x.190">Piscina privativa e jacuzzi aquecida</li>
+                  <li data-i18n="x.191">Área gourmet com cozinha equipada e serviço de churrasqueiro incluso</li>
+                  <li data-i18n="x.192">Apoio na cozinha, Wi-Fi de alta velocidade e equipe de limpeza e organização</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- SUBCATEGORIA: PASSEIOS E EXPERIENCIAS NAUTICAS -->
+        <div class="servicos-subcategoria">
+          <div class="servicos-subcategoria-header">
+            <span class="h-eyebrow" style="color:var(--sunset);" data-i18n="x.194">Passeios e Experiências Náuticas</span>
+          </div>
+          <div class="servicos-grid">
+
+            <article class="servico-card">
+              <div class="servico-card-body">
+                <span class="servico-tag" data-i18n="x.195">Baía de Guanabara · Rio de Janeiro</span>
+                <h3 data-i18n="x.196">Passeio de Lancha, Antares 38 pés</h3>
+                <p data-i18n="x.197">Cinco horas de navegação privativa com saída e retorno pela Marina da Glória, passando por marcos históricos e paradas para banho de mar.</p>
+                <ul class="servico-list">
+                  <li data-i18n="x.198">Roteiro: Aeroporto Santos Dumont, Flamengo, Botafogo e Mureta da Urca (vista ao Pão de Açúcar)</li>
+                  <li data-i18n="x.199">Circuito histórico das fortalezas: São João, Laje e Santa Cruz</li>
+                  <li data-i18n="x.200">Parada para banho de mar na Praia Vermelha, com parada eventual na Ilha de Cotunduba</li>
+                  <li data-i18n="x.201">Churrasco a bordo disponível mediante coordenação prévia</li>
+                </ul>
+                <div class="servico-footer">
+                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
+                  <a href="#" class="servico-cta" onclick="goTo(6);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
         <!--
           NOTA DE AUDITORIA: lista abaixo vem de um guia de restaurantes real,
           extraido de uma proposta de hospedagem confirmada (Zona Sul, Rio de
@@ -2456,7 +2708,6 @@ html.dark .drawer-panel { background: var(--sand-200); }
             <div style="font-size:13px;color:var(--ink-soft);" data-i18n="x.48"><b style="color:var(--ink);">Rufino Parrilla</b> · Leblon · parrilla argentina</div>
             <div style="font-size:13px;color:var(--ink-soft);" data-i18n="x.49"><b style="color:var(--ink);">Signatures | Le Cordon Bleu</b> · Botafogo · francês</div>
           </div>
-        </div>
         </div>
 
         <div class="dest-guide" id="destGuide">
@@ -3574,312 +3825,14 @@ html.dark .drawer-panel { background: var(--sand-200); }
           </div>
           <p class="dest-empty" id="destEmpty" style="display:none;" data-i18n="x.317">Nenhum resultado para esse filtro.</p>
         </div>
-        <div class="footer-nav">
-          <button class="nav-btn" onclick="goTo(1)" data-i18n="x.118">← Curadoria</button>
-          <div class="page-indicator">
-            <div class="page-dots" id="dots-gal"></div>
-            <span id="pg-label-gal">03 / 09</span>
-          </div>
-          <button class="nav-btn primary" onclick="goTo(3)" data-i18n="x.119">Proposta →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 4 PROPOSTA -->
-    <div class="page" id="pg-proposta">
-      <div class="page-inner">
-        <div class="section-header">
-          <div class="h-eyebrow" data-i18n="prop.eyebrow">04 · Proposta</div>
-          <h2 class="h-section" data-i18n="prop.title">Antecipamos. Reservamos.<br>Acompanhamos.</h2>
-          <p class="lede" data-i18n="prop.lede">Três frentes simples, executadas com obsessão pelo detalhe.</p>
-        </div>
-        <div class="services-grid">
-          <article class="service-card">
-            <span class="service-num">01</span>
-            <h3 data-i18n="prop.s1.title">Curadoria</h3>
-            <p data-i18n="prop.s1.desc">Briefing pré-chegada com perguntas-chave: ritmo, gostos, restrições, datas. Devolvemos um plano em 48 horas.</p>
-            <ul class="service-list">
-              <li data-i18n="x.120">Roteiro diário personalizado</li>
-              <li data-i18n="x.121">Mapa pessoal com favoritos</li>
-              <li data-i18n="x.122">Reservas pré-confirmadas</li>
-              <li data-i18n="x.123">Alternativas para imprevistos</li>
-            </ul>
-          </article>
-          <article class="service-card">
-            <span class="service-num">02</span>
-            <h3 data-i18n="prop.s2.title">Acesso</h3>
-            <p data-i18n="prop.s2.desc">Lista de hóspedes em casas com fila, mesas em horários disputados, ingressos para festivais e regatas sem ligações.</p>
-            <ul class="service-list">
-              <li data-i18n="x.124">Mesas em beach clubs lotados</li>
-              <li data-i18n="x.125">Reservas em restaurantes-conceito</li>
-              <li data-i18n="x.126">Ingressos para eventos privados</li>
-              <li data-i18n="x.127">Translado VIP aeroporto à casa</li>
-            </ul>
-          </article>
-          <article class="service-card">
-            <span class="service-num">03</span>
-            <h3 data-i18n="prop.s3.title">Atenção 24/7</h3>
-            <p data-i18n="prop.s3.desc">Um anfitrião à distância de uma mensagem do início ao fim da estadia. Mudou o vento? Reorganizamos o dia.</p>
-            <ul class="service-list">
-              <li data-i18n="x.128">WhatsApp dedicado</li>
-              <li data-i18n="x.129">Visita de cortesia na chegada</li>
-              <li data-i18n="x.130">Despedida com mimo regional</li>
-              <li data-i18n="x.131">Histórico para próximas estadias</li>
-            </ul>
-          </article>
-        </div>
-        <div class="footer-nav">
-          <button class="nav-btn" onclick="goTo(2)" data-i18n="x.132">← Galeria</button>
-          <div class="page-indicator">
-            <div class="page-dots" id="dots-prop"></div>
-            <span id="pg-label-prop">04 / 09</span>
-          </div>
-          <button class="nav-btn primary" onclick="goTo(4)" data-i18n="x.133">Nossas Experiências →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 4B NOSSAS EXPERIÊNCIAS -->
-    <!--
-      NOTA DE AUDITORIA (Claude, 2026-10-07): conteudo desta pagina vem de
-      propostas comerciais reais fornecidas por Tony (Mansao Sol & Mar,
-      Mansao Le Joux, Passeio de Lancha Antares 38). Valores foram removidos
-      e trocados por "Sob consulta" a pedido dele. O nome do cliente da
-      proposta de lancha (Marcelo Monte) foi removido por ser dado pessoal
-      de terceiro. Novas casas/experiencias devem ser cadastradas aqui no
-      mesmo padrao de card, dentro da subcategoria correta.
-
-      NOTA DE AUDITORIA (Claude, 2026-10-09): os links "Ver tour em video"
-      (Casa Del Lago, Casa del Joa) e "Ver tour em video e galeria completa"
-      (Casa Praia dos Amores) foram REMOVIDOS. Os dois primeiros apontavam
-      para files.manuscdn.com, que serve essas paginas com o header HTTP
-      Content-Disposition: attachment — por isso o clique forcava download
-      em vez de abrir a pagina (confirmado via curl -I). Alem disso, as 3
-      paginas linkadas nao eram "videos": eram propostas comerciais reais
-      com valores (R$ 36.500, R$ 9.000/noite, R$ 68.000, R$ 88.000 etc.),
-      o que contradiz a politica deste site de nunca exibir preco publico
-      (sempre "Sob consulta"). Republicar esse conteudo no site institucional
-      teria exposto preco real de propostas de clientes especificos. Nao ha,
-      no repositorio, fotos ou videos reais por imovel para usar no lugar —
-      apenas as imagens de estoque genericas em public/institucional/images/.
-      Se Tony fornecer fotos/videos reais de cada casa (sem precos), cadastrar
-      aqui como <img>/<video> locais, nunca como link para proposta comercial.
-    -->
-    <div class="page" id="pg-servicos">
-      <div class="page-inner" style="overflow-y:auto;">
-        <div class="section-header">
-          <div class="h-eyebrow" data-i18n="x.134">04 · Nossas Experiências</div>
-          <h2 class="h-section" data-i18n="x.135">O que oferecemos,<br>casa por casa, experiência por experiência.</h2>
-          <p class="lede" data-i18n="x.136">Duas frentes da curadoria Toca: imóveis selecionados para temporada e experiências privadas sob medida, em qualquer destino do Brasil.</p>
-        </div>
-
-        <!-- SUBCATEGORIA: IMOVEIS PARA TEMPORADA -->
-        <!--
-          NOTA DE AUDITORIA (Claude, 2026-10-07): imoveis cadastrados a partir
-          de propostas comerciais reais (PDFs e paginas HTML fornecidas por
-          Tony). Organizados por estado, com filtro de busca direta. Novas
-          casas devem ser cadastradas aqui, com data-state apontando para a
-          sigla do estado (criar novo filtro se for um estado ainda nao
-          listado). Valores removidos e trocados por "Sob consulta".
-        -->
-        <div class="servicos-subcategoria">
-          <div class="servicos-subcategoria-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-            <span class="h-eyebrow" style="color:var(--sunset);" data-i18n="x.137">Imóveis para Temporada</span>
-            <div class="filters" role="group" aria-label="Filtrar por estado">
-              <button class="state-filter-btn" data-state-filter="all" aria-pressed="true" data-i18n="x.138">Todos os estados <span class="count">7</span></button>
-              <button class="state-filter-btn" data-state-filter="RJ" aria-pressed="false" data-i18n="x.139">Rio de Janeiro <span class="count">6</span></button>
-              <button class="state-filter-btn" data-state-filter="SC" aria-pressed="false" data-i18n="x.140">Santa Catarina <span class="count">1</span></button>
-            </div>
-          </div>
-          <div class="servicos-grid" id="imoveisGrid">
-
-            <article class="servico-card" data-state="RJ">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.141">Joatinga · Rio de Janeiro</span>
-                <h3 data-i18n="x.142">Mansão Sol &amp; Mar</h3>
-                <p data-i18n="x.143">Mansão triplex com elevador, em condomínio fechado na Joatinga, com praia privativa (Praia da Joatinga) e vista ao mar de todos os ambientes.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.144">4 suítes, todas com varanda, até 10 pessoas</li>
-                  <li data-i18n="x.145">Suíte master com closet, hidromassagem e terraço privativo</li>
-                  <li data-i18n="x.146">Piscina com deck e área gourmet com churrasqueira</li>
-                  <li data-i18n="x.147">Condomínio fechado e seguro, a cerca de 10 a 17 min das praias e da vida noturna da Zona Sul</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="servico-card" data-state="RJ">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.141">Joatinga · Rio de Janeiro</span>
-                <h3 data-i18n="x.150">Mansão Le Joux</h3>
-                <p data-i18n="x.151">Mansão com estrutura completa de bem-estar, no mesmo condomínio fechado da Joatinga, com praia privativa e vista ao mar.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.152">6 quartos, sendo 4 suítes, todos com vista ao mar e climatização</li>
-                  <li data-i18n="x.153">Piscina com deck, sauna, jacuzzi com vista ao mar e academia completa</li>
-                  <li data-i18n="x.154">Living, cozinha e área gourmet equipada, limpeza da piscina inclusa</li>
-                  <li data-i18n="x.147">Condomínio fechado e seguro, a cerca de 10 a 17 min das praias e da vida noturna da Zona Sul</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="servico-card" data-state="RJ">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.155">Barra da Tijuca · Rio de Janeiro</span>
-                <h3 data-i18n="x.156">Casa Del Lago</h3>
-                <p data-i18n="x.157">Casa em condomínio fechado na Barra da Tijuca, com piscina espelho d'água e estrutura completa de lazer.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.158">4 suítes, até 10 hóspedes (até 15 pessoas em uso diurno)</li>
-                  <li data-i18n="x.159">Piscina com hidromassagem, área gourmet com churrasqueira profissional e chopeira</li>
-                  <li data-i18n="x.160">Academia equipada, living, sala de jantar, deck e lounge</li>
-                  <li data-i18n="x.161">Ar-condicionado split em todos os ambientes</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="servico-card" data-state="RJ">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.163">Joá · Rio de Janeiro</span>
-                <h3 data-i18n="x.164">Casa del Joá</h3>
-                <p data-i18n="x.165">Casa mobiliada e equipada no Joá, com vista panorâmica, suporte de concierge e segurança 24h. Indicada para grupos e celebrações com horário de silêncio a partir das 22h.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.166">Até 10 hóspedes hospedados, até 15 visitantes diurnos</li>
-                  <li data-i18n="x.167">Vista panorâmica e som ambiente</li>
-                  <li data-i18n="x.168">Segurança 24h e suporte de concierge dedicado</li>
-                  <li data-i18n="x.169">Recepção e operação acompanhadas pela equipe Toca</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-            <!--
-              NOTA DE AUDITORIA: dados de localizacao vieram de uma mensagem
-              de WhatsApp encaminhada por Tony (texto, nao PDF/HTML oficial).
-              As fotos do moodboard enviado (piscina, suite master, home
-              theater) sao usadas apenas como referencia das legendas que o
-              proprio moodboard trazia; nao ha confirmacao de quartos/banheiros/
-              capacidade para esta casa. Tony: confirmar se Casa da Luz e
-              realmente um imovel distinto das Mansoes Sol & Mar / Le Joux
-              (as tres ficam na mesma regiao da Joatinga/Sao Conrado), e
-              enviar numero de quartos, banheiros e capacidade reais.
-            -->
-            <article class="servico-card" data-state="RJ">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.170">São Conrado (Joatinga) · Rio de Janeiro</span>
-                <h3 data-i18n="x.171">Casa da Luz</h3>
-                <p data-i18n="x.172">Mansão em condomínio privado fechado com segurança 24h, em São Conrado, na região da Joatinga, cercada por Mata Atlântica e a poucos minutos da cidade.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.173">Piscina de borda infinita e vista para o mar e a Mata Atlântica</li>
-                  <li data-i18n="x.174">Sala de estar integrada com janelas do piso ao teto</li>
-                  <li data-i18n="x.175">Área gourmet com churrasqueira integrada ao deck da piscina</li>
-                  <li data-i18n="x.176">Suíte master com cama king e banheira de hidromassagem, home theater com adega</li>
-                  <li data-i18n="x.177">A cerca de 5 min da Praia de São Conrado, do Fashion Mall, do Parque Nacional da Tijuca e da Vista Chinesa</li>
-                  <li data-i18n="x.178">Quartos, banheiros e capacidade: a confirmar</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="servico-card" data-state="RJ">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.179">Entre Copacabana e Ipanema · Rio de Janeiro</span>
-                <h3 data-i18n="x.180">Apartamento Vista Mar, Zona Sul</h3>
-                <p data-i18n="x.181">Apartamento amplo entre Copacabana e Ipanema, a cerca de 5 min a pé de Copacabana e 10 min de Ipanema e Arpoador.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.182">5 quartos, 6 camas, 4,5 banheiros, até 11 hóspedes</li>
-                  <li data-i18n="x.183">Serviço de cozinheira e faxineira incluso</li>
-                  <li data-i18n="x.184">Sala de estar, sala de jantar e área de refeições com vista</li>
-                  <li data-i18n="x.185">Ideal para famílias e grupos</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-            <!--
-              NOTA DE AUDITORIA: dados atualizados com a versao mais completa
-              da proposta (proposta-comercial-concierge-2026.vercel.app),
-              mesma propriedade do link xQRR...html usado antes. O card de
-              preview do WhatsApp chamava essa pagina de "Casa A Cima", mas
-              o nome real da propriedade, em todo o conteudo da pagina e no
-              endereco, e "Casa Praia dos Amores" (tambem referida como
-              "Casa Playa Amores" na versao em espanhol). Mantido como um
-              unico card para nao duplicar o mesmo imovel.
-            -->
-            <article class="servico-card" data-state="SC">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.186">Praia dos Amores · Balneário Camboriú, Santa Catarina</span>
-                <h3 data-i18n="x.187">Casa Praia dos Amores</h3>
-                <p data-i18n="x.188">Casa de alto padrão na Praia dos Amores, Rua Plínio Salgado, 32, região de Balneário Camboriú, com estrutura completa para grupos grandes.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.189">7 suítes + 2 quartos (9 acomodações), até 15 hóspedes</li>
-                  <li data-i18n="x.190">Piscina privativa e jacuzzi aquecida</li>
-                  <li data-i18n="x.191">Área gourmet com cozinha equipada e serviço de churrasqueiro incluso</li>
-                  <li data-i18n="x.192">Apoio na cozinha, Wi-Fi de alta velocidade e equipe de limpeza e organização</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-          </div>
-        </div>
-
-        <!-- SUBCATEGORIA: PASSEIOS E EXPERIENCIAS NAUTICAS -->
-        <div class="servicos-subcategoria">
-          <div class="servicos-subcategoria-header">
-            <span class="h-eyebrow" style="color:var(--sunset);" data-i18n="x.194">Passeios e Experiências Náuticas</span>
-          </div>
-          <div class="servicos-grid">
-
-            <article class="servico-card">
-              <div class="servico-card-body">
-                <span class="servico-tag" data-i18n="x.195">Baía de Guanabara · Rio de Janeiro</span>
-                <h3 data-i18n="x.196">Passeio de Lancha, Antares 38 pés</h3>
-                <p data-i18n="x.197">Cinco horas de navegação privativa com saída e retorno pela Marina da Glória, passando por marcos históricos e paradas para banho de mar.</p>
-                <ul class="servico-list">
-                  <li data-i18n="x.198">Roteiro: Aeroporto Santos Dumont, Flamengo, Botafogo e Mureta da Urca (vista ao Pão de Açúcar)</li>
-                  <li data-i18n="x.199">Circuito histórico das fortalezas: São João, Laje e Santa Cruz</li>
-                  <li data-i18n="x.200">Parada para banho de mar na Praia Vermelha, com parada eventual na Ilha de Cotunduba</li>
-                  <li data-i18n="x.201">Churrasco a bordo disponível mediante coordenação prévia</li>
-                </ul>
-                <div class="servico-footer">
-                  <span class="servico-price" data-i18n="x.148">Sob consulta</span>
-                  <a href="#" class="servico-cta" onclick="goTo(8);return false;" data-i18n="x.149">Consultar disponibilidade →</a>
-                </div>
-              </div>
-            </article>
-
-          </div>
-        </div>
 
         <div class="footer-nav">
-          <button class="nav-btn" onclick="goTo(3)" data-i18n="x.202">← Proposta</button>
+          <button class="nav-btn" onclick="goTo(2)" data-i18n="x.202">← Sobre</button>
           <div class="page-indicator">
             <div class="page-dots" id="dots-serv"></div>
-            <span id="pg-label-serv">05 / 09</span>
+            <span id="pg-label-serv">04 / 08</span>
           </div>
-          <button class="nav-btn primary" onclick="goTo(5)" data-i18n="x.203">Sobre →</button>
+          <button class="nav-btn primary" onclick="goTo(4)" data-i18n="x.203">Nosso Público →</button>
         </div>
       </div>
     </div>
@@ -3894,7 +3847,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
           </div>
           <div class="sobre-copy">
             <div class="section-header" style="color:inherit;margin-bottom:4px;">
-              <div class="h-eyebrow" style="color:rgba(245,239,229,.5);" data-i18n="about.eyebrow">05 · Quem Somos</div>
+              <div class="h-eyebrow" style="color:rgba(245,239,229,.5);" data-i18n="about.eyebrow">03 · Sobre</div>
               <h2 class="h-section" style="color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.5);" data-i18n="about.title">A Toca nasceu de duas certezas.</h2>
             </div>
             <p data-i18n="x.204">A primeira: que cada destino tem mais a oferecer do que cabe em qualquer guia. A segunda: que cada hóspede tem um ritmo próprio e merece um plano que o respeite.</p>
@@ -3948,12 +3901,12 @@ html.dark .drawer-panel { background: var(--sand-200); }
           </div>
         </div>
         <div class="footer-nav">
-          <button class="nav-btn" onclick="goTo(4)" style="background:rgba(245,239,229,.08);border-color:rgba(245,239,229,.2);color:rgba(245,239,229,.8);" data-i18n="x.218">← Nossas Experiências</button>
+          <button class="nav-btn" onclick="goTo(1)" style="background:rgba(245,239,229,.08);border-color:rgba(245,239,229,.2);color:rgba(245,239,229,.8);" data-i18n="x.218">← Curadoria</button>
           <div class="page-indicator" style="color:rgba(245,239,229,.45);">
             <div class="page-dots" id="dots-sobre"></div>
-            <span id="pg-label-sobre">06 / 09</span>
+            <span id="pg-label-sobre">03 / 08</span>
           </div>
-          <button class="nav-btn primary" onclick="goTo(6)" style="background:var(--sunset);border-color:var(--sunset);color:#fff;" data-i18n="x.219">FAQ →</button>
+          <button class="nav-btn primary" onclick="goTo(3)" style="background:var(--sunset);border-color:var(--sunset);color:#fff;" data-i18n="x.219">Nossas Experiências →</button>
         </div>
       </div>
     </div>
@@ -3962,9 +3915,10 @@ html.dark .drawer-panel { background: var(--sand-200); }
     <div class="page" id="pg-faq">
       <div class="page-inner">
         <div class="section-header">
-          <div class="h-eyebrow" data-i18n="faq.eyebrow">06 · FAQ</div>
+          <div class="h-eyebrow" data-i18n="faq.eyebrow">08 · FAQ</div>
           <h2 class="h-section" data-i18n="faq.title">Perguntas frequentes.</h2>
         </div>
+        <img src="images/3049429.jpg" alt="Pôr do sol em praia brasileira, clima das experiências Toca Concierge" loading="lazy" decoding="async" style="display:block;width:100%;max-width:900px;height:140px;object-fit:cover;object-position:center 60%;border-radius:16px;margin:0 0 20px;box-shadow:0 6px 24px rgba(0,0,0,.35);"/>
         <div class="faq-body">
           <details class="faq-item" open>
             <summary data-i18n="x.301">Quanto tempo antes devo contratar?</summary>
@@ -4000,12 +3954,12 @@ html.dark .drawer-panel { background: var(--sand-200); }
           </details>
         </div>
         <div class="footer-nav">
-          <button class="nav-btn" onclick="goTo(5)" data-i18n="x.228">← Sobre</button>
+          <button class="nav-btn" onclick="goTo(6)" data-i18n="x.228">← Reservar</button>
           <div class="page-indicator">
             <div class="page-dots" id="dots-faq"></div>
-            <span id="pg-label-faq">07 / 09</span>
+            <span id="pg-label-faq">08 / 08</span>
           </div>
-          <button class="nav-btn primary" onclick="goTo(7)" data-i18n="x.229">Nosso Público →</button>
+          <button class="nav-btn" disabled data-i18n="x.229">Próxima →</button>
         </div>
       </div>
     </div>
@@ -4076,12 +4030,12 @@ html.dark .drawer-panel { background: var(--sand-200); }
         </div>
 
         <div class="footer-nav">
-          <button class="nav-btn" onclick="goTo(6)" data-i18n="x.255">← FAQ</button>
+          <button class="nav-btn" onclick="goTo(3)" data-i18n="x.255">← Nossas Experiências</button>
           <div class="page-indicator">
             <div class="page-dots" id="dots-pub"></div>
-            <span id="pg-label-pub">08 / 09</span>
+            <span id="pg-label-pub">05 / 08</span>
           </div>
-          <button class="nav-btn primary" onclick="goTo(8)" data-i18n="x.256">Reservar →</button>
+          <button class="nav-btn primary" onclick="goTo(5)" data-i18n="x.256">Proposta →</button>
         </div>
 
       </div>
@@ -4092,7 +4046,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
       <div class="page-inner">
         <div class="reserva-wrap">
           <div class="reserva-copy">
-            <div class="h-eyebrow" style="color:rgba(245,239,229,.45);" data-i18n="prop.eyebrow">07 · Reservar</div>
+            <div class="h-eyebrow" style="color:rgba(245,239,229,.45);" data-i18n="reserva.eyebrow">07 · Reservar</div>
             <h2 class="h-section" data-i18n="final.title">Comece a sua estadia <em>antes da chegada.</em></h2>
             <p data-i18n="final.lede">Conte-nos sobre o seu grupo, datas e o que normalmente o faz feliz numa viagem. Devolvemos um plano em até 48 horas sem compromisso.</p>
             <!--
@@ -4126,16 +4080,20 @@ html.dark .drawer-panel { background: var(--sand-200); }
             <div class="reserva-meta-item"><b>200+</b><span data-i18n="hero.m4">parceiros</span></div>
           </div>
         </div>
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:rgba(245,239,229,.35);padding:0 clamp(28px,6vw,80px) 8px;" data-i18n="x.259">
+        <div style="padding:16px clamp(28px,6vw,80px) 0;">
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:rgba(245,239,229,.4);display:block;margin-bottom:8px;" data-i18n="x.400">Nossa base · Trancoso, Porto Seguro, BA</span>
+          <iframe title="Mapa — Trancoso, Porto Seguro, BA" src="https://maps.google.com/maps?q=Trancoso%2C%20Porto%20Seguro%2C%20BA&z=12&output=embed" width="100%" height="200" style="border:0;border-radius:12px;max-width:640px;filter:grayscale(.2) contrast(1.05);" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:rgba(245,239,229,.35);padding:8px clamp(28px,6vw,80px) 8px;" data-i18n="x.259">
           Toca Concierge é uma marca do grupo Toca Experience · Toca Experience Inova Simples (I.S.) · CNPJ 68.662.845/0001-86 · Trancoso, Porto Seguro, BA
         </div>
         <div class="footer-nav" style="background:rgba(245,239,229,.06);border-top-color:rgba(245,239,229,.12);">
-          <button class="nav-btn" onclick="goTo(7)" style="background:rgba(245,239,229,.08);border-color:rgba(245,239,229,.2);color:rgba(245,239,229,.7);" data-i18n="x.260">← Nosso Público</button>
+          <button class="nav-btn" onclick="goTo(5)" style="background:rgba(245,239,229,.08);border-color:rgba(245,239,229,.2);color:rgba(245,239,229,.7);" data-i18n="x.260">← Proposta</button>
           <div class="page-indicator" style="color:rgba(245,239,229,.4);">
             <div class="page-dots" id="dots-res"></div>
-            <span id="pg-label-res">09 / 09</span>
+            <span id="pg-label-res">07 / 08</span>
           </div>
-          <button class="nav-btn" disabled style="opacity:.2;background:rgba(245,239,229,.06);border-color:rgba(245,239,229,.15);color:rgba(245,239,229,.5);" data-i18n="x.261">Próxima →</button>
+          <button class="nav-btn primary" onclick="goTo(7)" style="background:var(--sunset);border-color:var(--sunset);color:#fff;" data-i18n="x.261">FAQ →</button>
         </div>
       </div>
     </div>
@@ -4153,13 +4111,12 @@ html.dark .drawer-panel { background: var(--sand-200); }
     </button>
     <button class="drawer-nav-btn active" data-page="0" onclick="goTo(0);closeDrawer()" data-i18n="x.262"><span class="dn">01</span>O que Fazemos</button>
     <button class="drawer-nav-btn" data-page="1" onclick="goTo(1);closeDrawer()" data-i18n="x.263"><span class="dn">02</span>Curadoria</button>
-    <button class="drawer-nav-btn" data-page="2" onclick="goTo(2);closeDrawer()" data-i18n="x.264"><span class="dn">03</span>Galeria</button>
-    <button class="drawer-nav-btn" data-page="3" onclick="goTo(3);closeDrawer()" data-i18n="x.265"><span class="dn">04</span>Proposta</button>
-    <button class="drawer-nav-btn" data-page="4" onclick="goTo(4);closeDrawer()" data-i18n="x.266"><span class="dn">05</span>Nossas Experiências</button>
-    <button class="drawer-nav-btn" data-page="5" onclick="goTo(5);closeDrawer()" data-i18n="x.267"><span class="dn">06</span>Quem Somos</button>
-    <button class="drawer-nav-btn" data-page="6" onclick="goTo(6);closeDrawer()" data-i18n="x.268"><span class="dn">07</span>FAQ</button>
-    <button class="drawer-nav-btn" data-page="7" onclick="goTo(7);closeDrawer()" data-i18n="x.269"><span class="dn">08</span>Nosso Público</button>
-    <button class="drawer-nav-btn" data-page="8" onclick="goTo(8);closeDrawer()" data-i18n="x.270"><span class="dn">09</span>Reservar</button>
+    <button class="drawer-nav-btn" data-page="2" onclick="goTo(2);closeDrawer()" data-i18n="x.267"><span class="dn">03</span>Sobre</button>
+    <button class="drawer-nav-btn" data-page="3" onclick="goTo(3);closeDrawer()" data-i18n="x.266"><span class="dn">04</span>Nossas Experiências</button>
+    <button class="drawer-nav-btn" data-page="4" onclick="goTo(4);closeDrawer()" data-i18n="x.269"><span class="dn">05</span>Nosso Público</button>
+    <button class="drawer-nav-btn" data-page="5" onclick="goTo(5);closeDrawer()" data-i18n="x.265"><span class="dn">06</span>Proposta</button>
+    <button class="drawer-nav-btn" data-page="6" onclick="goTo(6);closeDrawer()" data-i18n="x.270"><span class="dn">07</span>Reservar</button>
+    <button class="drawer-nav-btn" data-page="7" onclick="goTo(7);closeDrawer()" data-i18n="x.268"><span class="dn">08</span>FAQ</button>
     <a class="drawer-nav-btn" href="/dashboard" style="border-top:1px solid var(--line);margin-top:8px;" data-i18n="x.271"><span class="dn">→</span>Acessar o painel</a>
   </div>
 </div>
@@ -4168,8 +4125,8 @@ html.dark .drawer-panel { background: var(--sand-200); }
 /* ═══════════════════════════════════════════════════
    PAGE ROUTER
 ═══════════════════════════════════════════════════ */
-const PAGES = ['pg-home','pg-curadoria','pg-galeria','pg-proposta','pg-servicos','pg-sobre','pg-faq','pg-publico','pg-reserva'];
-const PAGE_NAMES = ['O que Fazemos','Curadoria','Galeria','Proposta','Nossas Experiências','Sobre','FAQ','Nosso Público','Reservar'];
+const PAGES = ['pg-home','pg-curadoria','pg-sobre','pg-servicos','pg-publico','pg-proposta','pg-reserva','pg-faq'];
+const PAGE_NAMES = ['O que Fazemos','Curadoria','Sobre','Nossas Experiências','Nosso Público','Proposta','Reservar','FAQ'];
 let current = 0;
 let animating = false;
 
@@ -4250,7 +4207,7 @@ function curCardLaunch(el, action) {
    categoria clicada: troca de pagina, rola ate a secao e acende um pulso
    nela, pra ficar claro que as duas paginas "se falaram" naquele clique. */
 function exploreCategory(cat) {
-  goTo(2);
+  goTo(3);
   setTimeout(() => {
     const guide = document.getElementById('destGuide');
     if (!guide) return;
@@ -4267,7 +4224,7 @@ function exploreCategory(cat) {
 }
 
 // Init dots on all pages
-['dots-home','dots-cur','dots-gal','dots-prop','dots-serv','dots-sobre','dots-faq','dots-pub','dots-res'].forEach(id => buildDots(id));
+['dots-home','dots-cur','dots-sobre','dots-serv','dots-pub','dots-prop','dots-res','dots-faq'].forEach(id => buildDots(id));
 updateDots(0);
 
 // Keyboard navigation
@@ -4402,7 +4359,7 @@ const i18n = {
     'x.38': "Hospedagem Premium",
     'x.39': "Casas e villas de alto padrão com equipe dedicada: chefs, camareiras, barman e muito mais.",
     'x.40': "← O que Fazemos",
-    'x.41': "Galeria →",
+    'x.41': "Sobre →",
     'x.42': "Uma curadoria real, construída destino por destino — sem preço fixo, porque cada experiência é sob consulta.",
     'x.43': "Restaurantes recomendados · Zona Sul, Rio de Janeiro",
     'x.44': "<b style=\"color:var(--ink);\">Marius Degustare</b> · Copacabana · frutos do mar",
@@ -4457,8 +4414,8 @@ const i18n = {
     'x.129': "Visita de cortesia na chegada",
     'x.130': "Despedida com mimo regional",
     'x.131': "Histórico para próximas estadias",
-    'x.132': "← Galeria",
-    'x.133': "Nossas Experiências →",
+    'x.132': "← Nosso Público",
+    'x.133': "Reservar →",
     'x.134': "04 · Nossas Experiências",
     'x.135': "O que oferecemos,<br>casa por casa, experiência por experiência.",
     'x.136': "Duas frentes da curadoria Toca: imóveis selecionados para temporada e experiências privadas sob medida, em qualquer destino do Brasil.",
@@ -4525,8 +4482,8 @@ const i18n = {
     'x.199': "Circuito histórico das fortalezas: São João, Laje e Santa Cruz",
     'x.200': "Parada para banho de mar na Praia Vermelha, com parada eventual na Ilha de Cotunduba",
     'x.201': "Churrasco a bordo disponível mediante coordenação prévia",
-    'x.202': "← Proposta",
-    'x.203': "Sobre →",
+    'x.202': "← Sobre",
+    'x.203': "Nosso Público →",
     'x.204': "A primeira: que a região onde escolhemos viver tem mais a oferecer do que cabe em qualquer guia. A segunda: que cada hóspede tem um ritmo próprio e merece um plano que o respeite.",
     'x.205': "Não somos uma agência. Não vendemos pacotes. Somos a pessoa que conhece o dono do bar e sabe a previsão das ondas para amanhã.",
     'x.206': "Origem",
@@ -4541,8 +4498,8 @@ const i18n = {
     'x.215': "Em breve: depoimentos de hóspedes reais",
     'x.216': "Toca Concierge",
     'x.217': "Conteúdo pendente",
-    'x.218': "← Nossas Experiências",
-    'x.219': "FAQ →",
+    'x.218': "← Curadoria",
+    'x.219': "Nossas Experiências →",
     'x.220': "Recomendamos pelo menos 5 dias antes da chegada para garantir todas as reservas. Para grupos grandes ou períodos de alta temporada, 2 a 3 semanas é o ideal.",
     'x.221': "Sim. Temos experiência com grupos de 2 a 40 pessoas. Para grupos acima de 15, montamos um plano operacional dedicado com coordenador presente.",
     'x.222': "Trabalhamos com uma curadoria de casas selecionadas na região. Podemos indicar e intermediar a reserva da propriedade ideal para o seu perfil.",
@@ -4551,8 +4508,8 @@ const i18n = {
     'x.225': "O briefing inicial é gratuito. Após apresentarmos o plano, você aprova os itens e paga conforme o escopo definido. Aceitamos PIX, cartão e transferência internacional.",
     'x.226': "Sim. Nossa equipe atende fluentemente em português, inglês e espanhol. Temos parceiros que falam francês e italiano para grupos europeus.",
     'x.227': "Com certeza. Oferecemos desde um simples roteiro curado até o acompanhamento completo 24/7. O escopo é definido inteiramente conforme suas necessidades.",
-    'x.228': "← Sobre",
-    'x.229': "Nosso Público →",
+    'x.228': "← Reservar",
+    'x.229': "Próxima →",
     'x.230': "Casais, famílias, empresas<br>e marcas de alto padrão.",
     'x.231': "Casais de Alta Renda",
     'x.232': "Brasileiros e estrangeiros em busca de experiências românticas, celebrações marcantes e mini-casamentos. Valorizam privacidade, estética e serviço sem burocracia.",
@@ -4578,22 +4535,23 @@ const i18n = {
     'x.252': "Reino Unido",
     'x.253': "Alemanha",
     'x.254': "América Latina",
-    'x.255': "← FAQ",
-    'x.256': "Reservar →",
+    'x.255': "← Nossas Experiências",
+    'x.256': "Proposta →",
     'x.257': "\n                Enviar e-mail\n              ",
     'x.258': "\n                Já é cliente? Acessar o painel →\n              ",
     'x.259': "\n          Toca Concierge é uma marca do grupo Toca Experience · Toca Experience Inova Simples (I.S.) · CNPJ 68.662.845/0001-86 · Trancoso, Porto Seguro, BA\n        ",
-    'x.260': "← Nosso Público",
-    'x.261': "Próxima →",
+    'x.400': "Nossa base · Trancoso, Porto Seguro, BA",
+    'x.260': "← Proposta",
+    'x.261': "FAQ →",
     'x.262': "<span class=\"dn\">01</span>O que Fazemos",
     'x.263': "<span class=\"dn\">02</span>Curadoria",
     'x.264': "<span class=\"dn\">03</span>Galeria",
-    'x.265': "<span class=\"dn\">04</span>Proposta",
-    'x.266': "<span class=\"dn\">05</span>Nossas Experiências",
-    'x.267': "<span class=\"dn\">06</span>Quem Somos",
-    'x.268': "<span class=\"dn\">07</span>FAQ",
-    'x.269': "<span class=\"dn\">08</span>Nosso Público",
-    'x.270': "<span class=\"dn\">09</span>Reservar",
+    'x.265': "<span class=\"dn\">06</span>Proposta",
+    'x.266': "<span class=\"dn\">04</span>Nossas Experiências",
+    'x.267': "<span class=\"dn\">03</span>Sobre",
+    'x.268': "<span class=\"dn\">08</span>FAQ",
+    'x.269': "<span class=\"dn\">05</span>Nosso Público",
+    'x.270': "<span class=\"dn\">07</span>Reservar",
     'x.271': "<span class=\"dn\">→</span>Acessar o painel",
     'x.301': "Quanto tempo antes devo contratar?",
     'x.302': "Funciona para grupos grandes?",
@@ -4609,16 +4567,16 @@ const i18n = {
     'hero.title':'Tudo o que você precisa,<br>antes mesmo de <em>pedir</em>.',
     'hero.lede':'O Toca Concierge conecta hóspedes de alto padrão a experiências únicas em Trancoso. Da hospedagem e equipe na casa até roteiros exclusivos, festas privativas e acesso aos melhores lugares da região.',
     'hero.m1':'plano pronto','hero.m2':'sob medida','hero.m3':'suporte dedicado','hero.m4':'parceiros selecionados',
-    'cur.eyebrow':'01 · Curadoria','cur.title':'Sua Jornada,<br>Nossa Narrativa.',
+    'cur.eyebrow':'02 · Curadoria','cur.title':'Sua Jornada,<br>Nossa Narrativa.',
     'cur.lede':'Experiências únicas, meticulosamente desenhadas para você. Mergulhamos no seu perfil, desejos e momento de vida para tecer uma narrativa completa. Do primeiro dia ao último, fluida, autêntica e inesquecível.',
     'map.eyebrow':'03 · Galeria de Experiências','map.title':'Cada lugar,<br>escolhido pessoalmente.',
-    'prop.eyebrow':'04 · Proposta','prop.title':'Antecipamos. Reservamos.<br>Acompanhamos.',
+    'prop.eyebrow':'06 · Proposta','reserva.eyebrow':'07 · Reservar','prop.title':'Antecipamos. Reservamos.<br>Acompanhamos.',
     'prop.lede':'Três frentes simples, executadas com obsessão pelo detalhe.',
     'prop.s1.title':'Curadoria','prop.s1.desc':'Briefing pré-chegada com perguntas-chave: ritmo, gostos, restrições, datas. Devolvemos um plano em 48 horas.',
     'prop.s2.title':'Acesso','prop.s2.desc':'Lista de hóspedes em casas com fila, mesas em horários disputados, ingressos para festivais e regatas sem ligações.',
     'prop.s3.title':'Atenção 24/7','prop.s3.desc':'Um anfitrião à distância de uma mensagem do início ao fim da estadia. Mudou o vento? Reorganizamos o dia.',
-    'about.eyebrow':'05 · Quem Somos','about.title':'A Toca nasceu de duas certezas.',
-    'faq.eyebrow':'06 · FAQ','faq.title':'Perguntas frequentes.',
+    'about.eyebrow':'03 · Sobre','about.title':'A Toca nasceu de duas certezas.',
+    'faq.eyebrow':'08 · FAQ','faq.title':'Perguntas frequentes.',
     'final.title':'Comece a sua estadia <em>antes da chegada.</em>',
     'final.lede':'Conte-nos sobre o seu grupo, datas e o que normalmente o faz feliz numa viagem. Devolvemos um plano em até 48 horas sem compromisso.',
     'pillar.1.title':'Gastronomia','pillar.1.desc':'Mesas-conceito, fogo a lenha, frutos do mar do dia. Do bar de bairro ao chef premiado.','pillar.1.count':'48 endereços',
@@ -4667,7 +4625,7 @@ const i18n = {
     'x.38': "Alojamiento Premium",
     'x.39': "Casas y villas de alto estándar con equipo dedicado: chefs, camareras, barman y mucho más.",
     'x.40': "← Lo que hacemos",
-    'x.41': "Galería →",
+    'x.41': "Sobre →",
     'x.42': "Una curaduría real, construida destino por destino — sin precio fijo, porque cada experiencia es bajo consulta.",
     'x.43': "Restaurantes recomendados · Zona Sul, Rio de Janeiro",
     'x.44': "<b style=\"color:var(--ink);\">Marius Degustare</b> · Copacabana · frutos del mar",
@@ -4722,8 +4680,8 @@ const i18n = {
     'x.129': "Visita de cortesía a la llegada",
     'x.130': "Despedida con detalle regional",
     'x.131': "Historial para próximas estancias",
-    'x.132': "← Galería",
-    'x.133': "Nuestras Experiencias →",
+    'x.132': "← Nuestro Público",
+    'x.133': "Reservar →",
     'x.134': "04 · Nuestras Experiencias",
     'x.135': "Lo que ofrecemos,<br>casa por casa, experiencia por experiencia.",
     'x.136': "Dos frentes de la curaduría Toca: propiedades seleccionadas para temporada y experiencias privadas a medida, en cualquier destino de Brasil.",
@@ -4790,8 +4748,8 @@ const i18n = {
     'x.199': "Circuito histórico de las fortalezas: São João, Laje y Santa Cruz",
     'x.200': "Parada para nadar en la Praia Vermelha, con parada eventual en la Ilha de Cotunduba",
     'x.201': "Barbacoa a bordo disponible mediante coordinación previa",
-    'x.202': "← Propuesta",
-    'x.203': "Sobre →",
+    'x.202': "← Sobre",
+    'x.203': "Nuestro Público →",
     'x.204': "La primera: que la región donde elegimos vivir tiene más que ofrecer de lo que cabe en cualquier guía. La segunda: que cada huésped tiene un ritmo propio y merece un plan que lo respete.",
     'x.205': "No somos una agencia. No vendemos paquetes. Somos la persona que conoce al dueño del bar y sabe el pronóstico de las olas para mañana.",
     'x.206': "Origen",
@@ -4806,8 +4764,8 @@ const i18n = {
     'x.215': "Muy pronto: testimonios de huéspedes reales",
     'x.216': "Toca Concierge",
     'x.217': "Contenido pendiente",
-    'x.218': "← Nuestras Experiencias",
-    'x.219': "FAQ →",
+    'x.218': "← Curaduría",
+    'x.219': "Nuestras Experiencias →",
     'x.220': "Recomendamos al menos 5 días antes de la llegada para garantizar todas las reservas. Para grupos grandes o períodos de temporada alta, 2 a 3 semanas es lo ideal.",
     'x.221': "Sí. Tenemos experiencia con grupos de 2 a 40 personas. Para grupos de más de 15, montamos un plan operativo dedicado con un coordinador presente.",
     'x.222': "Trabajamos con una curaduría de casas seleccionadas en la región. Podemos indicar e intermediar la reserva de la propiedad ideal para su perfil.",
@@ -4816,8 +4774,8 @@ const i18n = {
     'x.225': "El briefing inicial es gratuito. Después de presentar el plan, usted aprueba los ítems y paga conforme al alcance definido. Aceptamos PIX, tarjeta y transferencia internacional.",
     'x.226': "Sí. Nuestro equipo atiende con fluidez en portugués, inglés y español. Tenemos socios que hablan francés e italiano para grupos europeos.",
     'x.227': "Por supuesto. Ofrecemos desde un simple itinerario curado hasta el acompañamiento completo 24/7. El alcance se define totalmente según sus necesidades.",
-    'x.228': "← Sobre nosotros",
-    'x.229': "Nuestro Público →",
+    'x.228': "← Reservar",
+    'x.229': "Siguiente →",
     'x.230': "Parejas, familias, empresas<br>y marcas de alto nivel.",
     'x.231': "Parejas de Altos Ingresos",
     'x.232': "Brasileños y extranjeros en busca de experiencias románticas, celebraciones destacadas y mini-bodas. Valoran la privacidad, la estética y el servicio sin burocracia.",
@@ -4843,22 +4801,23 @@ const i18n = {
     'x.252': "Reino Unido",
     'x.253': "Alemania",
     'x.254': "América Latina",
-    'x.255': "← FAQ",
-    'x.256': "Reservar →",
+    'x.255': "← Nuestras Experiencias",
+    'x.256': "Propuesta →",
     'x.257': "Enviar correo electrónico",
     'x.258': "¿Ya es cliente? Acceder al panel →",
     'x.259': "Toca Concierge es una marca del grupo Toca Experience · Toca Experience Inova Simples (I.S.) · CNPJ 68.662.845/0001-86 · Trancoso, Porto Seguro, BA",
-    'x.260': "← Nuestro Público",
-    'x.261': "Siguiente →",
+    'x.400': "Nuestra base · Trancoso, Porto Seguro, BA",
+    'x.260': "← Propuesta",
+    'x.261': "FAQ →",
     'x.262': "<span class=\"dn\">01</span>Qué Hacemos",
     'x.263': "<span class=\"dn\">02</span>Curaduría",
     'x.264': "<span class=\"dn\">03</span>Galería",
-    'x.265': "<span class=\"dn\">04</span>Propuesta",
-    'x.266': "<span class=\"dn\">05</span>Nuestras Experiencias",
-    'x.267': "<span class=\"dn\">06</span>Quiénes Somos",
-    'x.268': "<span class=\"dn\">07</span>FAQ",
-    'x.269': "<span class=\"dn\">08</span>Nuestro Público",
-    'x.270': "<span class=\"dn\">09</span>Reservar",
+    'x.265': "<span class=\"dn\">06</span>Propuesta",
+    'x.266': "<span class=\"dn\">04</span>Nuestras Experiencias",
+    'x.267': "<span class=\"dn\">03</span>Sobre nosotros",
+    'x.268': "<span class=\"dn\">08</span>FAQ",
+    'x.269': "<span class=\"dn\">05</span>Nuestro Público",
+    'x.270': "<span class=\"dn\">07</span>Reservar",
     'x.271': "<span class=\"dn\">→</span>Acceder al panel",
     'x.301': "¿Con cuánta antelación debo contratar?",
     'x.302': "¿Funciona para grupos grandes?",
@@ -4874,16 +4833,16 @@ const i18n = {
     'hero.title':'Todo lo que necesitas,<br>antes de que lo <em>pidas</em>.',
     'hero.lede':'Toca Concierge conecta huéspedes de alto estándar con experiencias únicas en Trancoso. Desde el hospedaje y equipo en casa hasta itinerarios exclusivos, fiestas privadas y acceso a los mejores lugares de la región.',
     'hero.m1':'antes del check-in','hero.m2':'a medida','hero.m3':'anfitrión a un mensaje','hero.m4':'socios locales',
-    'cur.eyebrow':'01 · Curaduría','cur.title':'Tu Viaje,<br>Nuestra Narrativa.',
+    'cur.eyebrow':'02 · Curaduría','cur.title':'Tu Viaje,<br>Nuestra Narrativa.',
     'cur.lede':'Experiencias únicas, meticulosamente diseñadas para ti. Nos sumergimos en tu perfil, deseos y momento de vida para tejer una narrativa completa.',
     'map.eyebrow':'03 · Galería','map.title':'Cada lugar,<br>elegido personalmente.',
-    'prop.eyebrow':'04 · Propuesta','prop.title':'Anticipamos. Reservamos.<br>Acompañamos.',
+    'prop.eyebrow':'06 · Propuesta','reserva.eyebrow':'07 · Reservar','prop.title':'Anticipamos. Reservamos.<br>Acompañamos.',
     'prop.lede':'Tres frentes simples, ejecutados con obsesión por el detalle.',
     'prop.s1.title':'Curaduría','prop.s1.desc':'Briefing pre-llegada con preguntas clave: ritmo, gustos, restricciones, fechas. Devolvemos un plan en 48 horas.',
     'prop.s2.title':'Acceso','prop.s2.desc':'Lista de huéspedes en casas llenas, mesas en horarios disputados, entradas para festivales sin llamadas.',
     'prop.s3.title':'Atención 24/7','prop.s3.desc':'Un anfitrión a un mensaje de distancia durante toda la estadía. ¿Cambió el viento? Reorganizamos el día.',
-    'about.eyebrow':'05 · Quiénes Somos','about.title':'Toca nació de dos certezas.',
-    'faq.eyebrow':'06 · FAQ','faq.title':'Preguntas frecuentes.',
+    'about.eyebrow':'03 · Sobre nosotros','about.title':'Toca nació de dos certezas.',
+    'faq.eyebrow':'08 · FAQ','faq.title':'Preguntas frecuentes.',
     'final.title':'Comienza tu estadía <em>antes de llegar.</em>',
     'final.lede':'Cuéntanos sobre tu grupo, fechas y lo que normalmente te hace feliz en un viaje. Devolvemos un plan en 48 horas.',
     'pillar.1.title':'Gastronomía','pillar.1.desc':'Mesas concepto, fuego a leña, mariscos del día.','pillar.1.count':'48 lugares',
@@ -4932,7 +4891,7 @@ const i18n = {
     'x.38': "Premium Lodging",
     'x.39': "High-end homes and villas with dedicated staff: chefs, housekeepers, bartenders, and much more.",
     'x.40': "← What We Do",
-    'x.41': "Gallery →",
+    'x.41': "About →",
     'x.42': "A real curation, built destination by destination — no fixed price, because every experience is on request.",
     'x.43': "Recommended restaurants · Zona Sul, Rio de Janeiro",
     'x.44': "<b style=\"color:var(--ink);\">Marius Degustare</b> · Copacabana · seafood",
@@ -4987,8 +4946,8 @@ const i18n = {
     'x.129': "Courtesy visit upon arrival",
     'x.130': "Farewell with a local gift",
     'x.131': "History for future stays",
-    'x.132': "← Gallery",
-    'x.133': "Our Experiences →",
+    'x.132': "← Our Audience",
+    'x.133': "Book →",
     'x.134': "04 · Our Experiences",
     'x.135': "What we offer,<br>home by home, experience by experience.",
     'x.136': "Two fronts of Toca curation: selected seasonal properties and bespoke private experiences, in any destination in Brazil.",
@@ -5055,8 +5014,8 @@ const i18n = {
     'x.199': "Historical fortress circuit: São João, Laje, and Santa Cruz",
     'x.200': "Swimming stop at Praia Vermelha, with an occasional stop at Ilha de Cotunduba",
     'x.201': "Onboard barbecue available upon prior coordination",
-    'x.202': "← Proposal",
-    'x.203': "About →",
+    'x.202': "← About",
+    'x.203': "Our Audience →",
     'x.204': "The first: that the region we chose to live in has more to offer than fits in any guidebook. The second: that every guest has their own rhythm and deserves a plan that respects it.",
     'x.205': "We are not an agency. We don't sell packages. We are the person who knows the bar owner and knows the wave forecast for tomorrow.",
     'x.206': "Origin",
@@ -5071,8 +5030,8 @@ const i18n = {
     'x.215': "Coming soon: testimonials from real guests",
     'x.216': "Toca Concierge",
     'x.217': "Content pending",
-    'x.218': "← Our Experiences",
-    'x.219': "FAQ →",
+    'x.218': "← Curation",
+    'x.219': "Our Experiences →",
     'x.220': "We recommend at least 5 days before arrival to secure all bookings. For large groups or high season periods, 2 to 3 weeks is ideal.",
     'x.221': "Yes. We have experience with groups of 2 to 40 people. For groups of over 15, we create a dedicated operational plan with a coordinator present.",
     'x.222': "We work with a curation of selected homes in the region. We can suggest and mediate the booking of the ideal property for your profile.",
@@ -5081,8 +5040,8 @@ const i18n = {
     'x.225': "The initial briefing is free. After presenting the plan, you approve the items and pay according to the defined scope. We accept PIX, credit cards, and international transfers.",
     'x.226': "Yes. Our team is fluent in Portuguese, English, and Spanish. We have partners who speak French and Italian for European groups.",
     'x.227': "Certainly. We offer everything from a simple curated itinerary to complete 24/7 support. The scope is defined entirely according to your needs.",
-    'x.228': "← About",
-    'x.229': "Our Audience →",
+    'x.228': "← Book",
+    'x.229': "Next →",
     'x.230': "Couples, families, companies<br>and high-end brands.",
     'x.231': "High-Income Couples",
     'x.232': "Brazilians and foreigners looking for romantic experiences, milestone celebrations, and mini-weddings. They value privacy, aesthetics, and service without bureaucracy.",
@@ -5108,22 +5067,23 @@ const i18n = {
     'x.252': "UK",
     'x.253': "Germany",
     'x.254': "Latin America",
-    'x.255': "← FAQ",
-    'x.256': "Book Now →",
+    'x.255': "← Our Experiences",
+    'x.256': "Proposal →",
     'x.257': "Send email",
     'x.258': "Already a client? Access the dashboard →",
     'x.259': "Toca Concierge is a brand of the Toca Experience group · Toca Experience Inova Simples (I.S.) · CNPJ 68.662.845/0001-86 · Trancoso, Porto Seguro, BA",
-    'x.260': "← Our Audience",
-    'x.261': "Next →",
+    'x.400': "Our base · Trancoso, Porto Seguro, BA",
+    'x.260': "← Proposal",
+    'x.261': "FAQ →",
     'x.262': "<span class=\"dn\">01</span>What We Do",
     'x.263': "<span class=\"dn\">02</span>Curation",
     'x.264': "<span class=\"dn\">03</span>Gallery",
-    'x.265': "<span class=\"dn\">04</span>Proposal",
-    'x.266': "<span class=\"dn\">05</span>Our Experiences",
-    'x.267': "<span class=\"dn\">06</span>Who We Are",
-    'x.268': "<span class=\"dn\">07</span>FAQ",
-    'x.269': "<span class=\"dn\">08</span>Our Audience",
-    'x.270': "<span class=\"dn\">09</span>Book Now",
+    'x.265': "<span class=\"dn\">06</span>Proposal",
+    'x.266': "<span class=\"dn\">04</span>Our Experiences",
+    'x.267': "<span class=\"dn\">03</span>About",
+    'x.268': "<span class=\"dn\">08</span>FAQ",
+    'x.269': "<span class=\"dn\">05</span>Our Audience",
+    'x.270': "<span class=\"dn\">07</span>Book Now",
     'x.271': "<span class=\"dn\">→</span>Access the dashboard",
     'x.301': "How far in advance should I book?",
     'x.302': "Does it work for large groups?",
@@ -5139,16 +5099,16 @@ const i18n = {
     'hero.title':'Everything you need,<br>before you even <em>ask</em>.',
     'hero.lede':'Toca Concierge connects high-end guests to unique experiences in Trancoso. From accommodation and in-house teams to exclusive itineraries, private events and access to the region\'s finest venues.',
     'hero.m1':'before check-in','hero.m2':'tailor-made','hero.m3':'host one message away','hero.m4':'local partners',
-    'cur.eyebrow':'01 · Curation','cur.title':'Your Journey,<br>Our Narrative.',
+    'cur.eyebrow':'02 · Curation','cur.title':'Your Journey,<br>Our Narrative.',
     'cur.lede':'Unique experiences, meticulously crafted for you. We immerse in your profile, desires and life moment to weave a complete narrative. Every day fluid, authentic and unforgettable.',
     'map.eyebrow':'03 · Gallery','map.title':'Every place,<br>personally chosen.',
-    'prop.eyebrow':'04 · Proposition','prop.title':'We anticipate. We reserve.<br>We accompany.',
+    'prop.eyebrow':'06 · Proposition','reserva.eyebrow':'07 · Book','prop.title':'We anticipate. We reserve.<br>We accompany.',
     'prop.lede':'Three simple fronts, executed with obsession for detail.',
     'prop.s1.title':'Curation','prop.s1.desc':'Pre-arrival briefing with key questions: pace, tastes, constraints, dates. We deliver a plan within 48 hours.',
     'prop.s2.title':'Access','prop.s2.desc':'Guest list at booked-out spots, tables at peak hours, tickets for festivals no phone calls.',
     'prop.s3.title':'24/7 Care','prop.s3.desc':'A host one message away from start to finish. Wind changed? We reshape the day.',
-    'about.eyebrow':'05 · About Us','about.title':'Toca was born from two certainties.',
-    'faq.eyebrow':'06 · FAQ','faq.title':'Frequently asked.',
+    'about.eyebrow':'03 · About','about.title':'Toca was born from two certainties.',
+    'faq.eyebrow':'08 · FAQ','faq.title':'Frequently asked.',
     'final.title':'Start your stay <em>before you arrive.</em>',
     'final.lede':'Tell us about your group, dates and what usually makes you happy on a trip. We deliver a plan within 48 hours.',
     'pillar.1.title':'Gastronomy','pillar.1.desc':'Signature kitchens, wood fire, the day\'s catch. From neighbourhood bars to award-winning chefs.','pillar.1.count':'48 places',
