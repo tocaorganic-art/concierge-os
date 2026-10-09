@@ -1952,6 +1952,20 @@ html.dark .drawer-panel { background: var(--sand-200); }
     overscroll-behavior: contain;
     padding-bottom: var(--footer-h);
   }
+  /* .hero-full usa justify-content:flex-end (ancora o conteudo embaixo
+     do banner). Isso e inofensivo no desktop, onde o conteudo cabe
+     inteiro na tela, mas no celular, com overflow-y:auto acima, faz a
+     pagina abrir JA ROLADA PARA BAIXO: o motor de flexbox posiciona o
+     fim do conteudo na área visível por padrão, entao o comeco do
+     titulo (a primeira linha de "Tudo o que voce precisa") fica
+     escondido acima da tela, so visivel se o visitante rolar pra cima,
+     o que ninguem faz ao abrir uma pagina. Corrige ancorando no topo. */
+  .hero-full { justify-content: flex-start; }
+  /* Mesmo bug, mesma causa: .sobre-copy (pagina Sobre) tambem usa
+     justify-content:flex-end com overflow-y:auto, entao no celular a
+     pagina abria mostrando o final (a frase e os depoimentos) em vez
+     do inicio (o texto sobre o fundador). */
+  .sobre-copy { justify-content: flex-start; }
   /* position: sticky dentro de um container com overflow-y tem bugs
      conhecidos de renderização no Safari/iOS (a barra de navegação
      sobrepõe o conteúdo). .page (ancestral direto) já tem `transform`
