@@ -380,6 +380,14 @@ html.dark .icon-moon { display: block; }
    PAGE 1 HOME / INÍCIO
 ═══════════════════════════════════════════════════════════ */
 #pg-home {
+  /* Hero com foto, sempre escuro por design, independente do tema
+     claro/escuro do site: --ink e --sand-50 trocam de valor em
+     html.dark (para adaptar o resto do site) e isso invertia o
+     contraste aqui (texto escuro sobre fundo escuro, ilegível).
+     Fixa os dois no valor "claro" (fundo --ink de verdade, texto
+     --sand-50 de verdade) dentro desta página, sempre. */
+  --ink: #2a2520;
+  --sand-50: #faf6ee;
   background: var(--ink);
   color: var(--sand-50);
 }
@@ -820,6 +828,12 @@ html.dark .icon-moon { display: block; }
    PAGE 5 QUEM SOMOS
 ═══════════════════════════════════════════════════════════ */
 /* ── Quem Somos: foto full-bleed com overlay ──────────────────── */
+#pg-sobre {
+  /* Mesmo motivo do #pg-home/#pg-reserva: .sobre-copy usa --sand-50
+     para o texto sobre a foto, fixo escuro por design, imune ao
+     toggle de tema claro/escuro do site. */
+  --sand-50: #faf6ee;
+}
 #pg-sobre .page-inner {
   padding: 0;
   gap: 0;
@@ -1010,6 +1024,10 @@ html.dark .icon-moon { display: block; }
    PAGE 7 RESERVA / FINAL CTA
 ═══════════════════════════════════════════════════════════ */
 #pg-reserva {
+  /* Mesmo motivo do #pg-home: fundo escuro fixo por design, imune ao
+     toggle de tema claro/escuro do site. */
+  --ink: #2a2520;
+  --sand-50: #faf6ee;
   background: var(--ink);
   color: var(--sand-50);
 }
@@ -1089,6 +1107,12 @@ html.dark .icon-moon { display: block; }
    HOME Globe orbit section
 ═══════════════════════════════════════════════════════════ */
 .globe-orbit-section {
+  /* Fundo proprio escuro: esta faixa (O que é / Diferenciais / Para
+     quem) nao tinha nenhum, dependia so do gradiente vertical de
+     .hero-overlay para contraste, que fica totalmente transparente
+     entre 22% e 58% da altura do hero, exatamente a zona onde esta
+     faixa cai. O texto ficava legivel ou nao dependendo de qual foto
+     do carrossel estava passando por baixo naquele instante. */
   position: relative; z-index: 2;
   flex: 1;
   min-height: 0;
@@ -1101,6 +1125,9 @@ html.dark .icon-moon { display: block; }
   align-items: center;
   justify-items: center;
   overflow: hidden;
+  background: rgba(4,3,2,.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border-top: 1px solid rgba(245,239,229,.08);
 }
 
@@ -2102,6 +2129,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
               <li data-i18n="x.22">Cada recomendação cria memória</li>
               <li data-i18n="x.23">Equipe na casa: chefs, barman, DJ, banda</li>
               <li data-i18n="x.24">Comunicação consistente em todos os pontos</li>
+              <li data-i18n="home.dashboard">Dashboard integrado com o financeiro ao vivo, para você acompanhar</li>
             </ul>
           </div>
 
