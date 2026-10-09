@@ -2275,7 +2275,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
         <button data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
         <button data-lang="en" aria-pressed="false" onclick="setLang('en')">EN</button>
       </div>
-      <a href="/dashboard" class="theme-btn" aria-label="Acessar o painel" title="Acessar o painel">
+      <a href="/dashboard" target="_top" class="theme-btn" aria-label="Acessar o painel" title="Acessar o painel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       </a>
       <button class="btn-cta" onclick="goTo(6)" data-i18n="x.10">Reservar</button>
@@ -4197,7 +4197,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
               <a href="https://instagram.com/tocaexperience" class="btn-ghost" target="_blank" rel="noopener" style="color:var(--sand-50);border-color:rgba(245,239,229,.35);">
                 @tocaexperience
               </a>
-              <a href="/dashboard" class="btn-ghost" style="color:rgba(245,239,229,.55);border-color:rgba(245,239,229,.2);font-size:12px;" data-i18n="x.258">
+              <a href="/dashboard" target="_top" class="btn-ghost" style="color:rgba(245,239,229,.55);border-color:rgba(245,239,229,.2);font-size:12px;" data-i18n="x.258">
                 Já é cliente? Acessar o painel →
               </a>
             </div>
@@ -4246,7 +4246,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
     <button class="drawer-nav-btn" data-page="5" onclick="goTo(5);closeDrawer()" data-i18n="x.265"><span class="dn">06</span>Proposta</button>
     <button class="drawer-nav-btn" data-page="6" onclick="goTo(6);closeDrawer()" data-i18n="x.270"><span class="dn">07</span>Reservar</button>
     <button class="drawer-nav-btn" data-page="7" onclick="goTo(7);closeDrawer()" data-i18n="x.268"><span class="dn">08</span>FAQ</button>
-    <a class="drawer-nav-btn" href="/dashboard" style="border-top:1px solid var(--line);margin-top:8px;" data-i18n="x.271"><span class="dn">→</span>Acessar o painel</a>
+    <a class="drawer-nav-btn" href="/dashboard" target="_top" style="border-top:1px solid var(--line);margin-top:8px;" data-i18n="x.271"><span class="dn">→</span>Acessar o painel</a>
   </div>
 </div>
 
@@ -4284,8 +4284,56 @@ html.dark .drawer-panel { background: var(--sand-200); }
 ═══════════════════════════════════════════════════ */
 const PAGES = ['pg-home','pg-curadoria','pg-sobre','pg-servicos','pg-publico','pg-proposta','pg-reserva','pg-faq'];
 const PAGE_NAMES = ['O que Fazemos','Curadoria','Sobre','Nossas Experiências','Nosso Público','Proposta','Reservar','FAQ'];
+// Rota propria de cada secao (ver src/pages/InstitucionalSection.jsx): o app
+// React (fora deste documento) monta uma dessas rotas num iframe que carrega
+// este mesmo arquivo com "?page=<indice>", e mantem a URL visivel do
+// navegador na rota, nunca em /institucional/index.html.
+const SECTION_SLUGS = ['/', '/Curadoria', '/Sobre', '/Nossas-Experiencias', '/Nosso-Publico', '/Proposta', '/Reservar', '/FAQ'];
 let current = 0;
 let animating = false;
+
+function resolveIdxFromLocation() {
+  const pageParam = new URLSearchParams(window.location.search).get('page');
+  if (pageParam !== null) {
+    const n = parseInt(pageParam, 10);
+    if (Number.isInteger(n) && n >= 0 && n < PAGES.length) return n;
+  }
+  const bySlug = SECTION_SLUGS.indexOf(window.location.pathname);
+  return bySlug !== -1 ? bySlug : 0;
+}
+
+// Abre a pagina inicial correta (sem animacao) quando o documento carrega
+// ja apontando pra uma secao especifica — caso do iframe embutido pela rota
+// React (/Sobre, /Curadoria, etc.), que passa "?page=N".
+function openInitial(idx) {
+  if (!(idx > 0 && idx < PAGES.length)) { updateNav(0); return; }
+  const fromEl = document.getElementById(PAGES[0]);
+  const toEl = document.getElementById(PAGES[idx]);
+  if (fromEl) fromEl.classList.remove('active');
+  if (toEl) toEl.classList.add('active');
+  current = idx;
+  updateNav(idx);
+}
+
+// Mantem a URL do navegador em sincronia com a secao aberta. Embutido no
+// iframe da rota React, pede pro React (dono de verdade da URL/historico)
+// navegar; sozinho (ex.: acesso direto a /institucional/index.html), ajusta
+// o proprio historico.
+function syncUrl(idx) {
+  const slug = SECTION_SLUGS[idx];
+  try {
+    if (window.parent !== window) {
+      if (typeof window.parent.__institucionalNavigate === 'function') {
+        window.parent.__institucionalNavigate(slug);
+      }
+    } else if (window.location.pathname !== slug) {
+      history.pushState(null, '', slug);
+    }
+  } catch (e) {
+    // Embed cross-origin ou API indisponivel: a navegacao interna continua
+    // funcionando normalmente, so a URL nao acompanha.
+  }
+}
 
 function buildDots(containerId) {
   const el = document.getElementById(containerId);
@@ -4315,7 +4363,8 @@ function updateNav(idx) {
   updateDots(idx);
 }
 
-function goTo(idx) {
+function goTo(idx, opts) {
+  opts = opts || {};
   if (idx === current || animating) return;
   animating = true;
 
@@ -4340,6 +4389,7 @@ function goTo(idx) {
 
   current = idx;
   updateNav(idx);
+  if (!opts.silent) syncUrl(idx);
 
   setTimeout(() => {
     fromEl.classList.remove('exit-left');
@@ -4382,7 +4432,18 @@ function exploreCategory(cat) {
 
 // Init dots on all pages
 ['dots-home','dots-cur','dots-sobre','dots-serv','dots-pub','dots-prop','dots-res','dots-faq'].forEach(id => buildDots(id));
-updateDots(0);
+openInitial(resolveIdxFromLocation());
+
+// Fora do iframe (ex.: acesso direto/standalone a /institucional/index.html
+// navegando pelo menu): o proprio documento e quem recebe o popstate do
+// botao voltar/avancar do navegador. Embutido pela rota React, quem recebe
+// o popstate é o documento de fora (o React Router), que remonta este
+// iframe com o "?page" correto — não precisa de listener aqui.
+if (window.parent === window) {
+  window.addEventListener('popstate', () => {
+    goTo(resolveIdxFromLocation(), { silent: true });
+  });
+}
 
 // Keyboard navigation
 document.addEventListener('keydown', e => {

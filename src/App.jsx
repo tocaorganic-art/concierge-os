@@ -35,7 +35,7 @@ import Documentos from "@/pages/Documentos";
 import Obrigado from "@/pages/Obrigado";
 import OAuthConsent from "@/pages/OAuthConsent";
 import Connect from "@/pages/Connect";
-import Institucional from "@/pages/Institucional";
+import InstitucionalSection from "@/pages/InstitucionalSection";
 
 
 const AuthenticatedApp = () => {
@@ -68,12 +68,28 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Consentimento OAuth do servidor MCP — fora de qualquer guarda de auth,
           a própria página redireciona ao login quando não autenticada. */}
-      {/* Raiz pública: sempre o site institucional estático, para qualquer
-          visitante, logado ou não (ver nota em pages/Institucional.jsx). O
-          acesso ao dashboard é pelos links "Acessar o painel" do próprio
-          site, que apontam para /dashboard. */}
-      <Route path="/" element={<Institucional />} />
-      <Route path="/institucional" element={<Institucional />} />
+      {/* Site institucional estático (public/institucional/index.html),
+          sempre público para qualquer visitante, logado ou não. Cada item
+          do menu tem sua própria rota real (URL muda de verdade ao navegar,
+          sobrevive a reload/compartilhamento/voltar-avançar do navegador) —
+          ver pages/InstitucionalSection.jsx para como isso funciona (iframe
+          de tela cheia + "?page=N" + window.__institucionalNavigate).
+          NAO reintroduzir aqui um redirect condicional por estado de
+          autenticacao: ja foi tentado (commits "Redirecionar raiz para
+          dashboard ou login..." em 2026-10-08) e causava a raiz abrir ora o
+          site, ora o dashboard, pois o check de auth e assincrono. O acesso
+          ao dashboard para quem ja e cliente e pelos links "Acessar o
+          painel" do proprio site, que apontam direto para /dashboard
+          (protegido por ProtectedRoute: sem sessao, cai em /login). */}
+      <Route path="/" element={<InstitucionalSection pageIndex={0} title="Toca Concierge" />} />
+      <Route path="/institucional" element={<InstitucionalSection pageIndex={0} title="Toca Concierge" />} />
+      <Route path="/Curadoria" element={<InstitucionalSection pageIndex={1} title="Toca Concierge — Curadoria" />} />
+      <Route path="/Sobre" element={<InstitucionalSection pageIndex={2} title="Toca Concierge — Sobre" />} />
+      <Route path="/Nossas-Experiencias" element={<InstitucionalSection pageIndex={3} title="Toca Concierge — Nossas Experiências" />} />
+      <Route path="/Nosso-Publico" element={<InstitucionalSection pageIndex={4} title="Toca Concierge — Nosso Público" />} />
+      <Route path="/Proposta" element={<InstitucionalSection pageIndex={5} title="Toca Concierge — Proposta" />} />
+      <Route path="/Reservar" element={<InstitucionalSection pageIndex={6} title="Toca Concierge — Reservar" />} />
+      <Route path="/FAQ" element={<InstitucionalSection pageIndex={7} title="Toca Concierge — FAQ" />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/obrigado" element={<Obrigado />} />
       <Route path="/login" element={<Login />} />
