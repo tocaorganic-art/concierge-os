@@ -663,7 +663,19 @@ html.dark .icon-moon { display: block; }
 /* ═══════════════════════════════════════════════════════════
    PAGE 3 GALERIA / POIs
 ═══════════════════════════════════════════════════════════ */
-#pg-galeria .page-inner { padding: clamp(28px,3.5vw,48px) var(--gutter); gap: 20px; }
+#pg-galeria .page-inner {
+  padding: clamp(28px,3.5vw,48px) var(--gutter);
+  gap: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+/* Antes: overflow:hidden (herdado de .page-inner) cortava o Guia de
+   Destinos (140+ cards) logo depois das primeiras linhas — o
+   scrollHeight real passava de 7000px contra ~836px visiveis, e nao
+   havia nenhum jeito de rolar pra ver o resto. O footer-nav (ja
+   position:sticky por padrao) continua fixo no rodape enquanto o resto
+   rola por baixo. */
 
 .filters {
   display: flex;
@@ -1811,6 +1823,122 @@ html.dark .publico-card-icon { background: rgba(245,239,229,.08); }
   margin: 0;
   font-weight: 300;
 }
+.card-cta, .cat-cta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--sunset-soft);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.card-cta::after, .cat-cta::after { content: '→'; transition: transform 200ms ease; }
+.experience-card:hover .card-cta::after,
+.category-card:hover .cat-cta::after { transform: translateX(4px); }
+
+/* Cards de navegacao ficam clicaveis de verdade: feedback de "lancamento"
+   no clique (antes de goTo trocar de pagina) pra sensacao de app, nao so
+   de link estatico. */
+.experience-card.card-launching,
+.category-card.card-launching {
+  transform: scale(.95);
+  opacity: .72;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+.experience-card:focus-visible,
+.category-card:focus-visible {
+  outline: 2px solid var(--sunset);
+  outline-offset: 3px;
+}
+
+/* ── Explore por categoria: grid de ícones, mesma linguagem visual
+   glassmorphism dos experience-card, porem com icone em vez de foto ── */
+.category-explore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+.category-card {
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  transition: all .3s cubic-bezier(.25,.46,.45,.94);
+}
+.category-card:hover {
+  background: rgba(255,255,255,.1);
+  border-color: var(--sunset-soft);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(201,123,91,.22);
+}
+.category-card:active { transform: translateY(-2px) scale(.98); }
+.category-card-icon {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(201,123,91,.16);
+  color: var(--sunset-soft);
+  transition: background 300ms ease, color 300ms ease, transform 300ms ease;
+}
+.category-card-icon svg { width: 20px; height: 20px; }
+.category-card:hover .category-card-icon {
+  background: var(--sunset);
+  color: #fff;
+  transform: scale(1.1) rotate(-6deg);
+}
+.category-card h4 {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 500;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+.category-card p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(245,239,229,.65);
+  margin: 0;
+  font-weight: 300;
+}
+@media (max-width: 768px) {
+  .category-explore-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
+  .category-card { padding: 18px 16px; }
+}
+@media (max-width: 420px) {
+  .category-explore-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Destino "aceso" ao chegar na Galeria via card da Curadoria: pulso
+   suave avisando que as duas paginas se conectaram naquele clique ── */
+@keyframes destGuidePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(201,123,91,.4); }
+  70%  { box-shadow: 0 0 0 28px rgba(201,123,91,0); }
+  100% { box-shadow: 0 0 0 0 rgba(201,123,91,0); }
+}
+.dest-guide-highlight {
+  animation: destGuidePulse 900ms ease-out 2;
+  border-radius: 20px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .category-card,
+  .experience-card.card-launching,
+  .category-card.card-launching { transition: none; }
+  .category-card:hover { transform: none; }
+  .dest-guide-highlight { animation: none; }
+}
 
 /* Background: escuro sofisticado */
 #pg-curadoria {
@@ -2176,41 +2304,100 @@ html.dark .drawer-panel { background: var(--sand-200); }
           <!-- HERO IMAGE: jornada Toca Concierge -->
           <img class="curadoria-hero-image" src="images/2852124.jpg" alt="Vista aérea de embarcação de luxo navegando ao entardecer, simbolizando as jornadas sob medida da Toca Concierge" loading="lazy" decoding="async"/>
 
-          <!-- EXPERIENCE CARDS GRID -->
+          <!-- EXPERIENCE CARDS GRID: cada card e clicavel e leva pra secao
+               correspondente (Galeria filtrada, ou Nossas Experiencias) —
+               paginas que "se comunicam" em vez de cards so decorativos. -->
           <div class="curadoria-cards-grid">
 
-            <article class="experience-card">
+            <article class="experience-card" onclick="curCardLaunch(this, () => exploreCategory('all'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
               <div class="card-media">
                 <img src="images/39232643.jpg" alt="Veleiro navegando ao entardecer durante roteiro exclusivo" loading="lazy" decoding="async"/>
               </div>
               <h3 class="card-title" data-i18n="x.32">Roteiros Sob Medida</h3>
               <p class="card-description" data-i18n="x.33">Roteiros sob medida para seus desejos e estilo de vida. Cada detalhe planejado com precisão.</p>
+              <span class="card-cta" data-i18n="x.336">Explorar</span>
             </article>
 
-            <article class="experience-card">
+            <article class="experience-card" onclick="curCardLaunch(this, () => exploreCategory('restaurante'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
               <div class="card-media">
                 <img src="images/2403391.jpg" alt="Chef particular finalizando um prato de alta gastronomia" loading="lazy" decoding="async"/>
               </div>
               <h3 class="card-title" data-i18n="x.34">Gastronomia de Luxo</h3>
               <p class="card-description" data-i18n="x.35">Acesso a restaurantes exclusivos e experiências culinárias memoráveis, da farm table ao chef estrelado.</p>
+              <span class="card-cta" data-i18n="x.336">Explorar</span>
             </article>
 
-            <article class="experience-card">
+            <article class="experience-card" onclick="curCardLaunch(this, () => exploreCategory('balada'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
               <div class="card-media">
                 <img src="images/898215.jpg" alt="Festa privativa ao entardecer na praia" loading="lazy" decoding="async"/>
               </div>
               <h3 class="card-title" data-i18n="x.36">Eventos Exclusivos</h3>
               <p class="card-description" data-i18n="x.37">Ingressos e acesso privilegiado aos eventos mais disputados: festivais, regatas e celebrações privadas.</p>
+              <span class="card-cta" data-i18n="x.336">Explorar</span>
             </article>
 
-            <article class="experience-card">
+            <article class="experience-card" onclick="curCardLaunch(this, () => goTo(4))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
               <div class="card-media">
                 <img src="images/34790496.jpg" alt="Piscina de borda infinita em villa de luxo ao entardecer" loading="lazy" decoding="async"/>
               </div>
               <h3 class="card-title" data-i18n="x.38">Hospedagem Premium</h3>
               <p class="card-description" data-i18n="x.39">Casas e villas de alto padrão com equipe dedicada: chefs, camareiras, barman e muito mais.</p>
+              <span class="card-cta" data-i18n="x.336">Explorar</span>
             </article>
 
+          </div>
+
+          <!-- EXPLORE POR CATEGORIA: liga direto ao Guia de Destinos (Galeria),
+               ja filtrado na categoria clicada, com scroll suave + destaque. -->
+          <div class="curadoria-header" style="margin-top:48px;">
+            <span class="curadoria-label" data-i18n="x.319">Explore por categoria</span>
+            <h2 class="curadoria-title" style="font-size:clamp(24px,2.8vw,36px);" data-i18n="x.320">Da mesa ao heliponto, curadoria para cada momento.</h2>
+            <p class="curadoria-description" data-i18n="x.321">Da primeira reserva ao pouso do seu jato particular — explore por categoria e veja como cuidamos de cada detalhe, cidade por cidade.</p>
+          </div>
+
+          <div class="category-explore-grid">
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('restaurante'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v6a2 2 0 1 0 4 0V2M9 8v13M17 2v8c-2 0-3-1.5-3-4s1-4 3-4zM17 10v11"/></svg></span>
+              <h4 data-i18n="x.322">Restaurantes</h4>
+              <p data-i18n="x.323">Mesas em casas assinadas e clássicos locais, em cada cidade que atendemos.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('praia'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/></svg></span>
+              <h4 data-i18n="x.324">Praias</h4>
+              <p data-i18n="x.325">As praias e piscinas naturais mais bonitas, do Rio a Trancoso.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('aventura'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19 9 8l3.5 5L15 9l7 10H2z"/></svg></span>
+              <h4 data-i18n="x.326">Aventuras</h4>
+              <p data-i18n="x.327">Parapente, helicóptero, mergulho e trilha — adrenalina sob medida.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('bar'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16l-8 8z"/><path d="M12 12v8M8 20h8"/></svg></span>
+              <h4 data-i18n="x.328">Bares</h4>
+              <p data-i18n="x.329">De botecos históricos a coquetelarias premiadas internacionalmente.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('beachclub'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4.5 0 8.5 3.8 9 9H3c.5-5.2 4.5-9 9-9z"/><path d="M12 3v2M12 12v8c0 1-1 2-2 2"/></svg></span>
+              <h4 data-i18n="x.330">Beach Clubs</h4>
+              <p data-i18n="x.331">Piscinas de borda infinita e day clubs à beira-mar.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('balada'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></span>
+              <h4 data-i18n="x.332">Baladas</h4>
+              <p data-i18n="x.333">As pistas e casas noturnas mais badaladas de cada destino.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
+            <article class="category-card" onclick="curCardLaunch(this, () => exploreCategory('aeroporto'))" onkeydown="if(event.key==='Enter')this.click()" role="button" tabindex="0">
+              <span class="category-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12.5 21 5l-7.5 18.5-2-9-9-2z"/></svg></span>
+              <h4 data-i18n="x.334">Aeroportos</h4>
+              <p data-i18n="x.335">Preparamos sua chegada de jato ou helicóptero em qualquer aeroporto do Brasil.</p>
+              <span class="cat-cta" data-i18n="x.336">Explorar</span>
+            </article>
           </div>
 
         </div>
@@ -2296,13 +2483,14 @@ html.dark .drawer-panel { background: var(--sand-200); }
             <button class="city-filter-btn" data-city="ba" aria-pressed="false">Argentina (Buenos Aires)</button>
           </div>
           <div class="dest-cat-filters" role="group" aria-label="Categorias">
-            <button class="dest-cat-filter-btn" data-filter="all" aria-pressed="true" data-i18n="x.50">Tudo <span class="count">140</span></button>
+            <button class="dest-cat-filter-btn" data-filter="all" aria-pressed="true" data-i18n="x.50">Tudo <span class="count">154</span></button>
             <button class="dest-cat-filter-btn" data-filter="restaurante" aria-pressed="false" data-i18n="x.310">Restaurantes <span class="count">28</span></button>
             <button class="dest-cat-filter-btn" data-filter="praia" aria-pressed="false" data-i18n="x.53">Praias <span class="count">28</span></button>
             <button class="dest-cat-filter-btn" data-filter="aventura" aria-pressed="false" data-i18n="x.311">Aventuras <span class="count">25</span></button>
             <button class="dest-cat-filter-btn" data-filter="bar" aria-pressed="false" data-i18n="x.52">Bares <span class="count">23</span></button>
             <button class="dest-cat-filter-btn" data-filter="beachclub" aria-pressed="false" data-i18n="x.51">Beach Clubs <span class="count">19</span></button>
             <button class="dest-cat-filter-btn" data-filter="balada" aria-pressed="false" data-i18n="x.54">Baladas <span class="count">17</span></button>
+            <button class="dest-cat-filter-btn" data-filter="aeroporto" aria-pressed="false" data-i18n="x.318">Aeroportos <span class="count">14</span></button>
           </div>
           <div class="dest-grid" id="destGrid">
           <article class="dest-card" data-city="sp" data-cat="restaurante">
@@ -3285,6 +3473,104 @@ html.dark .drawer-panel { background: var(--sand-200); }
             <p>Mega-club da cena eletrônica, recebe DJs internacionais.</p>
             <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Crobar%2C%20Paseo%20de%20la%20Infanta%2C%20Palermo%2C%20Buenos%20Aires%2C%20Argentina" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
           </article>
+          <article class="dest-card" data-city="sp" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Executivo Catarina</h4>
+            <div class="dest-addr">São Paulo · São Roque, São Paulo, SP</div>
+            <p>Hub privado de aviação executiva a ~35min de carro (ou 15min de helicóptero) da capital — pista de 2.470m para jatos de grande porte.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Executivo%20Catarina%2C%20S%C3%A3o%20Roque%2C%20S%C3%A3o%20Paulo%2C%20SP" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="ipanema" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto de Jacarepaguá</h4>
+            <div class="dest-addr">Ipanema · Jacarepaguá, Rio de Janeiro, RJ</div>
+            <p>Maior polo de helicópteros do Brasil e referência em aviação executiva na Zona Oeste do Rio.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20de%20Jacarepagu%C3%A1%2C%20Jacarepagu%C3%A1%2C%20Rio%20de%20Janeiro%2C%20RJ" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="leblon" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto de Jacarepaguá</h4>
+            <div class="dest-addr">Leblon · Jacarepaguá, Rio de Janeiro, RJ</div>
+            <p>Maior polo de helicópteros do Brasil e referência em aviação executiva na Zona Oeste do Rio.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20de%20Jacarepagu%C3%A1%2C%20Jacarepagu%C3%A1%2C%20Rio%20de%20Janeiro%2C%20RJ" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="gavea" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto de Jacarepaguá</h4>
+            <div class="dest-addr">Gávea · Jacarepaguá, Rio de Janeiro, RJ</div>
+            <p>Maior polo de helicópteros do Brasil e referência em aviação executiva na Zona Oeste do Rio.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20de%20Jacarepagu%C3%A1%2C%20Jacarepagu%C3%A1%2C%20Rio%20de%20Janeiro%2C%20RJ" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="barra" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto de Jacarepaguá</h4>
+            <div class="dest-addr">Barra da Tijuca · Jacarepaguá, Rio de Janeiro, RJ</div>
+            <p>Maior polo de helicópteros do Brasil e referência em aviação executiva na Zona Oeste do Rio.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20de%20Jacarepagu%C3%A1%2C%20Jacarepagu%C3%A1%2C%20Rio%20de%20Janeiro%2C%20RJ" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="floripa" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Internacional Hercílio Luz</h4>
+            <div class="dest-addr">Florianópolis · Florianópolis, SC</div>
+            <p>Aeroporto da ilha, com estrutura para aviação geral e executiva.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Internacional%20Herc%C3%ADlio%20Luz%2C%20Florian%C3%B3polis%2C%20SC" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="camboriu" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Internacional de Navegantes</h4>
+            <div class="dest-addr">Balneário Camboriú · Navegantes, SC</div>
+            <p>Recebe jatos executivos com regularidade (FBO próprio) — a ~35min de Balneário Camboriú.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Internacional%20de%20Navegantes%2C%20Navegantes%2C%20SC" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="jurere" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Internacional Hercílio Luz</h4>
+            <div class="dest-addr">Jurerê Internacional · Florianópolis, SC</div>
+            <p>Aeroporto da ilha, a poucos minutos de Jurerê Internacional, com estrutura para aviação executiva.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Internacional%20Herc%C3%ADlio%20Luz%2C%20Florian%C3%B3polis%2C%20SC" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="poa" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Internacional Salgado Filho</h4>
+            <div class="dest-addr">Porto Alegre · Porto Alegre, RS</div>
+            <p>Principal porta de entrada aérea da capital gaúcha, com apoio a aviação executiva.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Internacional%20Salgado%20Filho%2C%20Porto%20Alegre%2C%20RS" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="bh" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto da Pampulha — Carlos Drummond de Andrade</h4>
+            <div class="dest-addr">Belo Horizonte · Belo Horizonte, MG</div>
+            <p>O aeroporto mais movimentado do Brasil em aviação executiva de asa fixa, com quase 30 hangares em operação.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20da%20Pampulha%20%E2%80%94%20Carlos%20Drummond%20de%20Andrade%2C%20Belo%20Horizonte%2C%20MG" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="pdg" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Internacional do Recife/Guararapes — Gilberto Freyre</h4>
+            <div class="dest-addr">Porto de Galinhas · Recife, PE</div>
+            <p>A ~1h de Porto de Galinhas, com FBO dedicado a aeronaves executivas.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Internacional%20do%20Recife/Guararapes%20%E2%80%94%20Gilberto%20Freyre%2C%20Recife%2C%20PE" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="trancoso" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeródromo Trancoso Rio Frade</h4>
+            <div class="dest-addr">Trancoso · Trancoso, Porto Seguro, BA</div>
+            <p>Pista local que recebe alto volume de jatinhos na alta temporada — recomendamos reserva antecipada de vaga.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aer%C3%B3dromo%20Trancoso%20Rio%20Frade%2C%20Trancoso%2C%20Porto%20Seguro%2C%20BA" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="salvador" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroporto Internacional de Salvador — Deputado Luís Eduardo Magalhães</h4>
+            <div class="dest-addr">Bahia (Salvador) · Salvador, BA</div>
+            <p>Principal aeroporto da Bahia, com estrutura para aviação executiva.</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroporto%20Internacional%20de%20Salvador%20%E2%80%94%20Deputado%20Lu%C3%ADs%20Eduardo%20Magalh%C3%A3es%2C%20Salvador%2C%20BA" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
+          <article class="dest-card" data-city="ba" data-cat="aeroporto">
+            <span class="dest-cat-tag" data-i18n="x.318">Aeroportos</span>
+            <h4>Aeroparque Jorge Newbery</h4>
+            <div class="dest-addr">Argentina (Buenos Aires) · Buenos Aires, Argentina</div>
+            <p>Aeroporto metropolitano de Buenos Aires, porta de entrada mais prática para voos executivos (alternativa a Ezeiza para voos internacionais).</p>
+            <a class="dest-map" href="https://www.google.com/maps/search/?api=1&query=Aeroparque%20Jorge%20Newbery%2C%20Buenos%20Aires%2C%20Argentina" target="_blank" rel="noopener" data-i18n="x.316">Ver no mapa</a>
+          </article>
           </div>
           <p class="dest-empty" id="destEmpty" style="display:none;" data-i18n="x.317">Nenhum resultado para esse filtro.</p>
         </div>
@@ -3948,6 +4234,38 @@ function goTo(idx) {
   }, 360);
 }
 
+/* Cards da Curadoria "lancam" a navegacao: micro-animacao de clique
+   (encolhe+esmaece ~160ms) antes de disparar a acao real (goTo e/ou
+   exploreCategory), pra parecer resposta de app e nao link estatico. */
+function curCardLaunch(el, action) {
+  if (!el || el.classList.contains('card-launching')) return;
+  el.classList.add('card-launching');
+  setTimeout(() => {
+    action();
+    el.classList.remove('card-launching');
+  }, 170);
+}
+
+/* Leva da Curadoria direto pro Guia de Destinos (Galeria) ja filtrado na
+   categoria clicada: troca de pagina, rola ate a secao e acende um pulso
+   nela, pra ficar claro que as duas paginas "se falaram" naquele clique. */
+function exploreCategory(cat) {
+  goTo(2);
+  setTimeout(() => {
+    const guide = document.getElementById('destGuide');
+    if (!guide) return;
+    guide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (cat && cat !== 'all') {
+      const btn = document.querySelector('.dest-cat-filter-btn[data-filter="' + cat + '"]');
+      if (btn) btn.click();
+    }
+    guide.classList.remove('dest-guide-highlight');
+    void guide.offsetWidth; // reinicia a animacao se ja tiver rodado antes
+    guide.classList.add('dest-guide-highlight');
+    setTimeout(() => guide.classList.remove('dest-guide-highlight'), 1300);
+  }, 420);
+}
+
 // Init dots on all pages
 ['dots-home','dots-cur','dots-gal','dots-prop','dots-serv','dots-sobre','dots-faq','dots-pub','dots-res'].forEach(id => buildDots(id));
 updateDots(0);
@@ -4093,13 +4411,32 @@ const i18n = {
     'x.47': "<b style=\"color:var(--ink);\">CT Boucherie</b> · Leblon · carnes / francês contemporâneo",
     'x.48': "<b style=\"color:var(--ink);\">Rufino Parrilla</b> · Leblon · parrilla argentina",
     'x.49': "<b style=\"color:var(--ink);\">Signatures | Le Cordon Bleu</b> · Botafogo · francês",
-    'x.50': "Tudo <span class=\"count\">140</span>",
+    'x.50': "Tudo <span class=\"count\">154</span>",
     'x.51': "Beach Clubs <span class=\"count\">19</span>",
     'x.52': "Bares <span class=\"count\">23</span>",
     'x.53': "Praias <span class=\"count\">28</span>",
     'x.54': "Baladas <span class=\"count\">17</span>",
     'x.310': "Restaurantes <span class=\"count\">28</span>",
     'x.311': "Aventuras <span class=\"count\">25</span>",
+    'x.318': "Aeroportos <span class=\"count\">14</span>",
+    'x.319': "Explore por categoria",
+    'x.320': "Da mesa ao heliponto, curadoria para cada momento.",
+    'x.321': "Da primeira reserva ao pouso do seu jato particular — explore por categoria e veja como cuidamos de cada detalhe, cidade por cidade.",
+    'x.322': "Restaurantes",
+    'x.323': "Mesas em casas assinadas e clássicos locais, em cada cidade que atendemos.",
+    'x.324': "Praias",
+    'x.325': "As praias e piscinas naturais mais bonitas, do Rio a Trancoso.",
+    'x.326': "Aventuras",
+    'x.327': "Parapente, helicóptero, mergulho e trilha — adrenalina sob medida.",
+    'x.328': "Bares",
+    'x.329': "De botecos históricos a coquetelarias premiadas internacionalmente.",
+    'x.330': "Beach Clubs",
+    'x.331': "Piscinas de borda infinita e day clubs à beira-mar.",
+    'x.332': "Baladas",
+    'x.333': "As pistas e casas noturnas mais badaladas de cada destino.",
+    'x.334': "Aeroportos",
+    'x.335': "Preparamos sua chegada de jato ou helicóptero em qualquer aeroporto do Brasil.",
+    'x.336': "Explorar",
     'x.312': "Todas as cidades",
     'x.313': "Guia de destinos",
     'x.314': "Da nossa casa a onde você estiver.",
@@ -4339,13 +4676,32 @@ const i18n = {
     'x.47': "<b style=\"color:var(--ink);\">CT Boucherie</b> · Leblon · carnes / francés contemporáneo",
     'x.48': "<b style=\"color:var(--ink);\">Rufino Parrilla</b> · Leblon · parrilla argentina",
     'x.49': "<b style=\"color:var(--ink);\">Signatures | Le Cordon Bleu</b> · Botafogo · francés",
-    'x.50': "Todo <span class=\"count\">140</span>",
+    'x.50': "Todo <span class=\"count\">154</span>",
     'x.51': "Beach Clubs <span class=\"count\">19</span>",
     'x.52': "Bares <span class=\"count\">23</span>",
     'x.53': "Playas <span class=\"count\">28</span>",
     'x.54': "Discotecas <span class=\"count\">17</span>",
     'x.310': "Restaurantes <span class=\"count\">28</span>",
     'x.311': "Aventuras <span class=\"count\">25</span>",
+    'x.318': "Aeropuertos <span class=\"count\">14</span>",
+    'x.319': "Explora por categoría",
+    'x.320': "De la mesa al helipuerto, curaduría para cada momento.",
+    'x.321': "Desde la primera reserva hasta el aterrizaje de tu jet privado — explora por categoría y descubre cómo cuidamos cada detalle, ciudad por ciudad.",
+    'x.322': "Restaurantes",
+    'x.323': "Mesas en casas firmadas y clásicos locales, en cada ciudad donde operamos.",
+    'x.324': "Playas",
+    'x.325': "Las playas y piscinas naturales más bellas, desde Río hasta Trancoso.",
+    'x.326': "Aventuras",
+    'x.327': "Parapente, helicóptero, buceo y senderismo — adrenalina a medida.",
+    'x.328': "Bares",
+    'x.329': "De bodegones históricos a coctelerías premiadas internacionalmente.",
+    'x.330': "Beach Clubs",
+    'x.331': "Piscinas infinitas y day clubs frente al mar.",
+    'x.332': "Discotecas",
+    'x.333': "Las pistas y discotecas más animadas de cada destino.",
+    'x.334': "Aeropuertos",
+    'x.335': "Preparamos tu llegada en jet o helicóptero en cualquier aeropuerto de Brasil.",
+    'x.336': "Explorar",
     'x.312': "Todas las ciudades",
     'x.313': "Guía de destinos",
     'x.314': "Desde nuestra casa hasta donde estés.",
@@ -4585,13 +4941,32 @@ const i18n = {
     'x.47': "<b style=\"color:var(--ink);\">CT Boucherie</b> · Leblon · steakhouse / contemporary french",
     'x.48': "<b style=\"color:var(--ink);\">Rufino Parrilla</b> · Leblon · argentine parrilla",
     'x.49': "<b style=\"color:var(--ink);\">Signatures | Le Cordon Bleu</b> · Botafogo · french",
-    'x.50': "All <span class=\"count\">140</span>",
+    'x.50': "All <span class=\"count\">154</span>",
     'x.51': "Beach Clubs <span class=\"count\">19</span>",
     'x.52': "Bars <span class=\"count\">23</span>",
     'x.53': "Beaches <span class=\"count\">28</span>",
     'x.54': "Nightclubs <span class=\"count\">17</span>",
     'x.310': "Restaurants <span class=\"count\">28</span>",
     'x.311': "Adventures <span class=\"count\">25</span>",
+    'x.318': "Airports <span class=\"count\">14</span>",
+    'x.319': "Explore by category",
+    'x.320': "From the table to the helipad, curated for every moment.",
+    'x.321': "From the first booking to your private jet's landing — explore by category and see how we handle every detail, city by city.",
+    'x.322': "Restaurants",
+    'x.323': "Tables at signature houses and local classics, in every city we serve.",
+    'x.324': "Beaches",
+    'x.325': "The most beautiful beaches and natural pools, from Rio to Trancoso.",
+    'x.326': "Adventures",
+    'x.327': "Paragliding, helicopter rides, diving and hiking — tailor-made adrenaline.",
+    'x.328': "Bars",
+    'x.329': "From historic neighborhood bars to internationally awarded cocktail bars.",
+    'x.330': "Beach Clubs",
+    'x.331': "Infinity pools and beachfront day clubs.",
+    'x.332': "Nightclubs",
+    'x.333': "The liveliest dance floors and nightclubs in every destination.",
+    'x.334': "Airports",
+    'x.335': "We prepare your jet or helicopter arrival at any airport in Brazil.",
+    'x.336': "Explore",
     'x.312': "All cities",
     'x.313': "Destination guide",
     'x.314': "From our home to wherever you are.",
