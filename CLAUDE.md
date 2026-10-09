@@ -41,3 +41,25 @@ testes passam.)
 7. Ao terminar (merge feito), avisar claramente, terminando a resposta com:
 
    > Merge feito na main. Pronto para você publicar o deploy manual no Base44.
+
+## Regra permanente — Posicionamento e fatos da marca (Toca Concierge)
+
+Aplicar sempre que escrever ou revisar qualquer texto da página institucional
+(`public/institucional/index.html`) ou qualquer outro material de marca do
+Toca Concierge. Confirmado pelo Tony em 2026-10-09, corrigindo uma tentativa
+anterior (do Base44) de estreitar o posicionamento só para Trancoso.
+
+- **Atuação é em todo o Brasil, não só em Trancoso.** Trancoso é a base da
+  operação (há 4 anos), não o limite do atendimento. Nunca escrever textos
+  que deem a entender que o Toca Concierge atende só em Trancoso ou só na
+  Bahia.
+- **Origem é no Rio de Janeiro**, não em Trancoso. O atendimento a clientes
+  (ligado à carreira de Tony Monteiro como DJ e empreendedor) começou há
+  10 anos, no Rio. A base em Trancoso é mais recente (4 anos).
+- **Cidades que mais atende, em ordem**: Rio de Janeiro primeiro, depois
+  Florianópolis, e outras em seguida. Não inventar outras cidades ou uma
+  ordem diferente.
+- **Clientes vêm do mundo todo**, atendidos aqui no Brasil.
+- **Tom**: "Não vendemos sonhos, vendemos experiências." Copy com ênfase em
+  engajamento, mas sempre fiel ao que é real do negócio — nunca inventar
+  dado, métrica ou fato novo para soar mais impressionante.
