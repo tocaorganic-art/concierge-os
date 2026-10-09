@@ -2036,6 +2036,100 @@ html.dark .publico-card-icon { background: rgba(245,239,229,.08); }
 .drawer-nav-btn .dn { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-mute); width: 18px; }
 
 /* ═══════════════════════════════════════════════════════════
+   SPOTIFY — "Ouvir Tony Monteiro" (acionador fixo + painel)
+   Markup fica fora de .app/.viewport (igual .mobile-drawer), entao
+   o position:fixed e relativo a viewport real, nao preso dentro do
+   ancestral .page.active (que tem `transform`). Fica disponivel em
+   todas as paginas. z-index 150: acima do header (100) e do
+   footer-nav fixo no mobile (6), abaixo do drawer de navegacao (200).
+═══════════════════════════════════════════════════════════ */
+.spotify-fab {
+  position: fixed;
+  right: clamp(16px,3vw,28px);
+  bottom: calc(var(--footer-h) + 18px + env(safe-area-inset-bottom,0px));
+  z-index: 150;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 12px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--sand-50);
+  border: 1px solid var(--ink);
+  box-shadow: var(--shadow-md);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: transform 160ms ease, background 160ms ease;
+}
+.spotify-fab:hover { background: var(--sea-deep); transform: translateY(-1px); }
+.spotify-fab svg { width: 16px; height: 16px; flex: none; color: #1DB954; }
+html.dark .spotify-fab { background: var(--sand-200); color: var(--ink); border-color: var(--line); }
+html.dark .spotify-fab:hover { background: var(--sand-300); }
+@media (max-width: 480px) {
+  .spotify-fab-label { display: none; }
+  .spotify-fab { padding: 12px; }
+}
+.spotify-panel {
+  position: fixed;
+  right: clamp(12px,3vw,28px);
+  bottom: calc(var(--footer-h) + 70px + env(safe-area-inset-bottom,0px));
+  z-index: 150;
+  width: min(360px, calc(100vw - 24px));
+  background: var(--sand-50);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px) scale(.98);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.spotify-panel[hidden] { display: none; }
+.spotify-panel.open { opacity: 1; transform: translateY(0) scale(1); }
+.spotify-panel-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.spotify-panel-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+.spotify-open-link { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--sea-deep); }
+.spotify-open-link:hover { text-decoration: underline; }
+.spotify-panel-close {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--sand-200);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-soft);
+  flex: none;
+}
+.spotify-panel-close:hover { background: var(--sand-300); }
+.spotify-panel-close svg { width: 13px; height: 13px; }
+.spotify-embed-wrap { flex: none; height: 352px; background: var(--sand-100); }
+.spotify-embed-wrap iframe { display: block; width: 100%; height: 100%; border: 0; }
+html.dark .spotify-panel { background: var(--sand-200); }
+html.dark .spotify-panel-head { border-bottom-color: var(--line); }
+@media (max-width: 420px) {
+  .spotify-panel { right: 12px; left: 12px; width: auto; }
+  .spotify-embed-wrap { height: 300px; }
+}
+@media (max-height: 560px) {
+  .spotify-embed-wrap { height: 220px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spotify-fab, .spotify-panel { transition: none; }
+  .spotify-fab:hover { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
    DARK MODE ADJUSTMENTS
 ═══════════════════════════════════════════════════════════ */
 html.dark .pillar,
@@ -2075,6 +2169,29 @@ html.dark .drawer-panel { background: var(--sand-200); }
      pagina abria mostrando o final (a frase e os depoimentos) em vez
      do inicio (o texto sobre o fundador). */
   .sobre-copy { justify-content: flex-start; }
+  /* #pg-sobre .page-inner tem `overflow:hidden` fixo na sua propria
+     regra por ID (linha ~867), que sempre vence a regra generica
+     `.page-inner { overflow-y:auto }` desta mesma media query,
+     não importa a ordem no arquivo (especificidade de ID > classe).
+     Resultado: a pagina Sobre nunca ganhava a rolagem liberada pra
+     mobile, e o texto (timeline + assinatura + depoimento) ficava
+     preso rolando dentro de uma caixa interna minuscula (.sobre-copy)
+     em vez da pagina inteira rolar, causando a sensacao de "texto
+     cortado". Repete aqui, com a mesma especificidade mas depois no
+     arquivo, pra liberar a rolagem real da pagina tambem no Sobre. */
+  #pg-sobre .page-inner {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: var(--footer-h);
+  }
+  /* Sem a pagina inteira travada em height:100%, a foto+texto nao
+     precisam mais brigar por espaco dentro de um flex:1 espremido:
+     ganham a altura que o conteudo pedir, com um minimo pra foto
+     nao desaparecer quando o texto for curto. */
+  #pg-sobre .sobre-grid { flex: none; min-height: 58vh; }
+  #pg-sobre .sobre-copy { overflow-y: visible; }
   /* position: sticky dentro de um container com overflow-y tem bugs
      conhecidos de renderização no Safari/iOS (a barra de navegação
      sobrepõe o conteúdo). .page (ancestral direto) já tem `transform`
@@ -4133,6 +4250,34 @@ html.dark .drawer-panel { background: var(--sand-200); }
   </div>
 </div>
 
+<!-- ═══════ SPOTIFY — OUVIR TONY MONTEIRO ═══════ -->
+<button
+  type="button"
+  class="spotify-fab"
+  id="spotifyFab"
+  aria-haspopup="dialog"
+  aria-expanded="false"
+  aria-controls="spotifyPanel"
+  aria-label="Ouvir Tony Monteiro no Spotify"
+  onclick="toggleSpotify()"
+>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.59 14.44a.62.62 0 0 1-.86.21c-2.35-1.44-5.31-1.76-8.79-.96a.62.62 0 1 1-.28-1.22c3.81-.87 7.08-.5 9.72 1.11.3.18.4.57.21.86zm1.22-2.72a.78.78 0 0 1-1.08.26c-2.69-1.65-6.79-2.13-9.97-1.17a.78.78 0 1 1-.45-1.49c3.64-1.1 8.16-.56 11.24 1.32.37.23.49.72.26 1.08zm.11-2.84C14.98 9 8.9 8.8 5.44 9.83a.93.93 0 1 1-.53-1.78c3.98-1.21 10.74-.98 14.98 1.5a.93.93 0 0 1-.97 1.58z"/></svg>
+  <span class="spotify-fab-label" data-i18n="spotify.cta">Ouvir Tony Monteiro</span>
+</button>
+
+<div class="spotify-panel" id="spotifyPanel" role="dialog" aria-label="Player do Spotify de Tony Monteiro" hidden>
+  <div class="spotify-panel-head">
+    <span data-i18n="spotify.title">Tony Monteiro no Spotify</span>
+    <div class="spotify-panel-actions">
+      <a class="spotify-open-link" href="https://open.spotify.com/intl-pt/artist/2r4S2RPdfnx7UPL73jJWlQ" target="_blank" rel="noopener" data-i18n="spotify.open">Abrir no Spotify</a>
+      <button type="button" class="spotify-panel-close" onclick="closeSpotify()" aria-label="Fechar player do Spotify">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="spotify-embed-wrap" id="spotifyEmbedWrap"></div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════════
    PAGE ROUTER
@@ -4327,6 +4472,47 @@ function openDrawer()  { document.getElementById('mobileDrawer').classList.add('
 function closeDrawer() { document.getElementById('mobileDrawer').classList.remove('open'); }
 
 /* ═══════════════════════════════════════════════════
+   SPOTIFY — OUVIR TONY MONTEIRO
+   Iframe oficial do Spotify, carregado so na primeira abertura
+   (sob demanda). Sem autoplay: o proprio embed do Spotify so toca
+   depois de um clique explicito da pessoa dentro do player.
+═══════════════════════════════════════════════════ */
+function onSpotifyKeydown(e) {
+  if (e.key === 'Escape') closeSpotify();
+}
+function openSpotify() {
+  const panel = document.getElementById('spotifyPanel');
+  const fab = document.getElementById('spotifyFab');
+  const wrap = document.getElementById('spotifyEmbedWrap');
+  if (!wrap.querySelector('iframe')) {
+    const iframe = document.createElement('iframe');
+    iframe.title = 'Player do Spotify, Tony Monteiro';
+    iframe.src = 'https://open.spotify.com/embed/artist/2r4S2RPdfnx7UPL73jJWlQ?utm_source=generator&theme=0';
+    iframe.allow = 'encrypted-media; clipboard-write; fullscreen; picture-in-picture';
+    iframe.loading = 'lazy';
+    wrap.appendChild(iframe);
+  }
+  panel.hidden = false;
+  fab.setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(() => panel.classList.add('open'));
+  document.addEventListener('keydown', onSpotifyKeydown);
+}
+function closeSpotify() {
+  const panel = document.getElementById('spotifyPanel');
+  const fab = document.getElementById('spotifyFab');
+  if (panel.hidden) return;
+  panel.classList.remove('open');
+  fab.setAttribute('aria-expanded', 'false');
+  document.removeEventListener('keydown', onSpotifyKeydown);
+  setTimeout(() => { panel.hidden = true; }, 220);
+  fab.focus();
+}
+function toggleSpotify() {
+  const panel = document.getElementById('spotifyPanel');
+  if (panel.hidden) openSpotify(); else closeSpotify();
+}
+
+/* ═══════════════════════════════════════════════════
    i18n
 ═══════════════════════════════════════════════════ */
 const i18n = {
@@ -4496,7 +4682,7 @@ const i18n = {
     'x.201': "Churrasco a bordo disponível mediante coordenação prévia",
     'x.202': "← Sobre",
     'x.203': "Nosso Público →",
-    'x.204': "A primeira: que a região onde escolhemos viver tem mais a oferecer do que cabe em qualquer guia. A segunda: que cada hóspede tem um ritmo próprio e merece um plano que o respeite.",
+    'x.204': "A primeira: que cada destino tem mais a oferecer do que cabe em qualquer guia. A segunda: que cada hóspede tem um ritmo próprio e merece um plano que o respeite.",
     'x.205': "Não somos uma agência. Não vendemos pacotes. Somos a pessoa que conhece o dono do bar e sabe a previsão das ondas para amanhã.",
     'x.206': "Origem",
     'x.207': "Tony Monteiro chega a Trancoso e descobre que os melhores lugares não aparecem em guia nenhum.",
@@ -4528,6 +4714,9 @@ const i18n = {
     'x.406': "Nossas recomendações são escolhas selecionadas pela nossa equipe, baseadas em experiência direta e conhecimento local — não são um ranking oficial. Quando há vínculo comercial com um estabelecimento, isso é identificado como tal; o restante são indicações editoriais.",
     'x.407': "As fotos do site são do Instagram de vocês?",
     'x.408': "Usamos apenas fotos do nosso acervo próprio ou obtidas com autorização e crédito confirmados. Não publicamos imagens de terceiros sem permissão.",
+    'spotify.cta': "Ouvir Tony Monteiro",
+    'spotify.title': "Tony Monteiro no Spotify",
+    'spotify.open': "Abrir no Spotify",
     'x.228': "← Reservar",
     'x.229': "Próxima →",
     'x.230': "Casais, famílias, empresas<br>e marcas de alto padrão.",
@@ -4770,7 +4959,7 @@ const i18n = {
     'x.201': "Barbacoa a bordo disponible mediante coordinación previa",
     'x.202': "← Sobre",
     'x.203': "Nuestro Público →",
-    'x.204': "La primera: que la región donde elegimos vivir tiene más que ofrecer de lo que cabe en cualquier guía. La segunda: que cada huésped tiene un ritmo propio y merece un plan que lo respete.",
+    'x.204': "La primera: que cada destino tiene más que ofrecer de lo que cabe en cualquier guía. La segunda: que cada huésped tiene un ritmo propio y merece un plan que lo respete.",
     'x.205': "No somos una agencia. No vendemos paquetes. Somos la persona que conoce al dueño del bar y sabe el pronóstico de las olas para mañana.",
     'x.206': "Origen",
     'x.207': "Tony Monteiro llega a Trancoso y descubre que los mejores lugares no aparecen en ninguna guía.",
@@ -4802,6 +4991,9 @@ const i18n = {
     'x.406': "Nuestras recomendaciones son elecciones seleccionadas por nuestro equipo, basadas en experiencia directa y conocimiento local — no son un ranking oficial. Cuando existe un vínculo comercial con un establecimiento, lo identificamos como tal; el resto son indicaciones editoriales.",
     'x.407': "¿Las fotos del sitio son de su Instagram?",
     'x.408': "Usamos solo fotos de nuestro propio acervo u obtenidas con autorización y crédito confirmados. No publicamos imágenes de terceros sin permiso.",
+    'spotify.cta': "Escuchar a Tony Monteiro",
+    'spotify.title': "Tony Monteiro en Spotify",
+    'spotify.open': "Abrir en Spotify",
     'x.228': "← Reservar",
     'x.229': "Siguiente →",
     'x.230': "Parejas, familias, empresas<br>y marcas de alto nivel.",
@@ -5047,7 +5239,7 @@ const i18n = {
     'x.201': "Onboard barbecue available upon prior coordination",
     'x.202': "← About",
     'x.203': "Our Audience →",
-    'x.204': "The first: that the region we chose to live in has more to offer than fits in any guidebook. The second: that every guest has their own rhythm and deserves a plan that respects it.",
+    'x.204': "The first: that every destination has more to offer than fits in any guidebook. The second: that every guest has their own rhythm and deserves a plan that respects it.",
     'x.205': "We are not an agency. We don't sell packages. We are the person who knows the bar owner and knows the wave forecast for tomorrow.",
     'x.206': "Origin",
     'x.207': "Tony Monteiro arrives in Trancoso and discovers that the best places don't appear in any guide.",
@@ -5079,6 +5271,9 @@ const i18n = {
     'x.406': "Our recommendations are choices selected by our team, based on direct experience and local knowledge — they are not an official ranking. When there is a commercial relationship with a venue, we identify it as such; the rest are editorial picks.",
     'x.407': "Are the photos on the site from your Instagram?",
     'x.408': "We only use photos from our own collection or obtained with confirmed authorization and credit. We do not publish third-party images without permission.",
+    'spotify.cta': "Listen to Tony Monteiro",
+    'spotify.title': "Tony Monteiro on Spotify",
+    'spotify.open': "Open on Spotify",
     'x.228': "← Book",
     'x.229': "Next →",
     'x.230': "Couples, families, companies<br>and high-end brands.",
