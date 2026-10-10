@@ -4235,7 +4235,7 @@ html.dark .drawer-panel { background: var(--sand-200); }
 <div class="mobile-drawer" id="mobileDrawer">
   <div class="drawer-backdrop" onclick="closeDrawer()"></div>
   <div class="drawer-panel">
-    <button class="drawer-close" onclick="closeDrawer()">
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Fechar menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
     <button class="drawer-nav-btn active" data-page="0" onclick="goTo(0);closeDrawer()" data-i18n="x.262"><span class="dn">01</span>O que Fazemos</button>
