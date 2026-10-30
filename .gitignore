@@ -39,3 +39,6 @@ base44/.app.jsonc
 /playwright-report
 /blob-report
 /playwright/.cache
+
+# Cache do pnpm: nunca versionar (28.798 arquivos pesavam o repo e o sync com o Base44)
+.pnpm-store/
