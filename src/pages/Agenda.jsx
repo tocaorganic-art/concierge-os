@@ -16,6 +16,20 @@ import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
 import { useLanguage } from "@/lib/i18n";
 import { useEffectiveRole } from "@/lib/ViewAsClientContext";
+import { useFeriados } from "@/lib/publicApis";
+
+// Selo de feriado nacional (BrasilAPI). Informativo; some se a API falhar.
+function FeriadoBadge({ nome, label, compact = false }) {
+  if (!nome) return null;
+  return (
+    <span
+      title={`${label}: ${nome}`}
+      className={`inline-block max-w-full truncate rounded-full bg-primary/10 text-primary font-mono ${compact ? "text-[9px] px-1.5 py-0.5 mt-1" : "text-[11px] px-2 py-0.5"}`}
+    >
+      {compact ? nome : `${label}: ${nome}`}
+    </span>
+  );
+}
 
 function buildGCalUrl(task) {
   if (!task.data) return null;
@@ -39,6 +53,8 @@ export default function Agenda() {
   const [whatsappTask, setWhatsappTask] = useState(null);
   const [selectedEventId, setSelectedEventId] = useState(null);
   const queryClient = useQueryClient();
+  const { data: feriados = {} } = useFeriados(currentDate.getFullYear());
+  const feriadoDe = (date) => feriados[format(date, "yyyy-MM-dd")];
 
   const { data: tasks = [], isLoading, isError } = useQuery({
     queryKey: ["tasks"],
@@ -224,6 +240,7 @@ export default function Agenda() {
           <p className="font-display text-base font-semibold text-foreground capitalize">
             {format(currentDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
           </p>
+          <FeriadoBadge nome={feriadoDe(currentDate)} label={t("api_feriado_label")} />
         </div>
         <div className="flex items-center gap-1 md:gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8"
@@ -274,6 +291,7 @@ export default function Agenda() {
                     <p className={`font-display text-lg font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
                       {format(day, "d")}
                     </p>
+                    <FeriadoBadge nome={feriadoDe(day)} label={t("api_feriado_label")} compact />
                   </div>
                   <div className="space-y-2">
                     {dayTasks.map((task) => <TaskCard key={task.id} task={task} compact />)}
@@ -289,6 +307,9 @@ export default function Agenda() {
               <p className="font-display text-2xl font-bold text-foreground capitalize">
                 {format(currentDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
               </p>
+              <div className="mt-1">
+                <FeriadoBadge nome={feriadoDe(currentDate)} label={t("api_feriado_label")} />
+              </div>
             </div>
             <div className="max-w-2xl mx-auto space-y-3">
               {getTasksForDate(currentDate).length === 0 ? (
