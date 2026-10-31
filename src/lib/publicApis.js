@@ -94,7 +94,7 @@ export function useFeriados(ano) {
 const JANELA_PREVISAO_DIAS = 16;
 const MAX_DIAS_EXIBIDOS = 7;
 
-const normalizar = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const normalizar = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 // Escolhe o melhor resultado: prioriza o Brasil (operação é nacional; evita
 // "Trancoso" cair no México) e usa o resto do texto ("Praia Brava, Itajaí")
