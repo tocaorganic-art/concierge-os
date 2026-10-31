@@ -96,18 +96,22 @@ const MAX_DIAS_EXIBIDOS = 7;
 
 const normalizar = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
-// Escolhe o melhor resultado: prioriza o Brasil (operação é nacional; evita
-// "Trancoso" cair no México) e usa o resto do texto ("Praia Brava, Itajaí")
-// para desempatar pela cidade/estado. Sem Brasil, fica com o primeiro (ex.:
-// "Buenos Aires").
+// Escolhe o melhor resultado. Pesos (calibrados com destinos reais em 31/10/2026):
+// +2 Brasil (operação é nacional; evita "Trancoso" cair no México),
+// +3 capital nacional ou cidade com 500 mil+ habitantes ("Buenos Aires" fica na
+// Argentina, não no município de Pernambuco), +3 por parte do texto que bate
+// com cidade/estado ("Praia Brava, Itajaí").
+function batemContexto(r, contexto) {
+  const regioes = [r.admin1, r.admin2, r.admin3, r.admin4].map(normalizar).filter(Boolean);
+  return contexto.filter((c) => c && regioes.some((reg) => reg.includes(c) || c.includes(reg))).length;
+}
+
 function melhorResultado(resultados, contexto) {
   if (!resultados?.length) return null;
-  const pontua = (r) => {
-    const regioes = [r.admin1, r.admin2, r.admin3, r.admin4].map(normalizar);
-    let p = r.country_code === "BR" ? 2 : 0;
-    for (const c of contexto) if (c && regioes.some((reg) => reg && (reg.includes(c) || c.includes(reg)))) p += 3;
-    return p;
-  };
+  const pontua = (r) =>
+    (r.country_code === "BR" ? 2 : 0) +
+    (r.feature_code === "PPLC" || (r.population || 0) >= 500000 ? 3 : 0) +
+    batemContexto(r, contexto) * 3;
   return resultados.reduce((melhor, r) => (pontua(r) > pontua(melhor) ? r : melhor), resultados[0]);
 }
 
@@ -116,16 +120,22 @@ async function geocodificar(destino, lang) {
   const partes = destino.split(/[,/(\-]/).map((s) => s.replace(/\)/g, "").trim()).filter(Boolean);
   // Tenta o nome principal (com o resto como contexto) e, se não achar, cada
   // parte seguinte (ex.: "Jurerê Internacional, Florianópolis" cai na cidade).
-  const tentativas = [...new Set([partes[0], ...partes.slice(1)].filter(Boolean))];
-  for (const [i, nome] of tentativas.entries()) {
+  // Com contexto ("Praia Brava, Itajaí"), só aceita resultado que bata com ele;
+  // senão tenta a parte seguinte e, no fim, fica com o melhor palpite inicial.
+  let palpite = null;
+  for (let i = 0; i < partes.length; i += 1) {
     const contexto = partes.filter((_, j) => j !== i).map(normalizar);
     const data = await getJson(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(nome)}&count=10&language=${idioma}`
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(partes[i])}&count=10&language=${idioma}`
     );
     const r = melhorResultado(data?.results, contexto);
-    if (r) return { lat: r.latitude, lon: r.longitude, nome: r.name };
+    if (!r) continue;
+    if (contexto.length === 0 || batemContexto(r, contexto) > 0 || i > 0) {
+      return { lat: r.latitude, lon: r.longitude, nome: r.name };
+    }
+    palpite = palpite || r;
   }
-  return null;
+  return palpite ? { lat: palpite.latitude, lon: palpite.longitude, nome: palpite.name } : null;
 }
 
 // Calcula a janela de previsão possível para a viagem.
