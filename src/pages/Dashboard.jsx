@@ -13,6 +13,8 @@ import DashboardStatusViagem from "@/components/dashboard/DashboardStatusViagem"
 import DashboardProximosEventos from "@/components/dashboard/DashboardProximosEventos";
 import DashboardMeuGrupoResumo from "@/components/dashboard/DashboardMeuGrupoResumo";
 import DashboardSeusPagamentos from "@/components/dashboard/DashboardSeusPagamentos";
+import DashboardCambio from "@/components/dashboard/DashboardCambio";
+import ClimaDestino from "@/components/dashboard/ClimaDestino";
 import RequestModal from "@/components/concierge/RequestModal";
 import EventModal from "@/components/events/EventModal";
 import { useLanguage, safeLocaleDate } from "@/lib/i18n";
@@ -159,6 +161,12 @@ function DashboardCliente({ billings, recebimentos, proposals, tasks, hospedes, 
       <div className="mb-4 md:mb-6">
         <DashboardStatusViagem proposta={proposta} podeEditar={user?.role === "admin"} />
       </div>
+
+      {proposta?.destino && (
+        <div className="mb-4 md:mb-6">
+          <ClimaDestino proposta={proposta} />
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-xl p-5 gold-border-hover mb-4 md:mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -480,6 +488,10 @@ export default function Dashboard() {
       <p className="text-[11px] text-muted-foreground mb-6 md:mb-8">
         Período: {now.toLocaleDateString(localeDate, { month: "long", year: "numeric" })} · Atualizado às {atualizadoEm}
       </p>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
+        <DashboardCambio />
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <div className="xl:col-span-2">
