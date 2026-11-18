@@ -111,6 +111,17 @@ function AppLayoutInner() {
   // conteúdo de área que não é dele antes de bloquear.
   const clientBlocked = isClientMode && !CLIENT_ALLOWED_PATHS.includes(location.pathname);
 
+  // Acesso so por convite: conta autenticada que nao e admin, nao e cliente
+  // e nao tem perfil de equipe (nem vinculado, nem convite pendente) nao entra.
+  // Sem isso, qualquer conta nova caia como "equipe" pelo default do User.
+  if (user && !isAdmin && !isClient && !profile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ConviteNecessario />
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-background overflow-hidden">
       {/* Desktop sidebar */}
