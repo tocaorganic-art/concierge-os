@@ -24,7 +24,7 @@ import { getClientColor } from "@/lib/clientColor";
 import {
   statusDerivado, saldoDevedor, valorRecebido, agruparBillingsCliente,
   receitaCaixaDoMes, totalAReceber, emAtrasoTotal, indiceRecebimento,
-  comprovantesDoBilling, ultimoComprovante,
+  comprovantesDoBilling, ultimoComprovante, roundCents,
 } from "@/lib/finance";
 
 // Faturamento de uma conta "cliente" — billings/recebimentos já filtrados
@@ -48,6 +48,15 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
   const chavePixContrato = proposals?.[0]?.chave_pix_recebimento || "";
 
   const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
+
+  // Resumo das despesas do cliente (Contrato + Adicionais; a caução é depósito
+  // devolvível e fica fora do total). Usa só funções de src/lib/finance.js.
+  const despesasAtivas = [...contrato, ...adicionais];
+  const totalDespesas = roundCents(despesasAtivas.reduce((s, b) => s + (b.valor || 0), 0));
+  const totalPago = roundCents(despesasAtivas.reduce((s, b) => s + Math.min(valorRecebido(b, recebimentos), b.valor || 0), 0));
+  const saldoTotal = roundCents(despesasAtivas.reduce((s, b) => s + Math.max(0, saldoDevedor(b, recebimentos)), 0));
+  const pctPago = totalDespesas > 0 ? Math.min(100, Math.round((totalPago / totalDespesas) * 100)) : 0;
+  const emAbertoQtd = despesasAtivas.filter((b) => saldoDevedor(b, recebimentos) > 0).length;
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["billings"] });
 
@@ -95,6 +104,16 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
           </span>
         </div>
         {(() => {
+          const pagoBloco = roundCents(itens.reduce((s, b) => s + Math.min(valorRecebido(b, recebimentos), b.valor || 0), 0));
+          const saldoBloco = roundCents(itens.reduce((s, b) => s + Math.max(0, saldoDevedor(b, recebimentos)), 0));
+          return (
+            <div className="flex items-center justify-end gap-3 mt-1 text-[11px] font-mono">
+              <span className="text-emerald-400">Pago {formatBRL(pagoBloco)}</span>
+              <span className={saldoBloco > 0 ? "text-primary" : "text-muted-foreground"}>Saldo {formatBRL(saldoBloco)}</span>
+            </div>
+          );
+        })()}
+        {(() => {
           const fixa = itens.filter((b) => b.tipo_despesa === "fixa").reduce((sum, b) => sum + (b.valor || 0), 0);
           const variavel = itens.filter((b) => b.tipo_despesa === "variavel").reduce((sum, b) => sum + (b.valor || 0), 0);
           if (fixa === 0 && variavel === 0) return null;
@@ -120,6 +139,31 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
           <Plus className="w-3.5 h-3.5" /> {t("billing_new_charge_client")}
         </Button>
       </div>
+      {despesasAtivas.length > 0 && (
+        <div className="bg-card border border-primary/40 rounded-2xl p-5 mb-6" data-testid="resumo-despesas">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3">Resumo das despesas</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Total</p>
+              <p className="font-display font-semibold text-foreground text-lg">{formatBRL(totalDespesas)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Pago</p>
+              <p className="font-display font-semibold text-emerald-400 text-lg">{formatBRL(totalPago)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Saldo devedor</p>
+              <p className={`font-display font-semibold text-lg ${saldoTotal > 0 ? "text-primary" : "text-emerald-400"}`}>{formatBRL(saldoTotal)}</p>
+            </div>
+          </div>
+          <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden" role="progressbar" aria-valuenow={pctPago} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full bg-emerald-400" style={{ width: `${pctPago}%` }} />
+          </div>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            {pctPago}% pago{emAbertoQtd > 0 ? ` · ${emAbertoQtd} ${emAbertoQtd === 1 ? "despesa em aberto" : "despesas em aberto"}` : " · tudo quitado"}
+          </p>
+        </div>
+      )}
       <Bloco titulo={t("billing_block_contrato_title")} itens={contrato} subtitulo={t("billing_block_contrato_sub")} />
       <Bloco titulo={t("billing_block_adicionais_title")} itens={adicionais} subtitulo={t("billing_block_adicionais_sub")} />
       <Bloco titulo={t("billing_block_caucao_title")} itens={caucao} destacar={focusTipo === "caucao"} />
