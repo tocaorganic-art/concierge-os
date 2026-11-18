@@ -17,7 +17,6 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import KpiCard from "@/components/shared/KpiCard";
 import BillingFormDialog from "@/components/billing/BillingFormDialog";
-import PixPaymentCard from "@/components/billing/PixPaymentCard";
 import RegistrarRecebimentoDialog, { EstornarRecebimentoDialog } from "@/components/billing/RegistrarRecebimentoDialog";
 import { LinhaParcela } from "@/components/billing/ClientBillingBlocks";
 import { getClientColor } from "@/lib/clientColor";
@@ -44,8 +43,6 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
     queryFn: () => base44.entities.Proposal.filter({ client_id: effectiveClientId }, "-created_date", 5),
     enabled: Boolean(effectiveClientId),
   });
-  const formaPagamento = proposals?.[0]?.forma_pagamento_preferida;
-  const chavePixContrato = proposals?.[0]?.chave_pix_recebimento || "";
 
   const { contrato, adicionais, caucao } = agruparBillingsCliente(billings);
 
@@ -167,7 +164,6 @@ function FaturamentoCliente({ billings, recebimentos, effectiveClientId, focusSt
       <Bloco titulo={t("billing_block_contrato_title")} itens={contrato} subtitulo={t("billing_block_contrato_sub")} />
       <Bloco titulo={t("billing_block_adicionais_title")} itens={adicionais} subtitulo={t("billing_block_adicionais_sub")} />
       <Bloco titulo={t("billing_block_caucao_title")} itens={caucao} destacar={focusTipo === "caucao"} />
-      {temAdicionaisAberto && <PixPaymentCard formaPagamento={formaPagamento} chavePixContrato={chavePixContrato} />}
       {contrato.length === 0 && adicionais.length === 0 && caucao.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-12">{t("billing_empty_client")}</p>
       )}
@@ -308,9 +304,6 @@ export default function Billing() {
           </div>
         }
       />
-
-      {/* Dados da empresa e forma de pagamento (Contas a Pagar) — referência rápida para copiar/enviar ao cliente */}
-      <PixPaymentCard />
 
       {/* KPIs (fórmulas em src/lib/finance.js — mesma fonte do Dashboard e Relatórios) */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
