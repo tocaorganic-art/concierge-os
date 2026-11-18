@@ -138,6 +138,10 @@ export default function MeuContrato() {
       </div>
 
       {proposta?.contrato_assinado_url && (
+        <ContratoAssinado refArquivo={proposta.contrato_assinado_url} />
+      )}
+
+      {false && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t("contrato_signed_label")}</p>

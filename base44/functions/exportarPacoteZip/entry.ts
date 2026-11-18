@@ -271,7 +271,7 @@ export default async function (req: Request) {
           }
           const res = await fetch(urlBaixar, { signal: AbortSignal.timeout(30000) });
           if (!res.ok) throw new Error(`${a.nomeBase} → HTTP ${res.status}`);
-          return { a, bytes: new Uint8Array(await res.arrayBuffer()) };
+          return { a, bytes: new Uint8Array(await res.arrayBuffer()), ext: extensao(a.url) !== 'bin' ? extensao(a.url) : extensao(urlBaixar) };
         })
       );
       resultados.forEach((r, idx) => {
@@ -280,9 +280,9 @@ export default async function (req: Request) {
           falhas.push(`${a.nomeBase} (${a.item})`);
           return;
         }
-        let caminho = `${a.pasta}/${a.nomeBase}.${extensao(a.url)}`;
+        let caminho = `${a.pasta}/${a.nomeBase}.${r.value.ext}`;
         let contador = 2;
-        while (usados.has(caminho)) caminho = `${a.pasta}/${a.nomeBase}-${contador++}.${extensao(a.url)}`;
+        while (usados.has(caminho)) caminho = `${a.pasta}/${a.nomeBase}-${contador++}.${r.value.ext}`;
         usados.add(caminho);
         zip.file(caminho, r.value.bytes);
       });
