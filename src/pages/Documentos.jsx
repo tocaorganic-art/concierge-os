@@ -11,7 +11,8 @@ import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
 function DocLinha({ nome, sub, href }) {
   return (
     <a
-      href={href}
+      href={hrefArquivo(href)}
+      onClick={onClickArquivo(href)}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:bg-secondary/50 transition-colors"
