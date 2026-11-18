@@ -141,9 +141,6 @@ export default function MeuContrato() {
         <ContratoAssinado refArquivo={proposta.contrato_assinado_url} />
       )}
 
-        </div>
-      )}
-
       {proposta?.contrato_assinado_url && <BuscaContrato contratoUrl={proposta.contrato_assinado_url} />}
 
       {itens.length > 0 && (
