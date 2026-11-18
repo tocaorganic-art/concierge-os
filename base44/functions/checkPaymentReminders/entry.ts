@@ -27,10 +27,11 @@ export default async function (req) {
     // O que conta e o SALDO real do ledger (Recebimento), nao o status gravado:
     // uma cobranca paga com status desatualizado nao pode gerar alerta, e uma
     // parcialmente recebida ainda precisa gerar. Mesma regra de src/lib/finance.js.
-    const [abertas, recebimentos] = await Promise.all([
-      base44.asServiceRole.entities.Billing.filter({ status: { $nin: ['cancelado'] } }),
-      base44.asServiceRole.entities.Recebimento.filter({}),
+    const [todas, recebimentos] = await Promise.all([
+      base44.asServiceRole.entities.Billing.filter({}, '-data_vencimento', 5000),
+      base44.asServiceRole.entities.Recebimento.filter({}, '-created_date', 5000),
     ]);
+    const abertas = (todas || []).filter((b) => b.status !== 'cancelado');
     const recebidoPor = {};
     for (const r of recebimentos || []) {
       if (!r.billing_id) continue;
