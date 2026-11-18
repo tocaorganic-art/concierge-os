@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Users, AlertTriangle, CheckCircle2, Plane, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { enviarArquivoPrivado, urlDoArquivo } from "@/lib/arquivoPrivado";
 
 const CAPACIDADE_PERNOITE = 15;
 
@@ -64,9 +65,9 @@ function HospedeRow({ hospede, onSaved }) {
     setLendoVoo(true);
     setErroLeitura("");
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await enviarArquivoPrivado(file);
       const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
+        file_url: await urlDoArquivo(file_url),
         json_schema: {
           type: "object",
           properties: {

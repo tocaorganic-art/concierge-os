@@ -24,6 +24,7 @@ import { CLIENTE_INTERNO_ID, CLIENTE_INTERNO_NOME } from "@/lib/finance";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { useCategorias } from "@/lib/useCategorias";
 import { TIPO_DESPESA, criarOuReativarCategoria, garantirCategoria, norm as normalize, opcoesComAtual } from "@/lib/categoriasCatalogo";
+import { enviarArquivoPrivado, urlDoArquivo } from "@/lib/arquivoPrivado";
 
 const defaultForm = {
   client_id: "",
@@ -150,12 +151,12 @@ export default function ExpenseFormDialog({ open, onOpenChange, expense, default
     setUploading(true);
     setUploadError("");
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await enviarArquivoPrivado(file);
       setForm((f) => ({ ...f, comprovante_url: file_url }));
 
       const listaCategorias = categoriasExistentes.join(", ");
       const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
+        file_url: await urlDoArquivo(file_url),
         json_schema: {
           type: "object",
           properties: {

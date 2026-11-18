@@ -26,7 +26,7 @@ import LeituraContratoModal from "@/components/proposals/LeituraContratoModal";
 import TemplateManagerDialog from "@/components/proposals/TemplateManagerDialog";
 import SalvarTemplateDialog from "@/components/proposals/SalvarTemplateDialog";
 import { ETAPAS } from "@/components/dashboard/DashboardStatusViagem";
-import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
+import { hrefArquivo, onClickArquivo, enviarArquivoPrivado } from "@/lib/arquivoPrivado";
 
 const defaultForm = {
   client_id: "",
@@ -361,7 +361,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                   setUploadingContrato(true);
                   setUploadContratoError("");
                   try {
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    const file_url = await enviarArquivoPrivado(file);
                     setForm((f) => ({ ...f, contrato_assinado_url: file_url }));
                     // Dispara a leitura por IA assim que o contrato é anexado — só
                     // quando a proposta já existe (precisa do id pra aplicar depois

@@ -9,16 +9,17 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { FolderOpen, Loader2, AlertTriangle, X } from "lucide-react";
+import { enviarArquivoPrivado } from "@/lib/arquivoPrivado";
 
 // Classificação automática pelo prefixo da primeira pasta do caminho
 // relativo — combina com a convenção de pastas que o Tony já usa localmente
 // (01_..05_). Cada destino sabe onde o link do arquivo deve ser gravado.
 const PREFIXO_DESTINO = {
-  "01_": { label: "Documento do cliente (visível ao Guido)", destino: "documentos_cliente", publico: true },
-  "02_": { label: "Contrato de fornecedor (só admin)", destino: "contrato_fornecedor", publico: true },
-  "03_": { label: "Comprovante de recebimento (vincula pelo ID da operação)", destino: "recebimento", publico: true },
-  "04_": { label: "Hóspedes (só admin)", destino: "documentos_admin", publico: true },
-  "05_": { label: "Meio de pagamento da empresa (só admin)", destino: "documentos_admin", publico: true },
+  "01_": { label: "Documento do cliente (visível ao Guido)", destino: "documentos_cliente", publico: false },
+  "02_": { label: "Contrato de fornecedor (só admin)", destino: "contrato_fornecedor", publico: false },
+  "03_": { label: "Comprovante de recebimento (vincula pelo ID da operação)", destino: "recebimento", publico: false },
+  "04_": { label: "Hóspedes (só admin)", destino: "documentos_admin", publico: false },
+  "05_": { label: "Meio de pagamento da empresa (só admin)", destino: "documentos_admin", publico: false },
 };
 
 function detectarDestino(relativePath) {
@@ -45,7 +46,7 @@ export default function ImportarDocumentosDialog({ open, onOpenChange, proposal,
         relativePath,
         destino: detectado?.destino || "ignorar",
         label: detectado?.label || "Não reconhecido — escolha manualmente",
-        publico: detectado?.publico ?? true,
+        publico: detectado?.publico ?? false,
       };
     });
     setItems(novosItems);
@@ -60,7 +61,7 @@ export default function ImportarDocumentosDialog({ open, onOpenChange, proposal,
     mutationFn: async () => {
       for (const item of items) {
         if (item.destino === "ignorar") continue;
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: item.file });
+        const file_url = await enviarArquivoPrivado(item.file);
 
         if (item.destino === "documentos_cliente") {
           const atual = proposal.documentos_cliente || [];

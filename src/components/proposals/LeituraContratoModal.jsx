@@ -8,6 +8,7 @@ import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
 import { possivelBillingDuplicado } from "@/lib/finance";
 import { custoFornecedorPendente, splitParcelasRepasseMargem } from "@/lib/splitRepasseMargem";
+import { urlDoArquivo } from "@/lib/arquivoPrivado";
 
 // Schema de extração (Fase 3) — pedido explicitamente pelo Tony com base no
 // contrato real que ele usa ("Adenda Contractual": tabela Cliente/Check-in/
@@ -126,7 +127,7 @@ export default function LeituraContratoModal({ open, onOpenChange, proposal, onC
     (async () => {
       try {
         const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
-          file_url: proposal.contrato_assinado_url,
+          file_url: await urlDoArquivo(proposal.contrato_assinado_url),
           json_schema: SCHEMA_EXTRACAO,
         });
         if (cancelado) return;

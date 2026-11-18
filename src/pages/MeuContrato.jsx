@@ -6,6 +6,7 @@ import { agruparBillingsCliente } from "@/lib/finance";
 import { FileText, Loader2, Download, ExternalLink, Sparkles, Send, AlertCircle } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
+import { urlDoArquivo } from "@/lib/arquivoPrivado";
 
 // Busca com IA sobre o contrato assinado — extrai o texto do PDF/imagem UMA
 // vez por sessão (ExtractDataFromUploadedFile, mesmo padrão de leitura já
@@ -24,7 +25,7 @@ function BuscaContrato({ contratoUrl }) {
   const garantirTexto = async () => {
     if (contratoTexto) return contratoTexto;
     const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
-      file_url: contratoUrl,
+      file_url: await urlDoArquivo(contratoUrl),
       json_schema: {
         type: "object",
         properties: {
