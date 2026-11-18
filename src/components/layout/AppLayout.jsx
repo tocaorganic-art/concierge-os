@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ShieldOff, Eye, X } from "lucide-react";
 import { useUserProfile } from "@/lib/useUserProfile";
@@ -149,7 +149,11 @@ function AppLayoutInner() {
             </div>
           )}
           <GlobalSearch />
-          {clientBlocked ? <SemAcesso /> : <Outlet />}
+          {clientBlocked ? <SemAcesso /> : (
+            <Suspense fallback={<div className="flex justify-center py-24"><div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div></div>}>
+              <Outlet />
+            </Suspense>
+          )}
         </div>
       </main>
 
