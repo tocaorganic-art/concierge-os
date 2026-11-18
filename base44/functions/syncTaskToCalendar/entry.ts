@@ -97,6 +97,17 @@ export default async function(req) {
 
     const eventBody = buildEvent(task);
     if (!eventBody) {
+      // Data apagada da tarefa: remove o evento que ja existia no calendario.
+      if (task.calendar_event_id) {
+        const res = await fetch(`${CAL_BASE}/${encodeURIComponent(task.calendar_event_id)}`, { method: 'DELETE', headers });
+        if (!res.ok && ![404, 410].includes(res.status)) {
+          return Response.json({ error: 'google_api_error', status: res.status, details: await res.text() }, { status: 502 });
+        }
+        if (entityId) {
+          await base44.asServiceRole.entities.Task.update(entityId, { calendar_event_id: '' });
+        }
+        return Response.json({ status: 'deleted_no_date' });
+      }
       return Response.json({ status: 'skipped_no_date' });
     }
 
