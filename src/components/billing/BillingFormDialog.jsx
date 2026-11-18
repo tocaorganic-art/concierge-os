@@ -23,8 +23,24 @@ import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { useCategorias } from "@/lib/useCategorias";
 import { TIPO_COBRANCA, criarOuReativarCategoria, garantirCategoria, norm, opcoesComAtual } from "@/lib/categoriasCatalogo";
 import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus, Wand2 } from "lucide-react";
-import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao } from "@/lib/finance";
+import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao, dividirEmParcelas } from "@/lib/finance";
 import { custoFornecedorPendente, splitRepasseMargem } from "@/lib/splitRepasseMargem";
+
+// Na edicao pelo cliente, envia so o que de fato mudou. Campos financeiros
+// (valor, status, vencimento...) so podem ser alterados por quem criou a
+// cobranca ou pela equipe (regra de acesso da entidade Billing); reenviar
+// esses campos sem mudanca faria o salvamento do comprovante falhar.
+function somenteAlterados(original, data) {
+  const out = {};
+  for (const [k, v] of Object.entries(data)) {
+    const antes = original?.[k];
+    const igual = typeof v === "number" || typeof antes === "number"
+      ? Number(v) === Number(antes)
+      : JSON.stringify(v ?? "") === JSON.stringify(antes ?? "");
+    if (!igual) out[k] = v;
+  }
+  return out;
+}
 
 const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "", tipo_despesa: "variavel", motivo_cancelamento: "", natureza: "a_classificar", alocacao: [] };
 
@@ -148,7 +164,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     mutationFn: async (data) => {
       await garantirCategoria({ nome: data.categoria, tipo: TIPO_COBRANCA }).catch(() => {});
       if (billing) {
-        return base44.entities.Billing.update(billing.id, clientMode ? { ...data, ultima_edicao_por: "cliente" } : data);
+        return base44.entities.Billing.update(billing.id, clientMode ? { ...somenteAlterados(billing, data), ultima_edicao_por: "cliente" } : data);
       }
       if (multiplas) {
         // Cada despesa desta cobrança vira um Billing PRÓPRIO — nunca
@@ -169,12 +185,9 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
       // Parcelamento estruturado: gera N cobrancas vinculadas (mesma
       // proposal_id, numero_parcela/total_parcelas preenchidos), em vez de
       // uma unica cobranca com "Parcela X/Y" escrito a mao na descricao.
-      const n = Math.max(2, Math.round(numeroParcelas) || 2);
-      const total = data.valor;
-      const base = Math.floor((total / n) * 100) / 100;
-      const ultima = Math.round((total - base * (n - 1)) * 100) / 100;
-      const criacoes = Array.from({ length: n }, (_, i) => {
-        const valorParcela = i === n - 1 ? ultima : base;
+      const valores = dividirEmParcelas(data.valor, numeroParcelas);
+      const n = valores.length;
+      const criacoes = valores.map((valorParcela, i) => {
         return base44.entities.Billing.create({
           ...data,
           valor: valorParcela,
@@ -603,16 +616,21 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
             </div>
           )}
 
-          {!multiplas && !clientMode && (
+          {!multiplas && !clientMode && billing && (
             <div>
               <Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{t("field_status")}</Label>
-              <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+              {/* Status e derivado do saldo (finance.js). So o cancelamento e manual. */}
+              <Select
+                value={form.status === "cancelado" ? "cancelado" : "ativa"}
+                onValueChange={(v) => setForm((f) => ({
+                  ...f,
+                  status: v === "cancelado" ? "cancelado" : (billing.status && billing.status !== "cancelado" ? billing.status : "pendente"),
+                }))}
+              >
                 <SelectTrigger className="mt-1.5 bg-secondary border-border"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">{t("status_pendente")}</SelectItem>
-                  <SelectItem value="recebido">{t("status_recebido")}</SelectItem>
-                  <SelectItem value="atrasado">{t("status_atrasado")}</SelectItem>
-                  {billing && <SelectItem value="cancelado">{t("status_cancelado")}</SelectItem>}
+                  <SelectItem value="ativa">{t("billing_status_ativa")}</SelectItem>
+                  <SelectItem value="cancelado">{t("status_cancelado")}</SelectItem>
                 </SelectContent>
               </Select>
               {form.status === "cancelado" && (

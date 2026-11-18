@@ -18,13 +18,19 @@ Deno.serve(async (req) => {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
 
+  // Sem segredo configurado ou sem assinatura, o evento nao e confiavel:
+  // rejeita em vez de aceitar o corpo cru (qualquer um poderia forjar uma
+  // assinatura "paga").
+  if (!webhookSecret) {
+    return new Response("Webhook Error: STRIPE_WEBHOOK_SECRET nao configurado", { status: 500 });
+  }
+  if (!sig) {
+    return new Response("Webhook Error: assinatura ausente", { status: 400 });
+  }
+
   let event;
   try {
-    if (webhookSecret && sig) {
-      event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
-    } else {
-      event = JSON.parse(body);
-    }
+    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
   } catch (err) {
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }

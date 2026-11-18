@@ -70,7 +70,7 @@ export default function ClientProfileSheet({ client, onClose, onEdit }) {
 
   return (
     <Sheet open={!!client} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="bg-card border-border w-[420px] overflow-y-auto">
+      <SheetContent className="bg-card border-border w-full max-w-[420px] sm:w-[420px] overflow-y-auto">
         <SheetHeader className="mb-6 pr-8">
           <div className="flex items-center justify-between gap-2">
             <SheetTitle className="font-display text-xl truncate">{client.nome}</SheetTitle>

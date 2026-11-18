@@ -4,7 +4,26 @@
   "properties": {
     "client_id": {
       "type": "string",
-      "description": "ID do cliente"
+      "description": "ID do cliente",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "client_nome": {
       "type": "string",
@@ -12,7 +31,26 @@
     },
     "proposal_id": {
       "type": "string",
-      "description": "ID da proposta/evento vinculado (opcional) \u2014 usado para agrupar as parcelas de um mesmo pacote e calcular \"Parcela X de Y\" de forma estruturada, em vez de depender de texto livre na descricao."
+      "description": "ID da proposta/evento vinculado (opcional) — usado para agrupar as parcelas de um mesmo pacote e calcular \"Parcela X de Y\" de forma estruturada, em vez de depender de texto livre na descricao.",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "numero_parcela": {
       "type": "number",
@@ -24,15 +62,72 @@
     },
     "descricao": {
       "type": "string",
-      "description": "Descri\u00e7\u00e3o da cobran\u00e7a"
+      "description": "Descrição da cobrança",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "categoria": {
       "type": "string",
-      "description": "Categoria da cobran\u00e7a \u2014 livre, n\u00e3o fixa. 'Contas a Pagar': cobran\u00e7as adicionais normais que o cliente deve pagar (som, passagem, aluguel de carro, apartamento extra, etc. \u2014 qualquer custo repassado fora do pacote principal). 'Reserva Financeira': APENAS cr\u00e9dito real \u2014 dep\u00f3sito que o cliente faz para refor\u00e7ar uma reserva/fundo de garantia, ou saldo que sobra de algum item e vira cr\u00e9dito dele. Nunca usar 'Reserva Financeira' para uma cobran\u00e7a a receber \u2014 isso \u00e9 'Contas a Pagar'. Se a categoria certa n\u00e3o existir ainda, cria-se uma nova."
+      "description": "Categoria da cobrança — livre, não fixa. 'Contas a Pagar': cobranças adicionais normais que o cliente deve pagar (som, passagem, aluguel de carro, apartamento extra, etc. — qualquer custo repassado fora do pacote principal). 'Reserva Financeira': APENAS crédito real — depósito que o cliente faz para reforçar uma reserva/fundo de garantia, ou saldo que sobra de algum item e vira crédito dele. Nunca usar 'Reserva Financeira' para uma cobrança a receber — isso é 'Contas a Pagar'. Se a categoria certa não existir ainda, cria-se uma nova.",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "valor": {
       "type": "number",
-      "description": "Valor da cobran\u00e7a"
+      "description": "Valor da cobrança",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "tipo_despesa": {
       "type": "string",
@@ -53,11 +148,43 @@
         "cancelado"
       ],
       "default": "pendente",
-      "description": "Status derivado do saldo (ver src/lib/finance.js) \u2014 nao editar manualmente exceto 'cancelado', que exige motivo_cancelamento. pendente: nada recebido. parcialmente_recebido: 0 < recebido < valor. recebido: saldo zerado. atrasado: saldo>0 e hoje>vencimento. cancelado: motivo obrigatorio."
+      "description": "Status derivado do saldo (ver src/lib/finance.js) — nao editar manualmente exceto 'cancelado', que exige motivo_cancelamento. pendente: nada recebido. parcialmente_recebido: 0 < recebido < valor. recebido: saldo zerado. atrasado: saldo>0 e hoje>vencimento. cancelado: motivo obrigatorio.",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            }
+          ]
+        }
+      }
     },
     "motivo_cancelamento": {
       "type": "string",
-      "description": "Obrigatorio quando status=cancelado. Cobranca cancelada nunca e apagada, so marcada."
+      "description": "Obrigatorio quando status=cancelado. Cobranca cancelada nunca e apagada, so marcada.",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            }
+          ]
+        }
+      }
     },
     "natureza": {
       "type": "string",
@@ -70,11 +197,30 @@
         "a_classificar"
       ],
       "default": "a_classificar",
-      "description": "honorario = taxa de concierge cobrada do cliente. intermediacao = diferenca entre preco cobrado do cliente e custo do fornecedor, por item (tambem receita propria). comissao = valor que o proprio fornecedor paga ao Tony (receita propria, distinta de intermediacao). repasse = parte do valor cobrado do cliente que corresponde ao custo do fornecedor, nao e receita. caucao = deposito devolvivel do cliente, nao e receita nem repasse definitivo. a_classificar = registros antigos ainda nao classificados, ou natureza ambigua a confirmar."
+      "description": "honorario = taxa de concierge cobrada do cliente. intermediacao = diferenca entre preco cobrado do cliente e custo do fornecedor, por item (tambem receita propria). comissao = valor que o proprio fornecedor paga ao Tony (receita propria, distinta de intermediacao). repasse = parte do valor cobrado do cliente que corresponde ao custo do fornecedor, nao e receita. caucao = deposito devolvivel do cliente, nao e receita nem repasse definitivo. a_classificar = registros antigos ainda nao classificados, ou natureza ambigua a confirmar.",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "alocacao": {
       "type": "array",
-      "description": "Divisao opcional de um Billing misto (preco cheio) em partes por natureza \u2014 ex.: uma parcela de aluguel que contem repasse ao proprietario + intermediacao + honorario embutidos. Soma das partes deve bater com 'valor'. Uso exclusivo do admin; nunca exposto ao cliente (RLS de campo abaixo). Quando ausente, o campo 'natureza' acima classifica o Billing inteiro.",
+      "description": "Divisao opcional de um Billing misto (preco cheio) em partes por natureza — ex.: uma parcela de aluguel que contem repasse ao proprietario + intermediacao + honorario embutidos. Soma das partes deve bater com 'valor'. Uso exclusivo do admin; nunca exposto ao cliente (RLS de campo abaixo). Quando ausente, o campo 'natureza' acima classifica o Billing inteiro.",
       "items": {
         "type": "object",
         "properties": {
@@ -98,6 +244,20 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            }
+          ]
         }
       }
     },
@@ -127,7 +287,26 @@
     "data_vencimento": {
       "type": "string",
       "format": "date",
-      "description": "Data de vencimento"
+      "description": "Data de vencimento",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "account_type": "equipe"
+              }
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
+        }
+      }
     },
     "data_emissao": {
       "type": "string",
@@ -141,7 +320,7 @@
     },
     "comprovante_url": {
       "type": "string",
-      "description": "DEPRECATED, mantido s\u00f3 por compatibilidade com registros antigos e leitores legados \u2014 sempre espelha o \u00faltimo item de 'comprovantes' abaixo. Novos comprovantes devem ser gravados em 'comprovantes' (hist\u00f3rico), nunca s\u00f3 aqui, sen\u00e3o o anexo anterior se perde ao reenviar. URL da foto/comprovante desta cobran\u00e7a (nota fiscal, or\u00e7amento, print de passagem, recibo de pagamento etc.) \u2014 vis\u00edvel para admin, equipe e para o cliente vinculado a esta cobran\u00e7a.",
+      "description": "DEPRECATED, mantido só por compatibilidade com registros antigos e leitores legados — sempre espelha o último item de 'comprovantes' abaixo. Novos comprovantes devem ser gravados em 'comprovantes' (histórico), nunca só aqui, senão o anexo anterior se perde ao reenviar. URL da foto/comprovante desta cobrança (nota fiscal, orçamento, print de passagem, recibo de pagamento etc.) — visível para admin, equipe e para o cliente vinculado a esta cobrança.",
       "rls": {
         "update": {
           "$or": [
@@ -162,7 +341,7 @@
     },
     "comprovantes": {
       "type": "array",
-      "description": "Hist\u00f3rico de todos os comprovantes/documentos anexados a esta cobran\u00e7a (nota fiscal, or\u00e7amento, print de passagem, recibo de pagamento etc.), do mais antigo ao mais recente \u2014 cada reenvio (do cliente ou da equipe) vira um item NOVO nesta lista, nunca substitui um anterior. Vis\u00edvel para admin, equipe e para o cliente vinculado.",
+      "description": "Histórico de todos os comprovantes/documentos anexados a esta cobrança (nota fiscal, orçamento, print de passagem, recibo de pagamento etc.), do mais antigo ao mais recente — cada reenvio (do cliente ou da equipe) vira um item NOVO nesta lista, nunca substitui um anterior. Visível para admin, equipe e para o cliente vinculado.",
       "items": {
         "type": "object",
         "properties": {
@@ -206,7 +385,7 @@
         "equipe",
         "cliente"
       ],
-      "description": "Quem fez a ultima edicao visivel deste registro (ex: anexar comprovante) \u2014 usado so para destacar no painel do admin quando foi o proprio cliente, nunca para controle de acesso.",
+      "description": "Quem fez a ultima edicao visivel deste registro (ex: anexar comprovante) — usado so para destacar no painel do admin quando foi o proprio cliente, nunca para controle de acesso.",
       "rls": {
         "update": {
           "$or": [

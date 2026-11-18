@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { LanguageProvider } from "@/lib/i18n";
@@ -14,28 +14,38 @@ import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import AppLayout from "@/components/layout/AppLayout";
-import Dashboard from "@/pages/Dashboard";
-import Pipeline from "@/pages/Pipeline";
-import Clients from "@/pages/Clients";
-import Agenda from "@/pages/Agenda";
-import Proposals from "@/pages/Proposals";
-import Reports from "@/pages/Reports";
-import Billing from "@/pages/Billing";
-import Despesas from "@/pages/Despesas";
-import Settings from "@/pages/Settings";
-import TocaTrIA from "@/pages/TocaTrIA";
-import Solicitacoes from "@/pages/Solicitacoes";
-import Parceiros from "@/pages/Parceiros";
-import ConciergeKPIs from "@/pages/ConciergeKPIs";
-import ClientProfile from "@/pages/ClientProfile";
-import MeuGrupo from "@/pages/MeuGrupo";
-import MeuContrato from "@/pages/MeuContrato";
-import Chat from "@/pages/Chat";
-import Documentos from "@/pages/Documentos";
-import Obrigado from "@/pages/Obrigado";
-import OAuthConsent from "@/pages/OAuthConsent";
-import Connect from "@/pages/Connect";
-import InstitucionalSection from "@/pages/InstitucionalSection";
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Pipeline = lazy(() => import("@/pages/Pipeline"));
+const Clients = lazy(() => import("@/pages/Clients"));
+const Agenda = lazy(() => import("@/pages/Agenda"));
+const Proposals = lazy(() => import("@/pages/Proposals"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const Billing = lazy(() => import("@/pages/Billing"));
+const Despesas = lazy(() => import("@/pages/Despesas"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const TocaTrIA = lazy(() => import("@/pages/TocaTrIA"));
+const Solicitacoes = lazy(() => import("@/pages/Solicitacoes"));
+const Parceiros = lazy(() => import("@/pages/Parceiros"));
+const ConciergeKPIs = lazy(() => import("@/pages/ConciergeKPIs"));
+const ClientProfile = lazy(() => import("@/pages/ClientProfile"));
+const MeuGrupo = lazy(() => import("@/pages/MeuGrupo"));
+const MeuContrato = lazy(() => import("@/pages/MeuContrato"));
+const Chat = lazy(() => import("@/pages/Chat"));
+const Documentos = lazy(() => import("@/pages/Documentos"));
+const Obrigado = lazy(() => import("@/pages/Obrigado"));
+const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
+const Connect = lazy(() => import("@/pages/Connect"));
+const InstitucionalSection = lazy(() => import("@/pages/InstitucionalSection"));
+
+// Paginas carregadas sob demanda: o bundle inicial (login) nao leva
+// graficos, faturamento e relatorios junto.
+function RouteFallback() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-background">
+      <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+    </div>
+  );
+}
 
 
 const AuthenticatedApp = () => {
@@ -65,6 +75,7 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       {/* Consentimento OAuth do servidor MCP — fora de qualquer guarda de auth,
           a própria página redireciona ao login quando não autenticada. */}
@@ -135,6 +146,7 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 
