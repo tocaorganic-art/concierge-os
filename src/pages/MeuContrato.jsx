@@ -6,7 +6,7 @@ import { agruparBillingsCliente } from "@/lib/finance";
 import { FileText, Loader2, Download, ExternalLink, Sparkles, Send, AlertCircle } from "lucide-react";
 import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
-import { urlDoArquivo } from "@/lib/arquivoPrivado";
+import { urlDoArquivo, useUrlDoArquivo } from "@/lib/arquivoPrivado";
 
 // Busca com IA sobre o contrato assinado — extrai o texto do PDF/imagem UMA
 // vez por sessão (ExtractDataFromUploadedFile, mesmo padrão de leitura já
@@ -141,24 +141,6 @@ export default function MeuContrato() {
         <ContratoAssinado refArquivo={proposta.contrato_assinado_url} />
       )}
 
-      {false && (
-        <div className="bg-card border border-border rounded-xl p-5 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t("contrato_signed_label")}</p>
-            <div className="flex items-center gap-3">
-              <a href={proposta.contrato_assinado_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                <ExternalLink className="w-3.5 h-3.5" /> {t("common_open")}
-              </a>
-              <a href={proposta.contrato_assinado_url} download className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                <Download className="w-3.5 h-3.5" /> {t("common_download")}
-              </a>
-            </div>
-          </div>
-          {proposta.contrato_assinado_url.toLowerCase().endsWith(".pdf") ? (
-            <iframe src={proposta.contrato_assinado_url} title={t("contrato_signed_label")} className="w-full h-[70vh] rounded-lg border border-border" />
-          ) : (
-            <img src={proposta.contrato_assinado_url} alt={t("contrato_signed_label")} className="w-full rounded-lg border border-border" />
-          )}
         </div>
       )}
 
@@ -197,6 +179,38 @@ export default function MeuContrato() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Contrato assinado: o arquivo pode estar em armazenamento privado, entao a
+// visualizacao usa uma URL assinada de curta duracao (useUrlDoArquivo).
+function ContratoAssinado({ refArquivo }) {
+  const { t } = useLanguage();
+  const { url, erro, carregando } = useUrlDoArquivo(refArquivo);
+  const ehPdf = /\.pdf($|\?)/i.test(url || refArquivo || "");
+  return (
+    <div className="bg-card border border-border rounded-xl p-5 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t("contrato_signed_label")}</p>
+        {url && (
+          <div className="flex items-center gap-3">
+            <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+              <ExternalLink className="w-3.5 h-3.5" /> {t("common_open")}
+            </a>
+            <a href={url} download className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+              <Download className="w-3.5 h-3.5" /> {t("common_download")}
+            </a>
+          </div>
+        )}
+      </div>
+      {carregando && <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />}
+      {erro && <p className="text-xs text-muted-foreground italic">{t("chat_attachment_unavailable")}</p>}
+      {url && (ehPdf ? (
+        <iframe src={url} title={t("contrato_signed_label")} className="w-full h-[70vh] rounded-lg border border-border" />
+      ) : (
+        <img src={url} alt={t("contrato_signed_label")} className="w-full rounded-lg border border-border" />
+      ))}
     </div>
   );
 }
