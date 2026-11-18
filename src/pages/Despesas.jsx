@@ -15,6 +15,7 @@ import KpiCard from "@/components/shared/KpiCard";
 import ExpenseFormDialog from "@/components/expenses/ExpenseFormDialog";
 import { useLanguage, translateCategoria } from "@/lib/i18n";
 import { formatBRL } from "@/lib/formatBRL";
+import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
 
 function normalizeCat(str) {
   return (str || "")
@@ -211,7 +212,7 @@ export default function Despesas() {
                       </td>
                       <td className="px-5 py-3.5">
                         {e.comprovante_url && (
-                          <a href={e.comprovante_url} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()} className="text-muted-foreground hover:text-primary">
+                          <a href={hrefArquivo(e.comprovante_url)} target="_blank" rel="noreferrer" onClick={onClickArquivo(e.comprovante_url, (ev) => ev.stopPropagation())} className="text-muted-foreground hover:text-primary">
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}
@@ -251,7 +252,7 @@ export default function Despesas() {
                     </div>
                   </div>
                   {e.comprovante_url && (
-                    <a href={e.comprovante_url} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()} className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors">
+                    <a href={hrefArquivo(e.comprovante_url)} target="_blank" rel="noreferrer" onClick={onClickArquivo(e.comprovante_url, (ev) => ev.stopPropagation())} className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors">
                       <Paperclip className="w-3 h-3" /> Comprovante
                     </a>
                   )}

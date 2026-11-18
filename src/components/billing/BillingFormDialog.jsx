@@ -25,6 +25,7 @@ import { TIPO_COBRANCA, criarOuReativarCategoria, garantirCategoria, norm, opcoe
 import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus, Wand2 } from "lucide-react";
 import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao, dividirEmParcelas } from "@/lib/finance";
 import { custoFornecedorPendente, splitRepasseMargem } from "@/lib/splitRepasseMargem";
+import { hrefArquivo, onClickArquivo, enviarArquivoPrivado, urlDoArquivo } from "@/lib/arquivoPrivado";
 
 // Na edicao pelo cliente, envia so o que de fato mudou. Campos financeiros
 // (valor, status, vencimento...) so podem ser alterados por quem criou a
@@ -246,7 +247,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
     setUploading(true);
     setUploadError("");
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await enviarArquivoPrivado(file);
       setForm((f) => ({ ...f, comprovante_url: file_url }));
 
       // Mesmo padrão de leitura por IA já usado em ExpenseFormDialog.jsx —
@@ -255,7 +256,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
       try {
         const listaCategorias = categoriasExistentes.join(", ");
         const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
-          file_url,
+          file_url: await urlDoArquivo(file_url),
           json_schema: {
             type: "object",
             properties: {
@@ -360,7 +361,7 @@ export default function BillingFormDialog({ open, onOpenChange, billing, clientM
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground font-medium truncate">{t("billing_form_proof_attached")}</p>
-                <a href={form.comprovante_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline">{t("billing_form_view_file")}</a>
+                <a href={hrefArquivo(form.comprovante_url)} onClick={onClickArquivo(form.comprovante_url)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline">{t("billing_form_view_file")}</a>
                 {aiFilled && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20 mt-1 ml-2">
                     <Sparkles className="w-2.5 h-2.5" /> {t("billing_form_read_by_ai")}

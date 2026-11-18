@@ -20,6 +20,7 @@ import BillingFormDialog from "@/components/billing/BillingFormDialog";
 import RegistrarRecebimentoDialog, { EstornarRecebimentoDialog } from "@/components/billing/RegistrarRecebimentoDialog";
 import { LinhaParcela } from "@/components/billing/ClientBillingBlocks";
 import { getClientColor } from "@/lib/clientColor";
+import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
 import {
   statusDerivado, saldoDevedor, valorRecebido, agruparBillingsCliente,
   receitaCaixaDoMes, totalAReceber, emAtrasoTotal, indiceRecebimento,
@@ -405,7 +406,7 @@ export default function Billing() {
                             </span>
                           )}
                           {ultimoComprovante(b) && (
-                            <a href={ultimoComprovante(b).url} target="_blank" rel="noopener noreferrer" title="Ver último comprovante" onClick={(e) => e.stopPropagation()} className="ml-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+                            <a href={hrefArquivo(ultimoComprovante(b).url)} target="_blank" rel="noopener noreferrer" title="Ver último comprovante" onClick={onClickArquivo(ultimoComprovante(b).url, (e) => e.stopPropagation())} className="ml-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
                               <Paperclip className="w-3 h-3" /> Comprovante{comprovantesDoBilling(b).length > 1 ? ` (${comprovantesDoBilling(b).length})` : ""}
                             </a>
                           )}
@@ -497,7 +498,7 @@ export default function Billing() {
                       </span>
                     )}
                     {ultimoComprovante(b) && (
-                      <a href={ultimoComprovante(b).url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+                      <a href={hrefArquivo(ultimoComprovante(b).url)} onClick={onClickArquivo(ultimoComprovante(b).url)} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
                         <Paperclip className="w-3 h-3" /> Comprovante{comprovantesDoBilling(b).length > 1 ? ` (${comprovantesDoBilling(b).length})` : ""}
                       </a>
                     )}
