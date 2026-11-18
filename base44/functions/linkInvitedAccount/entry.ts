@@ -8,8 +8,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
-    const newUser = body.user || {};
+    // Identidade vem SEMPRE da sessao, nunca do corpo da requisicao (o corpo
+    // podia apontar o id/e-mail de outra pessoa e roubar o convite dela).
+    const me = await base44.auth.me().catch((e) => (e?.status === 401 ? null : Promise.reject(e)));
+    if (!me) {
+      return Response.json({ error: 'Nao autenticado' }, { status: 401 });
+    }
+    const newUser = { id: me.id, email: me.email };
 
     if (!newUser.email || !newUser.id) {
       return Response.json({ status: 'skipped_no_email' });
