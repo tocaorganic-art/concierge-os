@@ -40,6 +40,19 @@ export default async function (req) {
     try { body = await req.json(); } catch { body = {}; }
     const notify = body.notify !== false;
 
+    // Consulta sob demanda (Dashboard, notify=false) devolve dados internos:
+    // exige sessao de admin/equipe. O disparo diario do workflow (notify=true)
+    // roda sem sessao e so envia e-mail interno, nao devolve os itens.
+    const caller = await base44.auth.me().catch(() => null);
+    if (caller) {
+      const callerType = caller?.account_type || caller?.data?.account_type || 'equipe';
+      if (caller.role !== 'admin' && callerType !== 'equipe') {
+        return Response.json({ error: 'Sem permissao' }, { status: 403 });
+      }
+    } else if (!notify) {
+      return Response.json({ error: 'Nao autenticado' }, { status: 401 });
+    }
+
     const hoje = hojeBahia();
 
     const [tarefasPendentes, tarefasEmProgresso, leads, propostasAtivas, confirmadas] = await Promise.all([
