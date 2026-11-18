@@ -15,10 +15,36 @@ export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
 
-    const pendentes = await base44.asServiceRole.entities.Billing.filter({ status: 'pendente' });
-    const alvos = pendentes
-      .map((b) => ({ ...b, _dias: b.data_vencimento ? diasAte(b.data_vencimento) : null }))
-      .filter((b) => b._dias !== null && b._dias >= 0 && b._dias <= DIAS_ANTECEDENCIA);
+    // Roda pelo workflow diario (sem sessao). Com sessao, so admin/equipe.
+    const caller = await base44.auth.me().catch(() => null);
+    if (caller) {
+      const callerType = caller?.account_type || caller?.data?.account_type || 'equipe';
+      if (caller.role !== 'admin' && callerType !== 'equipe') {
+        return Response.json({ error: 'Sem permissao' }, { status: 403 });
+      }
+    }
+
+    // O que conta e o SALDO real do ledger (Recebimento), nao o status gravado:
+    // uma cobranca paga com status desatualizado nao pode gerar alerta, e uma
+    // parcialmente recebida ainda precisa gerar. Mesma regra de src/lib/finance.js.
+    const [abertas, recebimentos] = await Promise.all([
+      base44.asServiceRole.entities.Billing.filter({ status: { $nin: ['cancelado'] } }),
+      base44.asServiceRole.entities.Recebimento.filter({}),
+    ]);
+    const recebidoPor = {};
+    for (const r of recebimentos || []) {
+      if (!r.billing_id) continue;
+      recebidoPor[r.billing_id] = (recebidoPor[r.billing_id] || 0) + (Number(r.valor) || 0);
+    }
+    const saldoDe = (b) => {
+      const temLedger = Object.prototype.hasOwnProperty.call(recebidoPor, b.id);
+      // legado: cobranca marcada recebida sem lancamento no ledger conta como quitada
+      const recebido = !temLedger && b.status === 'recebido' ? Number(b.valor || 0) : (recebidoPor[b.id] || 0);
+      return Math.round((Number(b.valor || 0) - recebido) * 100) / 100;
+    };
+    const alvos = (abertas || [])
+      .map((b) => ({ ...b, _saldo: saldoDe(b), _dias: b.data_vencimento ? diasAte(b.data_vencimento) : null }))
+      .filter((b) => b._saldo > 0 && b._dias !== null && b._dias >= 0 && b._dias <= DIAS_ANTECEDENCIA);
 
     if (alvos.length === 0) {
       return Response.json({ status: 'sem_alertas_hoje' });
@@ -42,7 +68,8 @@ export default async function (req) {
       const corpo = [
         `Cliente: ${b.client_nome}`,
         `Descrição: ${b.descricao || '—'}`,
-        `Valor: R$ ${Number(b.valor || 0).toLocaleString('pt-BR')}`,
+        `Valor: R$ ${Number(b.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        `Saldo em aberto: R$ ${b._saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
         `Vencimento: ${b.data_vencimento}`,
         `Status: ${urgencia}`,
         '',
