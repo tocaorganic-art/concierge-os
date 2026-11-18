@@ -24,6 +24,7 @@ import { useCategorias } from "@/lib/useCategorias";
 import { TIPO_COBRANCA, criarOuReativarCategoria, garantirCategoria, norm, opcoesComAtual } from "@/lib/categoriasCatalogo";
 import { Camera, Loader2, ImageIcon, X, Sparkles, Layers, Plus, ListPlus, Wand2 } from "lucide-react";
 import { possivelBillingDuplicado, comprovantesDoBilling, partesDaAlocacao, dividirEmParcelas } from "@/lib/finance";
+import { custoFornecedorPendente, splitRepasseMargem } from "@/lib/splitRepasseMargem";
 
 // Na edicao pelo cliente, envia so o que de fato mudou. Campos financeiros
 // (valor, status, vencimento...) so podem ser alterados por quem criou a
@@ -40,7 +41,6 @@ function somenteAlterados(original, data) {
   }
   return out;
 }
-import { custoFornecedorPendente, splitRepasseMargem } from "@/lib/splitRepasseMargem";
 
 const defaultForm = { client_id: "", client_nome: "", proposal_id: "", descricao: "", categoria: "", valor: "", status: "pendente", data_vencimento: "", comprovante_url: "", tipo_despesa: "variavel", motivo_cancelamento: "", natureza: "a_classificar", alocacao: [] };
 
