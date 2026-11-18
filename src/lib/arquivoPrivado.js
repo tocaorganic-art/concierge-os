@@ -71,6 +71,12 @@ export async function abrirArquivo(ref) {
   }
 }
 
+// href seguro para o <a>: arquivo privado nao tem URL fixa, entao o link
+// aponta para "#" e o clique resolve a URL assinada.
+export function hrefArquivo(ref) {
+  return ehArquivoPrivado(ref) ? "#" : ref || "#";
+}
+
 // Handler pronto para <a href={ref} onClick={onClickArquivo(ref)}>: mantem o
 // link normal para URL publica e assina na hora para arquivo privado.
 export function onClickArquivo(ref, extra) {
