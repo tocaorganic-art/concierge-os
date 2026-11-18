@@ -47,13 +47,37 @@ function buildEvent(task) {
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Chamada normal vem do workflow (sem sessao de usuario). Se vier com
+    // sessao, so admin/equipe pode disparar; conta cliente nunca.
+    const caller = await base44.auth.me().catch(() => null);
+    if (caller) {
+      const callerType = caller?.account_type || caller?.data?.account_type || 'equipe';
+      if (caller.role !== 'admin' && callerType !== 'equipe') {
+        return Response.json({ error: 'Sem permissao' }, { status: 403 });
+      }
+    }
+
     const body = await req.json();
     const eventType = body.event_type;
-    const task = body.task;
     const entityId = body.entity_id;
+    let task = body.task;
 
     if (!eventType || !task) {
       return Response.json({ error: 'missing event_type or task' }, { status: 400 });
+    }
+
+    // Em create/update, usa a tarefa como esta no banco, nunca o corpo da
+    // requisicao (evita gravar dados forjados no calendario ou na Task).
+    if (eventType !== 'delete') {
+      if (!entityId) {
+        return Response.json({ error: 'missing entity_id' }, { status: 400 });
+      }
+      const real = await base44.asServiceRole.entities.Task.get(entityId).catch(() => null);
+      if (!real) {
+        return Response.json({ status: 'skipped_task_not_found' });
+      }
+      task = real;
     }
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googlecalendar');
