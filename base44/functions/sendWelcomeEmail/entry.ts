@@ -208,6 +208,15 @@ function buildText({ nome, email, destino, dataInicio, dataFim, whatsapp, lang }
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
+
+    // So admin ou equipe pode montar/enviar o e-mail de boas-vindas.
+    const caller = await base44.auth.me().catch((e) => (e?.status === 401 ? null : Promise.reject(e)));
+    if (!caller) return Response.json({ error: 'Nao autenticado' }, { status: 401 });
+    const callerType = caller?.account_type || caller?.data?.account_type || 'equipe';
+    if (caller.role !== 'admin' && callerType !== 'equipe') {
+      return Response.json({ error: 'Sem permissao' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { client_id, preview } = body || {};
 
