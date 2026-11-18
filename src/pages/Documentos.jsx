@@ -6,6 +6,7 @@ import { FolderOpen, FileText, Loader2, ExternalLink, Receipt, PenLine } from "l
 import ChatAnexo from "@/components/chat/ChatAnexo";
 import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
+import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
 
 function DocLinha({ nome, sub, href }) {
   return (
@@ -159,7 +160,7 @@ export default function Documentos() {
 function DocLink({ url }) {
   const { t } = useLanguage();
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" title={t("docs_open_title")} className="flex-shrink-0">
+    <a href={hrefArquivo(url)} onClick={onClickArquivo(url)} target="_blank" rel="noopener noreferrer" title={t("docs_open_title")} className="flex-shrink-0">
       <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
     </a>
   );

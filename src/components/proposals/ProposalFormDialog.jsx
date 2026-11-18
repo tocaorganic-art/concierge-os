@@ -26,6 +26,7 @@ import LeituraContratoModal from "@/components/proposals/LeituraContratoModal";
 import TemplateManagerDialog from "@/components/proposals/TemplateManagerDialog";
 import SalvarTemplateDialog from "@/components/proposals/SalvarTemplateDialog";
 import { ETAPAS } from "@/components/dashboard/DashboardStatusViagem";
+import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
 
 const defaultForm = {
   client_id: "",
@@ -379,7 +380,7 @@ export default function ProposalFormDialog({ open, onOpenChange, proposal }) {
                 <div className="mt-1.5 space-y-1.5">
                   <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
                     <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                    <a href={form.contrato_assinado_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">
+                    <a href={hrefArquivo(form.contrato_assinado_url)} onClick={onClickArquivo(form.contrato_assinado_url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">
                       Ver contrato anexado
                     </a>
                     <button type="button" onClick={() => setForm((f) => ({ ...f, contrato_assinado_url: "" }))}>

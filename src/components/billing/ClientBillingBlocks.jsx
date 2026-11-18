@@ -6,6 +6,7 @@ import { statusDerivado, comprovantesDoBilling, valorRecebido, saldoDevedor } fr
 import { useUserProfile } from "@/lib/useUserProfile";
 import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
+import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
 
 const EDITAVEL_MINUTOS = 5;
 
@@ -271,7 +272,7 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
           {comprovantes.length > 0 && (
             <div className="space-y-1">
               {comprovantes.map((c, i) => (
-                <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
+                <a key={i} href={hrefArquivo(c.url)} onClick={onClickArquivo(c.url)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
                   <Paperclip className="w-2.5 h-2.5" />
                   {comprovantes.length > 1 ? t("billing_comprovante_n", { n: i + 1 }) : t("billing_ver_comprovante")}
                   {c.enviado_em && ` · ${formatDate(c.enviado_em.slice(0, 10))}`}
