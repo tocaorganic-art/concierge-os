@@ -20,8 +20,8 @@ import BillingFormDialog from "@/components/billing/BillingFormDialog";
 import RegistrarRecebimentoDialog, { EstornarRecebimentoDialog } from "@/components/billing/RegistrarRecebimentoDialog";
 import { LinhaParcela } from "@/components/billing/ClientBillingBlocks";
 import { getClientColor } from "@/lib/clientColor";
-import {
 import { hrefArquivo, onClickArquivo } from "@/lib/arquivoPrivado";
+import {
   statusDerivado, saldoDevedor, valorRecebido, agruparBillingsCliente,
   receitaCaixaDoMes, totalAReceber, emAtrasoTotal, indiceRecebimento,
   comprovantesDoBilling, ultimoComprovante, roundCents,
