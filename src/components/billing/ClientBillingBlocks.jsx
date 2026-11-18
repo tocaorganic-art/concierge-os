@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Paperclip, Camera, ChevronDown, Send, Pencil } from "lucide-react";
-import { statusDerivado, comprovantesDoBilling } from "@/lib/finance";
+import { statusDerivado, comprovantesDoBilling, valorRecebido, saldoDevedor } from "@/lib/finance";
 import { useUserProfile } from "@/lib/useUserProfile";
 import { formatBRL } from "@/lib/formatBRL";
 import { useLanguage } from "@/lib/i18n";
@@ -222,6 +222,8 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
   const meta = STATUS_LABEL[status] || STATUS_LABEL.pendente;
   const podeAnexar = status !== "recebido" && status !== "cancelado";
   const comprovantes = comprovantesDoBilling(billing);
+  const pago = Math.min(valorRecebido(billing, recebimentos), billing.valor || 0);
+  const saldo = Math.max(0, saldoDevedor(billing, recebimentos));
 
   return (
     <div id={`billing-${billing.id}`} className="border-b border-border/60 last:border-0 py-2.5 scroll-mt-24">
@@ -230,7 +232,15 @@ export function LinhaParcela({ billing, recebimentos, onUploaded, onEdit, defaul
           <p className="text-sm text-foreground">
             {billing.numero_parcela && billing.total_parcelas ? t("common_parcela_label", { n: billing.numero_parcela, total: billing.total_parcelas }) : billing.descricao || t("common_cobranca_fallback")}
           </p>
-          <p className="text-[11px] text-muted-foreground">{t("common_venc_label")} {formatDate(billing.data_vencimento)}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {t("common_venc_label")} {formatDate(billing.data_vencimento)}
+            {status !== "cancelado" && (
+              <span className="font-mono">
+                {" · "}Pago <span className={pago > 0 ? "text-emerald-400" : ""}>{formatBRL(pago)}</span>
+                {" · "}Saldo <span className={saldo > 0 ? "text-primary" : ""}>{formatBRL(saldo)}</span>
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {billing.tipo_despesa === "fixa" && (
