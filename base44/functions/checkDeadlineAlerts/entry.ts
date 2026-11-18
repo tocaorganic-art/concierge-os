@@ -128,10 +128,10 @@ export default async function (req) {
         });
         enviados += 1;
       }
-      return Response.json({ status: 'ok', alertas, emails_enviados: enviados });
+      return Response.json({ status: 'ok', ...(caller ? { alertas } : { total: alertas.length }), emails_enviados: enviados });
     }
 
-    return Response.json({ status: 'ok', alertas, emails_enviados: 0 });
+    return Response.json({ status: 'ok', ...(caller ? { alertas } : { total: alertas.length }), emails_enviados: 0 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
